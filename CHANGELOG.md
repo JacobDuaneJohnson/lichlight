@@ -4,6 +4,13 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.4.3] - 2026-10-24
+
+_No more torch farming from sconces_
+
+### Fixed
+- Wall torches can no longer be taken from their sconces. Walking up to or clicking a lit wall torch used to add it to your torch count, which let you farm torches. Now clicking a lit wall torch (or swinging at it) knocks it out, and **F** / **USE** at a lit wall torch or brazier relights your own torch without putting the wall torch out. You can still relight an empty sconce from your own torch. Torches lying on the floor are picked up as before.
+
 ## [0.4.2] - 2026-10-24
 
 _Depth 1 playtest fixes_
@@ -162,6 +169,7 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.4.3]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.3
 [0.4.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.2
 [0.4.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.1
 [0.4.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.0

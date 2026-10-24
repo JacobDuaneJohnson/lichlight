@@ -238,7 +238,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.4.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.4.3'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -1076,7 +1076,7 @@ function drawEmissive(sx, sy) { // things that glow on their own, drawn above th
   for (const t of torches) { if (t.x < sx - 8 || t.x > sx + VW + 8 || t.y < sy - 8 || t.y > sy + VH + 8) continue;
     if (t.out) { ctx.fillStyle = '#3a2a20'; ctx.fillRect(t.x - 1, t.y + 1, 2, 4); continue; }
     ctx.drawImage(tileImgs.torch[(tf + t.x) % 3], t.x - 2, t.y - 3);
-    if (t.take && Math.floor(time * 2 + t.x) % 5 === 0) { ctx.fillStyle = '#fff6c0'; ctx.fillRect(t.x + 3, t.y - 4, 1, 1); } }
+ }
   for (const b of braziers) { if (b.x < sx - 10 || b.x > sx + VW + 10) continue; ctx.drawImage(BRAZIER, b.x - 5, b.y - 9); ctx.drawImage(tileImgs.torch[(tf + b.x) % 3], b.x - 2, b.y - 12); }
   // eyes in the dark: close enemies you can't see show only a glint
   for (const e of enemies) { if (e.hidden || e.disg || e.downT) continue; const d = dist(e, p); if (d > 115) continue;
@@ -1117,7 +1117,6 @@ function updateTorch(dt) {
     if (p.torchT <= 0) { burst(p.x, p.y - 8, '#555', 10, 25); if (!lightTorch()) flashMsg('Your torch burns out. Darkness closes in.', '#a08870'); else flashMsg('Torch burned out - you light a fresh one.', '#ffb040'); } }
   else if (p.torches > 0) lightTorch();
   // take loose torches from wall sconces
-  for (const t of torches) if (t.take && !t.out && Math.abs(p.x - t.x) < 12 && p.y - t.y > 0 && p.y - t.y < 26) { if (!giveTorch()) break; t.out = true; mapVer++; flashMsg('You take the torch from its sconce.', '#ffb040'); }
   // dust motes around the player light
   const R = lightRadius();
   if (R > 40 && motes.length < 26) motes.push({ x: p.x + rand(-R, R) * .8, y: p.y + rand(-R, R) * .6, vx: rand(-3, 3), vy: rand(-4, 1), life: rand(2, 5) });
@@ -1142,8 +1141,7 @@ function placeLights() {
   for (let i = 0; i < rooms.length; i++) { const r = rooms[i]; if (Math.random() > (i === 0 ? 0 : .35) || r.w < 5 || r.h < 4) continue;
     for (const [x, y] of shuffled([[r.x + 1, r.y + 1], [r.x + r.w - 2, r.y + 1], [r.x + 1, r.y + r.h - 2], [r.x + r.w - 2, r.y + r.h - 2]])) {
       if (tileAt(x, y) === TILE.FLOOR && !used.has(x + ',' + y)) { braziers.push({ x: (x + .5) * TS, y: (y + .5) * TS + 4 }); used.add(x + ',' + y); break; } } }
-  // loose torches you can take from sconces
-  shuffled(torches).slice(0, depth <= 5 ? 3 : 2).forEach(t => t.take = true);
+  // v0.4.3: wall torches can't be taken (melee snuffs them, F / USE relights your own torch from them)
   // torches lying on the floor: more on early floors; one in the start room if you are about to run dry
   const n = depth <= 3 ? 3 : depth <= 10 ? 2 : irand(1, 2), cand = rooms.slice(1);
   for (let k = 0; k < n && cand.length; k++) { const s = freeSpot(pick(cand)); dropAt(ground, s.x, s.y, { torch: 1 }); }
@@ -2713,7 +2711,7 @@ function interactables() {
   for (const b of braziers) if (!torchFull() && close(b.x, b.y, 18)) L.push({ x: b.x, y: b.y, r: 20, label: 'LIGHT TORCH', use: relightFrom, ref: b });
   for (const t of torches) { const x = t.x, y = t.y + 14; if (!close(x, y, 16)) continue;
     if (!t.out && !torchFull()) L.push({ x, y, r: 16, label: 'LIGHT TORCH', use: relightFrom, ref: t });
-    else if (t.out && !t.take && p.torchT > 0) L.push({ x, y, r: 16, label: 'RELIGHT SCONCE', use: () => { t.out = false; mapVer++; sfx('whoosh'); burst(t.x, t.y, '#ffb040', 8, 25); flashMsg('The sconce flares back to life.', '#ffb040'); }, ref: t }); }
+    else if (t.out && p.torchT > 0) L.push({ x, y, r: 16, label: 'RELIGHT SCONCE', use: () => { t.out = false; mapVer++; sfx('whoosh'); burst(t.x, t.y, '#ffb040', 8, 25); flashMsg('The sconce flares back to life.', '#ffb040'); }, ref: t }); }
   if (shop && close(shop.x, shop.y, 20)) L.push({ x: shop.x, y: shop.y + 4, r: 22, label: 'TRADE', use: openShop, ref: shop });
   return L;
 }
