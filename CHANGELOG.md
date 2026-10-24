@@ -4,6 +4,39 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-10-24
+
+_Feature Brief v1: bigger crypts, survival, shop, doors and traps_
+
+### Added
+- **Bigger floors.** Each floor has about 1.7 times as many rooms. Some rooms are quiet now, so the extra space doesn't mean wall-to-wall monsters.
+- **Explored map.** Press **M** (or Tab) on a computer, or tap the ⌗ button on a phone, to see the part of the current floor you've explored. It shows doors, water, and the trader.
+- **Map Fragments.** These are very rare. Collect 4 and use them from your bag to reveal the whole floor, including hidden walls and traps.
+- **Sealed doors and vaults.** Stone doors open with a puzzle in the room: pull levers in the colour order painted on the door, touch runes in the order carved on it, or stand on every pressure plate. Iron gates need a **Gate Key**, which is separate from chest keys. Vaults behind them hold good loot.
+- **Blood doors.** The boss room is sealed by a blood door that costs 15% of your max life to open. It never kills you; if you're too hurt, it refuses until you heal.
+- **Traps in narrow corridors.** Pitfalls, dart traps, collapsing ceilings, rolling stones, and fire jets. Each one flashes a warning first, so you have time to roll.
+- **Breakable props.** Barrels, urns, bone piles, and chained skeletons break apart when you hit them, and sometimes drop gold, a potion, a ration, or a map fragment. Floors are also damper: more puddles, mould, and running water.
+- **Torches.** Hit a wall torch to knock it out. Walk up to a lit torch or brazier and press **F** / **USE** to relight your own torch, or use a lit torch on an empty sconce to relight it.
+- **Survival.** New Food, Water, and Rest bars. When one runs low you move slower. When one is empty you slowly lose life, but that alone never kills you. Eat rations from your bag, drink from stone basins and running water, and **REST** for 1 to 8 hours in a quiet room with no enemies nearby. 6 to 8 hours is a full rest. You start with 2 rations.
+- **The Hollow Pedlar.** A rare crypt shop, usually on the floor right after a boss. Sell backpack items, repair everything at once, and buy potions, rations, and Gate Keys.
+- **Satchels and backpacks.** The Bone King and later bosses can drop bags that add 5 or 10 bag slots (40 max).
+- **Drop All.** A **DROP ALL** button in the bag drops every backpack item after you confirm "Drop all items?". Shift+click skips the confirm. Equipped gear is never dropped.
+- **Boss parley.** Walking up to a boss now pauses for a short exchange before the fight, with three replies to pick from. **BEGIN** (or Esc / Enter) always starts the fight.
+- **Thought bubbles.** Every so often your hero, or more rarely a monster, has something to say.
+- **Ambient sound.** Crackling torches, dripping water, wind in the corridors, and growls when monsters spot you.
+- **Battle music option.** The combat track is now **Off** by default. Turn it on with **BATTLE MUSIC** in the menu.
+- **Skill keys.** On a computer, **1 / 2 / 3** now cast a skill toward the mouse instead of switching skills. **F1 to F3** (or clicking a skill box on the bottom bar) still pick the right-click skill. Pause → **SKILL KEYS** lets you choose which skill each key and right-click casts.
+- New keys: **F** to use or interact, **R** to eat, **Z** to rest. On phones, a **USE** button appears when you're next to something you can use.
+
+### Changed
+- **Stand in place is now Ctrl.** Hold Ctrl and you stay put. Ctrl+left-click attacks toward the cursor without moving. Shift no longer does this; Shift+click is a normal click.
+- Loot never lands inside a wall anymore, including monster drops, gold, potions, uniques, and Drop All.
+- Restyled menus and panels in stone, parchment, bone, and iron.
+- Smoother torch and brazier flicker, and a cool glow over water.
+
+### Fixed
+- Items dropped next to a wall could end up stuck in the wall where you couldn't reach them.
+
 ## [0.3.2] - 2026-10-24
 
 _Update prompt_
@@ -109,6 +142,7 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.4.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.0
 [0.3.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.2
 [0.3.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.1
 [0.3.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.0

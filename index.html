@@ -116,6 +116,35 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #gtip{position:fixed;z-index:30;pointer-events:none;max-width:min(300px,70vw);background:rgba(16,10,20,.96);border:2px solid #6a5030;border-radius:4px;padding:6px 8px;font-size:12px;line-height:1.4;color:#ddd}
 #gtip .nm{font-weight:bold;font-size:14px}#gtip.hidden{display:none}
 .c0{color:#ddd}.c1{color:#7a9cff}.c2{color:#f0f060}.c3{color:#d8a040}.cg{color:#888}.cgood{color:#60e060}.cbad{color:#e06060}
+/* v0.4 UI pass: stone, parchment, bone and iron */
+.panel{background:linear-gradient(#1c1618,#141014);border:2px solid #5a4a38;box-shadow:inset 0 0 0 1px #2a2018,inset 0 0 12px rgba(0,0,0,.6)}
+.mbtn{background:linear-gradient(#4a2a24,#341a18);border-color:#8a6a48;color:#ecdfc4;text-shadow:0 1px 0 #000;box-shadow:inset 0 1px 0 rgba(255,230,190,.15),0 2px 0 #000}
+.mbtn:active{background:#5a2a24}
+.sortb{background:linear-gradient(#3a3a3c,#262628);border-color:#7a7a80;color:#ecdfc4}
+#inv{background:radial-gradient(ellipse at center,rgba(26,20,22,.96),rgba(6,4,6,.97))}
+#inv h3,.v4box h3{color:#d8c49a;text-shadow:0 1px 0 #000}
+.v4box{background:linear-gradient(#211a16,#15100e);border:3px solid #8a7050;outline:2px solid #2a1e14;border-radius:4px;padding:12px 18px;max-width:min(94vw,640px);max-height:92vh;overflow:auto;color:#e0d4bc;font-family:"Courier New",monospace;box-shadow:0 0 30px rgba(0,0,0,.9),inset 0 0 18px rgba(0,0,0,.6);text-align:center}
+.v4box h2{margin:0 0 4px;color:#e8d4a0;letter-spacing:2px;font-size:18px;text-shadow:2px 2px 0 #3a0808}
+.v4sub{color:#a89880;font-size:12px;margin:4px 0;line-height:1.35;min-height:1em}
+.shb{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:36px;margin:3px 0;padding:4px 10px;font:bold 13px "Courier New",monospace;color:#ecdfc4;background:linear-gradient(#3a3230,#262020);border:2px solid #6a5a48;border-radius:3px;touch-action:none;cursor:pointer}
+.shb i{color:#a89880;font-style:normal;font-weight:normal;font-size:11px}.shb b{color:#e8c840}.shb.dis{opacity:.45}.shb.on{border-color:#c0d880;background:linear-gradient(#3a4a28,#26301a)}
+.shcols{display:flex;gap:14px;text-align:left;margin:6px 0}.shcol{flex:1;min-width:0}
+#shGrid{display:grid;grid-template-columns:repeat(5,var(--slot));gap:3px;--slot:min(9vh,42px);max-height:38vh;overflow-y:auto;touch-action:pan-y}
+#rsHours{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin:6px 0}#rsHours .rh{width:auto;flex:0 0 52px;justify-content:center}
+.talkbox{text-align:left;max-width:min(94vw,560px)}.tkhead{display:flex;gap:12px;align-items:center}#tkPort{width:64px;height:64px;image-rendering:pixelated;border:2px solid #6a2020;background:#0c080a}
+#tkLine{font-size:14px;line-height:1.45;color:#e8dcc0;font-style:italic}#tkResp{color:#e07060;font-size:13px;min-height:1em}#talk .mbtn{display:block;margin:8px auto 2px}
+#talk .v4sub,#skills .v4sub{text-align:center}
+.skrow{display:flex;gap:4px;align-items:center;margin:4px 0;flex-wrap:wrap}.skrow .skn{flex:1 1 120px;text-align:left;font-weight:bold}.skrow .skl{color:#888;font-size:11px;width:40px}.skrow .skb{width:auto;flex:0 0 auto;font-size:11px;min-height:30px}
+.invb{flex-wrap:wrap}.invb2 .sortb{flex:0 1 auto;padding:0 8px;display:flex;align-items:center;gap:4px}#dropAllBtn{background:linear-gradient(#4a2020,#301414);border-color:#a04040}
+#grid{max-height:calc(var(--slot) * 4 + 16px);overflow-y:auto;touch-action:pan-y}
+#bUse{width:52px;height:52px;right:calc(160px + env(safe-area-inset-right));bottom:calc(170px + env(safe-area-inset-bottom));background:rgba(150,130,70,.6);border-radius:12px}
+#bUse.hidden{display:none}
+.overlay.hidden,#shop.hidden,#rest.hidden,#talk.hidden,#skills.hidden{display:none}
+#skills{z-index:25}
+.v4box h3{margin:2px 0 4px;font-size:13px}
+@media (max-height:460px){.mbtn.small{padding:5px 9px;font-size:12px}.aopts{gap:4px 10px;margin-top:2px}.help{font-size:11px;line-height:1.35;margin-top:4px}.title{margin:0 0 2px}.subt{margin-bottom:4px}}
+@media (max-height:460px){.v4box{padding:6px 12px;max-height:96vh}.v4box h2{font-size:15px;margin:0 0 2px}.v4sub{font-size:11px;margin:2px 0}.shb{min-height:28px;margin:2px 0;padding:2px 8px;font-size:12px}.shcols{margin:2px 0}#shGrid{--slot:min(10vh,38px)}
+  #tkPort{width:44px;height:44px}#tkLine{font-size:12.5px;margin:6px 0}#tkResp{font-size:12px;margin:4px 0}#talk .mbtn{margin:4px auto 0;padding:6px 14px;font-size:15px}.shopbox .mbtn{margin:2px;padding:6px 12px}}
 </style>
 </head>
 <body>
@@ -128,6 +157,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="btn" id="bS2" data-act="s2"><span class="ico">🌀</span><span class="sub">SPIN</span><div class="cd"></div></div>
   <div class="btn" id="bS3" data-act="s3"><span class="ico">❄</span><span class="sub">NOVA</span><div class="cd"></div></div>
   <div class="btn" id="bRoll" data-act="roll"><span class="ico">⤳</span><span class="sub">ROLL</span><div class="cd"></div></div>
+  <div class="btn hidden" id="bUse" data-act="use"><span class="ico">✋</span><span class="sub" id="bUseL">USE</span></div>
   <div class="btn" id="bHP" data-act="hp"><span class="ico" style="font-size:16px">♥</span><span class="sub" id="nHP">0</span></div>
   <div class="btn" id="bMP" data-act="mp"><span class="ico" style="font-size:16px">✦</span><span class="sub" id="nMP">0</span></div>
   <div class="btn" id="bInv" data-act="inv"><span class="ico" style="font-size:20px">🎒</span><span class="nbadge hidden" id="newBadge">0</span></div>
@@ -136,11 +166,12 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="tbtn" id="tPause">❚❚</div>
   <div class="tbtn" id="tFull">⛶</div>
   <div class="tbtn" id="tSnd">♪</div>
+  <div class="tbtn" id="tMap">⌗</div>
 </div>
 <div id="gtip" class="hidden"></div>
 <div id="inv" class="hidden">
   <div class="panel"><h3>EQUIPPED</h3><div id="equip"></div><div id="stats"></div></div>
-  <div class="panel"><h3>BACKPACK <span id="gold" class="c3"></span></h3><div id="grid"></div><div class="invb"><button class="sortb" id="sortBtn">⇅ SORT</button><button class="sortb seenb" id="seenBtn">✓ MARK ALL SEEN</button><button class="sortb" id="rpBtn" title="Repair Potion: select, then pick an item to repair"><img id="rpImg" alt=""><span id="rpN">0</span></button></div></div>
+  <div class="panel"><h3>BACKPACK <span id="gold" class="c3"></span></h3><div id="grid"></div><div class="invb"><button class="sortb" id="sortBtn">⇅ SORT</button><button class="sortb seenb" id="seenBtn">✓ MARK ALL SEEN</button><button class="sortb" id="dropAllBtn" title="Drop every backpack item (Shift+click skips the confirm)">DROP ALL</button></div><div class="invb invb2"><button class="sortb" id="rpBtn" title="Repair Potion: select, then pick an item to repair"><img id="rpImg" alt=""><span id="rpN">0</span></button><button class="sortb" id="ratBtn" title="Eat a ration">🍖<span id="ratN">0</span></button><button class="sortb" id="fragBtn" title="Map Fragments: 4 reveal this floor">📜<span id="fragN">0/4</span></button><span class="sortb" id="gkN" title="Gate Keys (iron gates)" style="display:flex;align-items:center;padding:0 6px;background:#202428;border-color:#6a7a8a">GATE 0</span><button class="sortb" id="restBtn" title="Rest in a safe room">REST</button></div></div>
   <div class="panel" id="detail"><div id="dtext"><span class="cg">Tap an item to see its stats.</span></div><div id="dbtns"></div></div>
 </div>
 <div id="menu" class="overlay">
@@ -152,6 +183,9 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="aopts" id="audioOpts">
     <button class="mbtn small" id="mSound">SOUND: ON</button>
     <button class="mbtn small" id="mMusic">MUSIC: ON</button>
+    <button class="mbtn small" id="mBattle">BATTLE MUSIC: OFF</button>
+    <button class="mbtn small" id="mSkills">SKILL KEYS</button>
+    <button class="mbtn small hidden" id="mRest">REST</button>
     <button class="mbtn small" id="mShake">SHAKE: FULL</button>
     <label>MUSIC <input type="range" id="volMusic" min="0" max="100" step="5"></label>
     <label>SFX <input type="range" id="volSfx" min="0" max="100" step="5"></label>
@@ -166,6 +200,28 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <p class="updSub">Your progress is saved at the start of each floor.</p>
   <div class="updBtns"><button class="mbtn" id="updGo">UPDATE</button><button class="mbtn small" id="updLater">LATER</button></div>
 </div></div>
+<div id="shop" class="overlay hidden"><div class="v4box shopbox">
+  <h2>THE HOLLOW PEDLAR <span id="shGold" class="c3"></span></h2><div class="v4sub" id="shNote"></div>
+  <div class="shcols">
+    <div class="shcol"><h3>BUY</h3><div id="shBuy"></div><button class="shb" id="shRepair">REPAIR ALL</button></div>
+    <div class="shcol"><h3>SELL (BACKPACK)</h3><div id="shGrid"></div><div id="shSelTxt" class="v4sub"></div><button class="shb" id="shSell">SELL</button></div>
+  </div>
+  <button class="mbtn small" id="shLeave">LEAVE</button>
+</div></div>
+<div id="rest" class="overlay hidden"><div class="v4box">
+  <h2>REST</h2><div class="v4sub">The room is quiet. How long will you sleep?</div>
+  <div id="rsHours"></div><div class="v4sub" id="rsTxt"></div>
+  <div class="updBtns"><button class="mbtn small" id="rsGo">SLEEP</button><button class="mbtn small" id="rsNo">CANCEL</button></div>
+</div></div>
+<div id="talk" class="overlay hidden"><div class="v4box talkbox">
+  <div class="tkhead"><canvas id="tkPort" width="64" height="64"></canvas><div><h2 id="tkName"></h2><div class="v4sub" id="tkTitle"></div></div></div>
+  <p id="tkLine"></p><div id="tkReplies"></div><p id="tkResp"></p>
+  <button class="mbtn" id="tkBegin">BEGIN THE FIGHT</button><div class="v4sub">Esc / Enter also begins</div>
+</div></div>
+<div id="skills" class="overlay hidden"><div class="v4box">
+  <h2>SKILL KEYS</h2><div class="v4sub">Keys 1 / 2 / 3 cast a skill at the cursor. Pick which skill each key casts, and which one right-click casts.</div>
+  <div id="skRows"></div><button class="mbtn small" id="skClose">DONE</button>
+</div></div>
 <div id="dead" class="overlay hidden">
   <h1 class="title" style="color:#c03030">YOU DIED</h1>
   <div class="subt" id="deadTxt"></div>
@@ -177,7 +233,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.3.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.4.0'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -236,7 +292,7 @@ I:[7,2,2,2,7],J:[1,1,1,5,2],K:[5,5,6,5,5],L:[4,4,4,4,7],M:[5,7,7,5,5],N:[6,5,5,5
 R:[6,5,6,5,5],S:[3,4,2,1,6],T:[7,2,2,2,2],U:[5,5,5,5,7],V:[5,5,5,5,2],W:[5,5,7,7,5],X:[5,5,2,5,5],Y:[5,5,2,2,2],Z:[7,1,2,4,7],
 '0':[7,5,5,5,7],'1':[2,6,2,2,7],'2':[6,1,2,4,7],'3':[6,1,2,1,6],'4':[5,5,7,1,1],'5':[7,4,6,1,6],'6':[3,4,6,5,2],'7':[7,1,2,2,2],
 '8':[2,5,2,5,2],'9':[2,5,3,1,6],'+':[0,2,7,2,0],'-':[0,0,7,0,0],'/':[1,1,2,4,4],':':[0,2,0,2,0],'.':[0,0,0,0,2],'!':[2,2,2,0,2],
-'%':[5,1,2,4,5],' ':[0,0,0,0,0],"'":[2,2,0,0,0],',':[0,0,0,2,4],'?':[6,1,2,0,2]};
+'%':[5,1,2,4,5],' ':[0,0,0,0,0],"'":[2,2,0,0,0],',':[0,0,0,2,4],'?':[6,1,2,0,2],'(':[1,2,2,2,1],')':[4,2,2,2,4],'*':[0,5,2,5,0],'=':[0,7,0,7,0],'<':[1,2,4,2,1],'>':[4,2,1,2,4],'_':[0,0,0,0,7],'"':[5,5,0,0,0],'^':[2,5,0,0,0],';':[0,2,0,2,4],'~':[0,3,6,0,0],'#':[5,7,5,7,5],'[':[3,2,2,2,3],']':[6,2,2,2,6]};
 function textW(s) { return s.length * 4 - 1; }
 function drawText(s, x, y, col = '#fff', shadow = true) {
   s = String(s).toUpperCase(); x = Math.round(x); y = Math.round(y);
@@ -339,7 +395,7 @@ for (let f = 0; f < 3; f++) tileImgs.torch.push(makeSprite([
   f === 0 ? "..F.." : f === 1 ? ".F..." : "...F.", f === 0 ? ".FfF." : ".fFf.", ".ffr.", "..r..", ".kwk.", "..w..", "..w.."]));
 
 // ---------- audio: settings, buses, sfx ----------
-const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, shake: 'full' },
+const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, shake: 'full', battleMusic: false, hotkeys: [0, 1, 2] },
   (() => { try { return JSON.parse(localStorage.getItem('cryptdelve-settings')) || {}; } catch (e) { return {}; } })());
 function saveSettings() { try { localStorage.setItem('cryptdelve-settings', JSON.stringify(settings)); } catch (e) {} }
 let actx = null, bus = null, noiseBuf = null, audioErr = null;
@@ -406,6 +462,7 @@ function sfx(type) {
   sfxLog.push(type); if (sfxLog.length > 40) sfxLog.shift();
   if (!actx || !bus || !settings.sound) return;
   if (type === 'shatter') { try { sfxShatter(); } catch (e) {} return; }
+  try { if (sfxExtra(type)) return; } catch (e) { return; }
   const S = { swing: ['triangle', 300, 120, .08, .06], hit: ['square', 180, 60, .1, .08], hurt: ['sawtooth', 140, 50, .18, .1],
     fire: ['sawtooth', 500, 150, .15, .05], pick: ['square', 600, 1200, .08, .05], gold: ['square', 900, 1400, .06, .04],
     lvl: ['square', 400, 1000, .4, .07], drink: ['sine', 300, 700, .2, .1], nova: ['triangle', 1200, 200, .3, .08], stairs: ['sine', 500, 100, .5, .1],
@@ -519,7 +576,7 @@ function updateMusic() {
   if (!music.started) return;
   let want = 'ambient';
   if (state === 'dead') want = 'silent';
-  else if (player && (state === 'play' || state === 'inv' || state === 'pause') && time < music.combatUntil) want = 'combat';
+  else if (player && (state === 'play' || state === 'inv' || state === 'pause') && time < music.combatUntil && settings.battleMusic) want = 'combat'; // battle music is opt-in (default Off)
   setMusicMode(want);
 }
 // ---------- items ----------
@@ -713,11 +770,11 @@ let MW = 64, MH = 48, map = [], seen = [], rooms = [], torches = [], mapVar = []
 function tileAt(tx, ty) { return (tx < 0 || ty < 0 || tx >= MW || ty >= MH) ? TILE.WALL : map[ty * MW + tx]; }
 function solidAt(px, py) { return tileAt(Math.floor(px / TS), Math.floor(py / TS)) === TILE.WALL; }
 function genDungeon(depth) {
-  MW = 56 + Math.min(depth * 2, 24); MH = 40 + Math.min(depth, 16);
+  MW = 80 + Math.min(depth * 2, 32); MH = 56 + Math.min(depth, 20); // v0.4: ~1.7x the rooms of v0.3
   map = new Array(MW * MH).fill(TILE.WALL); seen = new Array(MW * MH).fill(false);
   rooms = []; torches = [];
-  const target = 8 + Math.min(depth, 6);
-  for (let tries = 0; tries < 500 && rooms.length < target; tries++) {
+  const target = 13 + Math.min(depth, 9);
+  for (let tries = 0; tries < 1200 && rooms.length < target; tries++) {
     const w = irand(5, 10), h = irand(4, 8), x = irand(1, MW - w - 2), y = irand(2, MH - h - 2);
     if (rooms.some(r => x < r.x + r.w + 2 && x + w + 2 > r.x && y < r.y + r.h + 2 && y + h + 2 > r.y)) continue;
     rooms.push({ x, y, w, h, cx: Math.floor(x + w / 2), cy: Math.floor(y + h / 2) });
@@ -759,7 +816,7 @@ const INV_SIZE = 20;
 function newPlayer() {
   return { x: 0, y: 0, r: 5, fx: 0, fy: 1, lvl: 1, xp: 0, hp: 60, mp: 25, gold: 0, hpPot: 3, mpPot: 2,
     inv: new Array(INV_SIZE).fill(null), equip: { weapon: makeItem(1, 0, 'Short Sword'), helm: null, armor: null, boots: null, ring: null },
-    atkCd: 0, swing: 0, inv0: 0, roll: 0, rollCd: 0, rollQ: 0, rx: 0, ry: 1, cds: [0, 0, 0], walkT: 0, kills: 0, found: [], keys: 0, rpPot: 1, wearN: 0, torches: 0, torchT: 0, torchWarn: false, st: {} };
+    atkCd: 0, swing: 0, inv0: 0, roll: 0, rollCd: 0, rollQ: 0, rx: 0, ry: 1, cds: [0, 0, 0], walkT: 0, kills: 0, found: [], keys: 0, rpPot: 1, wearN: 0, torches: 0, torchT: 0, torchWarn: false, gateKeys: 0, rations: 2, hunger: 100, thirst: 100, fatigue: 100, mapFrags: 0, bagBonus: 0, st: {} };
 }
 function xpNeed(l) { return Math.floor(30 * Math.pow(l, 1.55)); }
 function computeStats() {
@@ -775,7 +832,7 @@ function computeStats() {
     fire: m.fire, light: m.light, ms: 1 + m.ms / 100, regen: 0.4 + m.regen + lv * 0.05 };
   p.hp = Math.min(p.hp, p.st.maxHp); p.mp = Math.min(p.mp, p.st.maxMp);
 }
-function dropAt(list, x, y, obj) { list.push(Object.assign({ x, y, bob: Math.random() * 6, lock: false }, obj)); }
+function dropAt(list, x, y, obj) { if (list === ground && map && map.length) { const q = safeSpot(x, y); x = q.x; y = q.y; } list.push(Object.assign({ x, y, bob: Math.random() * 6, lock: false }, obj)); }
 // =====================================================================
 //  Bestiary: 30 regular mobs (+ the slimelet split-spawn) and 20 bosses
 // =====================================================================
@@ -899,6 +956,7 @@ function breakSecret(s) {
   else if (Math.random() < .5) dropAt(ground, cx, ly, { torch: 1 });
 }
 function breakSecretsAt(x, y, r, walls) {
+  breakPropsAt(x, y, r);
   for (const s of secrets) { if (s.broken || (s.kind === 'wall' && !walls)) continue;
     const cx = (s.tx + .5) * TS, cy = (s.ty + .5) * TS; if (Math.abs(cx - x) < r + 8 && Math.abs(cy - y) < r + 8 && Math.hypot(cx - x, cy - y) < r + 8) breakSecret(s); }
 }
@@ -969,8 +1027,8 @@ function gatherLights(sx, sy) {
   const poly = visPoly(p.x, p.y - 2, pr, pr > 60 ? 140 : 48);
   for (const l of pl) L.push({ x: p.x, y: p.y - 2, r: l.r, col: l.col, a: l.a, poly });
   const statics = [];
-  for (let i = 0; i < torches.length; i++) { const t = torches[i]; if (t.out) continue; const lx = t.x, ly = t.y + 11; if (view(lx, ly, 80)) statics.push({ x: lx, y: ly, r: 74 + Math.sin(time * 9 + t.x) * 3, col: 'fire', a: .85, key: 't' + i }); }
-  for (let i = 0; i < braziers.length; i++) { const b = braziers[i]; if (view(b.x, b.y, 90)) statics.push({ x: b.x, y: b.y - 4, r: 84 + Math.sin(time * 8 + b.x) * 4, col: 'fire', a: .9, key: 'b' + i }); }
+  for (let i = 0; i < torches.length; i++) { const t = torches[i]; if (t.out) continue; const lx = t.x, ly = t.y + 11; if (view(lx, ly, 80)) statics.push({ x: lx, y: ly, r: 74 + Math.sin(time * 5.3 + t.x) * 1.6 + Math.sin(time * 8.9 + t.x * .7) * 1.1, col: 'fire', a: .85, key: 't' + i }); }
+  for (let i = 0; i < braziers.length; i++) { const b = braziers[i]; if (view(b.x, b.y, 90)) statics.push({ x: b.x, y: b.y - 4, r: 84 + Math.sin(time * 4.7 + b.x) * 2 + Math.sin(time * 8.1 + b.x * .6) * 1.3, col: 'fire', a: .9, key: 'b' + i }); }
   statics.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
   for (const s of statics.slice(0, 10)) { s.poly = cachedPoly(s.key, s.x, s.y, 92, 72); L.push(s); }
   let n = 0;
@@ -981,6 +1039,7 @@ function gatherLights(sx, sy) {
   for (const e of enemies) if (e.T.boss && !e.hidden && view(e.x, e.y, 70)) L.push({ x: e.x, y: e.y, r: 64, col: e.phase >= 2 ? 'red' : 'violet', a: .45 });
   for (const g of ground) if ((g.torch || g.key || (g.item && g.item.rarity >= 2)) && view(g.x, g.y, 20)) L.push({ x: g.x, y: g.y - 3, r: g.torch ? 16 : 12, col: g.torch ? 'fire' : g.key ? 'warm' : 'white', a: .5 });
   for (const c of chests) if (!c.open && view(c.x, c.y, 20)) L.push({ x: c.x, y: c.y - 4, r: 14, col: 'warm', a: .35 });
+  extraLights(L, view);
   return L;
 }
 function inPoly(poly, x, y) { let c = false; const n = poly.length / 2; for (let i = 0, j = n - 1; i < n; j = i++) { const xi = poly[i * 2], yi = poly[i * 2 + 1], xj = poly[j * 2], yj = poly[j * 2 + 1];
@@ -1201,7 +1260,8 @@ function populate() {
   rooms.forEach((r, i) => {
     if (i === 0) return;
     if (boss && i === rooms.length - 1) return; // boss room is the boss's alone
-    const n = Math.min(5, irand(1, 2) + Math.floor(depth / 4) + (Math.random() < .3 ? 1 : 0));
+    if (Math.random() < .22) return; // bigger floors: some rooms are quiet
+    const n = Math.min(4, irand(1, 2) + Math.floor(depth / 5) + (Math.random() < .3 ? 1 : 0));
     const eliteRoom = Math.random() < .12 + Math.min(depth, 40) * .008;
     for (let k = 0; k < n && enemies.length < MAX_ENEMIES - 12; k++) {
       const type = pick(floorPool), T = ETYPES[type], cnt = T.pack ? irand(T.pack[0], T.pack[1]) : 1, s = freeSpot(r);
@@ -1211,8 +1271,9 @@ function populate() {
     if (Math.random() < .25) dropAt(ground, (r.x + .5) * TS, (r.y + .5) * TS, Math.random() < .5 ? { pot: 'hp' } : { gold: irand(5, 15) * depth });
     if (Math.random() < REP_DROP.floor) { const q = freeSpot(r); dropAt(ground, q.x, q.y, { pot: 'rp' }); } // a Repair Potion lying around
   });
-  placeTreasure(); placeLights();
+  placeV04Pre(); placeTreasure(); placeLights();
   if (boss) { const r = rooms[rooms.length - 1]; spawnBoss((r.cx + .5) * TS, (r.cy - 1 + .5) * TS); }
+  placeV04Post();
 }
 // ---------- shared combat systems: telegraphs, timers, hazards, blasts ----------
 let teles = [], hazards = [], timers = [], trauma = 0, bossIntro = 0, introBoss = null;
@@ -1451,7 +1512,7 @@ function updateEnemies(dt) {
     } }
 }
 function aggro(e) {
-  if (e.state !== 'idle') return; e.state = 'chase';
+  if (e.state !== 'idle') return; e.state = 'chase'; onAggroV04(e);
   if (e.T.ai === 'eel') { e.mode = 'under'; e.t = 2; e.hidden = true; }
   if (e.T.boss) { bossIntro = 2.8; introBoss = e; addTrauma(.35); flashMsg(e.name + ' AWAKENS', '#f44'); sfx('nova'); e.patCd = 1.4; }
 }
@@ -1543,19 +1604,23 @@ function startFloor(d, fresh) {
   depth = d; genDungeon(depth); populate();
   const r = rooms[0]; player.x = (r.cx + .5) * TS; player.y = (r.cy + .5) * TS;
   computeStats(); if (fresh) { player.hp = player.st.maxHp; player.mp = player.st.maxMp; }
-  debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = 2.5; trauma = 0; bossIntro = 0; player.slowT = 0; player.walk = null; player.pickT = null; if (typeof clickMark !== "undefined") clickMark = null;
+  debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = 2.5; trauma = 0; bossIntro = 0; player.slowT = 0; player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
   save();
 }
 function save() {
   try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId,
-    p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10 } })); } catch (e) {}
+    p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
+      gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus } })); } catch (e) {}
 }
 function loadSave() { try { return JSON.parse(localStorage.getItem('cryptdelve')); } catch (e) { return null; } }
 function newGame() { player = newPlayer(); computeStats(); startFloor(1, true); setState('play'); }
 function continueGame() {
   const s = loadSave(); if (!s) return newGame();
   player = newPlayer(); Object.assign(player, s.p); itemId = s.itemId || 1000;
-  player.inv = (player.inv || []).concat(new Array(INV_SIZE).fill(null)).slice(0, INV_SIZE);
+  player.bagBonus = clamp(Math.floor(+s.p.bagBonus || 0), 0, BAG_MAX - INV_SIZE); // old saves: no satchels yet
+  { const inv0 = Array.isArray(player.inv) ? player.inv : [], items = inv0.filter(Boolean); // never drop items: grow the bag if an old save somehow holds more
+    const n = Math.max(invSize(), inv0.length > invSize() && items.length > invSize() ? items.length : invSize());
+    player.inv = (inv0.length > n ? items : inv0).concat(new Array(n).fill(null)).slice(0, n); }
   for (const k of SLOTS) player.equip[k] = player.equip[k] || null;
   const fixItem = it => { if (!it || typeof it !== 'object') return null; if (!it.mods || typeof it.mods !== 'object') it.mods = {};
     if (it.rarity === 3 && !it.lore) { const u = UNIQUES.find(u => u.name === it.name); if (u) it.lore = u.lore; } if (!ICONS[it.icon]) it.icon = 'ring'; if (!Number.isFinite(it.reqLvl)) it.reqLvl = calcReqLvl(it);
@@ -1568,6 +1633,9 @@ function continueGame() {
   player.torches = clamp(Math.floor(+player.torches || 0), 0, TORCH_CAP); player.torchT = clamp(+player.torchT || 0, 0, TORCH_TIME); player.torchWarn = player.torchT > 0 && player.torchT <= TORCH_WARN;
   for (const it of player.inv) if (it && it.isNew !== true) delete it.isNew; // old saves: nothing marked new
   player.found = Array.isArray(player.found) ? player.found.filter(n => typeof n === 'string') : [];
+  // v0.4 fields (old saves: safe defaults)
+  player.gateKeys = Math.max(0, Math.floor(+s.p.gateKeys || 0)); player.rations = s.p.rations === undefined ? 2 : Math.max(0, Math.floor(+s.p.rations || 0)); player.mapFrags = Math.max(0, Math.floor(+s.p.mapFrags || 0));
+  for (const k of ['hunger', 'thirst', 'fatigue']) player[k] = s.p[k] === undefined ? 100 : clamp(+s.p[k] || 0, 0, 100);
   player.inv.concat(SLOTS.map(k => player.equip[k])).forEach(markFound);
   computeStats(); startFloor(s.depth, true); setState('play');
 }
@@ -1576,12 +1644,16 @@ const keys = {};
 const held = { attack: false, s1: false, s2: false, s3: false };
 const tapQ = { attack: 0, s1: 0, s2: 0, s3: 0 }; // very quick taps (press+release within one frame) still fire once
 const joy = { id: null, ox: 0, oy: 0, x: 0, y: 0, active: false };
-const KEYMAP = { 'j': 'attack' }; // 1/2/3 (F1-F3) select the right-click skill
+const KEYMAP = { 'j': 'attack' }; // 1/2/3 cast skills (rebindable); F1-F3 select the right-click skill
 function normKey(e) { return e.key.length === 1 ? e.key.toLowerCase() : e.key; }
 window.addEventListener('keydown', e => {
   if (UPD.shown) { if (e.key === 'Escape') updateLater(); else if (e.key === 'Enter') { e.preventDefault(); updateNow(); } return; }
   const k = normKey(e);
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Tab', 'Alt', 'F1', 'F2', 'F3'].includes(e.key)) e.preventDefault();
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Tab', 'Alt', 'F1', 'F2', 'F3', 'Control'].includes(e.key)) e.preventDefault();
+  if (state === 'talk') { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); beginFight(); } return; }
+  if (state === 'shop') { if (e.key === 'Escape') closeShop(); return; }
+  if (state === 'rest') { if (e.key === 'Escape') setState('play'); else if (e.key === 'Enter') { e.preventDefault(); confirmRest(); } return; }
+  if (!$('skills').classList.contains('hidden')) { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); closeSkills(); } return; }
   if (e.key === ' ' && document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // never "click" a focused button
   keys[k] = true;
   if (e.repeat) return;
@@ -1592,14 +1664,18 @@ window.addEventListener('keydown', e => {
   if (k === 'q' || k === '4') action('hp');
   if (k === 'e' || k === '5') action('mp');
   if (k === 'i' || k === 'b') action('inv');
-  if (k === 'Tab' && state === 'play') mapOpen = !mapOpen;
-  const si = { '1': 0, '2': 1, '3': 2, 'F1': 0, 'F2': 1, 'F3': 2, 'l': 1, ';': 2 }[k]; if (si !== undefined && state === 'play') selectSkill(si);
+  if ((k === 'Tab' || k === 'm') && state === 'play') mapOpen = !mapOpen;
+  { const hk = { '1': 0, '2': 1, '3': 2 }[k]; if (hk !== undefined && state === 'play') { const sk = 's' + (hotkeys()[hk] + 1); held[sk] = true; tapQ[sk] = performance.now() + 250; } } // 1/2/3 CAST (rebind in SKILL KEYS)
+  if (k === 'f' && state === 'play') doInteract();
+  if (k === 'r' && state === 'play') eatRation();
+  if (k === 'z' && state === 'play') openRest();
+  const si = { 'F1': 0, 'F2': 1, 'F3': 2 }[k]; if (si !== undefined && state === 'play') selectSkill(si);
   if (k === 'Escape' || k === 'p') { if (state === 'inv' && repairMode) { repairMode = false; renderInv(); } else if (state === 'inv') closeInv(); else if (state === 'play') pauseGame(); else if (state === 'pause') setState('play'); }
   if (k === 'Enter' && (state === 'menu' || state === 'pause')) {
     if (state === 'pause') setState('play'); else if (!$('mCont').classList.contains('hidden')) continueGame(); else newGame(); }
   if (k === 'Enter' && state === 'dead') retry();
 });
-window.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Alt') e.preventDefault(); const k = normKey(e); keys[k] = false; if (KEYMAP[k]) held[KEYMAP[k]] = false; });
+window.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Alt') e.preventDefault(); const k = normKey(e); keys[k] = false; if (KEYMAP[k]) held[KEYMAP[k]] = false; const hk = { '1': 0, '2': 1, '3': 2 }[k]; if (hk !== undefined) held['s' + (hotkeys()[hk] + 1)] = false; });
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; for (const k in held) held[k] = false; joy.active = false; joy.id = null; });
 
 // ---------- input: mouse (desktop): Diablo II style, see below ----------
@@ -1701,7 +1777,7 @@ let slotLP = 0; // slots are rebuilt on tap, so release is caught at window leve
 //  Desktop (mouse) controls, Diablo II style: click-to-move with A*, click-to-attack,
 //  right-click casts the selected skill, Tab map, Alt labels, hover monster bar.
 // =====================================================================
-const dm = { left: false, right: false, shift: false, lastTouch: 0, rep: 0 };
+const dm = { left: false, right: false, ctrl: false, lastTouch: 0, rep: 0 };
 let rskill = clamp(+settings.rskill || 0, 0, 2), clickMark = null, hoverEnemy = null, mapOpen = false, curKind = '';
 const walkable = (x, y) => tileAt(x, y) !== TILE.WALL;
 function astar(sx, sy, gx, gy, maxN = 4000) { // 8-way A* on the tile grid (no corner cutting). Returns [[tx,ty],...] excluding start, or null
@@ -1758,7 +1834,7 @@ function updateClickWalk(dt, mv, sp) { // returns true while the click-walk owns
   // hold left button on ground: keep walking toward the cursor
   if (w.kind === 'ground' && dm.left && mouse.active) { const c = cursorWorld(); w.x = c.x; w.y = c.y; if ((w.rep -= dt) <= 0) { w.rep = .15; w.path = planWalk(w.x, w.y, true) || [{ x: w.x, y: w.y }]; } }
   if (w.kind === 'enemy') { const e = w.ref;
-    if (e.dead || e.hp <= 0 || !enemies.includes(e) || e.hidden) { p.walk = null; if (dm.left && !dm.shift) startWalk('ground', null, cursorWorld().x, cursorWorld().y); return false; }
+    if (e.dead || e.hp <= 0 || !enemies.includes(e) || e.hidden) { p.walk = null; if (dm.left && !dm.ctrl) startWalk('ground', null, cursorWorld().x, cursorWorld().y); return false; }
     const d = dist(e, p);
     if (d <= MELEE_REACH + e.r && los(p, e)) { faceTo(e.x, e.y); if (p.atkCd <= 0) { doAttack(true); if (!dm.left) { p.walk = null; } } return true; }
     if ((w.rep -= dt) <= 0) { w.rep = .2; w.x = e.x; w.y = e.y; w.path = planWalk(e.x, e.y, false) || [{ x: e.x, y: e.y }]; }
@@ -1790,10 +1866,11 @@ function enemyAtCursor() {
 function chestAtCursor() { const c = cursorWorld(); return chests.find(q => !q.open && Math.abs(c.x - q.x) < 8 && c.y > q.y - 10 && c.y < q.y + 4) || null; }
 function secretAtCursor() { const c = cursorWorld(), tx = Math.floor(c.x / TS), ty = Math.floor(c.y / TS); return secrets.find(s => !s.broken && s.tx === tx && s.ty === ty && seen[ty * MW + tx]) || null; }
 function desktopClick(e) {
-  const p = player; mouseToCanvas(e); mouse.active = true; dm.shift = e.shiftKey;
-  if (e.shiftKey) { p.walk = null; held.attack = true; tapQ.attack = performance.now() + 250; return; } // attack in place toward cursor
+  const p = player; mouseToCanvas(e); mouse.active = true; p.useT = null; dm.ctrl = !!(e.ctrlKey || keys.Control);
+  if (dm.ctrl) { p.walk = null; held.attack = true; tapQ.attack = performance.now() + 250; return; } // Ctrl+click: attack in place toward cursor (Shift is a normal click)
   const g = groundItemAt(e.clientX, e.clientY, 2); if (g) { p.walk = null; requestPickup(g); return; }
   const en = enemyAtCursor(); if (en) { startWalk('enemy', en, en.x, en.y); return; }
+  { const c0 = cursorWorld(), io = interactAt(c0.x, c0.y); if (io) { if (Math.hypot(io.x - p.x, io.y - p.y) < io.r) { p.walk = null; io.use(); } else { startWalk('ground', null, io.x, io.y + (io.ref && torches.includes(io.ref) ? 0 : 6)); p.useT = io; } return; } }
   const ch = chestAtCursor(); if (ch) { startWalk('chest', ch, ch.x, ch.y); return; }
   const se = secretAtCursor(); if (se) { const t = walkTargetPoint({ kind: 'secret', ref: se }); startWalk('secret', se, t.x, t.y); return; }
   const c = cursorWorld(); startWalk('ground', null, c.x, c.y); clickMark = { x: c.x, y: c.y, t: 0 };
@@ -1806,11 +1883,13 @@ function selectSkill(i) {
 window.addEventListener('mousedown', e => {
   if (state !== 'play' || !onCanvas(e) || (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) || performance.now() - dm.lastTouch < 800) return;
   e.preventDefault(); initAudio(); if (touchMode) { touchMode = false; updateTouchUI(); }
-  if (e.button === 0) { dm.left = true; desktopClick(e); }
+  mouseToCanvas(e); const macCtrl = e.button === 2 && e.ctrlKey && /Mac/i.test(navigator.platform || navigator.userAgent);
+  if ((e.button === 0 || macCtrl) && mouse.y > VH - 30) { panelClick(); return; } // HUD panel: never walks
+  if (e.button === 0 || macCtrl) { dm.left = true; desktopClick(e); }
   else if (e.button === 2) { dm.right = true; mouseToCanvas(e); mouse.active = true; const k = 's' + (rskill + 1); held[k] = true; tapQ[k] = performance.now() + 250; }
 });
 window.addEventListener('mouseup', e => {
-  if (e.button === 0) { dm.left = false; held.attack = false; if (player && player.walk && player.walk.kind === 'ground') { const w = player.walk; w.path = planWalk(w.x, w.y, true) || w.path; } }
+  if (e.button === 0 || (e.button === 2 && dm.left && e.ctrlKey && /Mac/i.test(navigator.platform || navigator.userAgent))) { dm.left = false; held.attack = false; if (player && player.walk && player.walk.kind === 'ground') { const w = player.walk; w.path = planWalk(w.x, w.y, true) || w.path; } }
   if (e.button === 2) { dm.right = false; held.s1 = held.s2 = held.s3 = false; }
 });
 document.addEventListener('touchstart', () => { dm.lastTouch = performance.now(); }, { capture: true, passive: true });
@@ -1836,7 +1915,7 @@ function drawHoverBar(e, y) {
 function drawBigMap() {
   const p = player, s = Math.min((VW - 30) / MW, (VH - 60) / MH), w = MW * s, h = MH * s, ox = Math.round((VW - w) / 2), oy = Math.round((VH - 40 - h) / 2) + 4;
   ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(ox - 4, oy - 12, w + 8, h + 16);
-  drawTextC(`MAP - DEPTH ${depth}   (TAB)`, VW / 2, oy - 9, '#c9a050');
+  drawTextC(`MAP - DEPTH ${depth}` + (floorRevealed ? '  REVEALED' : '') + (touchMode ? '' : '   (M)'), VW / 2, oy - 9, '#c9a050');
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (!seen[y * MW + x]) continue; const t = map[y * MW + x];
     if (t === TILE.WALL) { if (!(walkable(x, y + 1) || walkable(x, y - 1) || walkable(x + 1, y) || walkable(x - 1, y))) continue; ctx.fillStyle = 'rgba(120,96,80,.85)'; }
     else ctx.fillStyle = t === TILE.STAIRS ? '#ffe040' : 'rgba(150,130,170,.45)';
@@ -1844,6 +1923,7 @@ function drawBigMap() {
   for (const c of chests) if (seen[c.ty * MW + c.tx]) { ctx.fillStyle = c.open ? '#6a5020' : '#e8c840'; ctx.fillRect(Math.round(ox + c.tx * s), Math.round(oy + c.ty * s), Math.ceil(s), Math.ceil(s)); }
   for (const b of braziers) { const tx = Math.floor(b.x / TS), ty = Math.floor(b.y / TS); if (seen[ty * MW + tx]) { ctx.fillStyle = '#ff8030'; ctx.fillRect(Math.round(ox + tx * s), Math.round(oy + ty * s), Math.ceil(s), Math.ceil(s)); } }
   const bo = enemies.find(e => e.T.boss && seen[Math.floor(e.y / TS) * MW + Math.floor(e.x / TS)]); if (bo) { ctx.fillStyle = '#ff3030'; ctx.fillRect(Math.round(ox + bo.x / TS * s) - 1, Math.round(oy + bo.y / TS * s) - 1, 3, 3); }
+  drawMapExtras(ox, oy, s);
   ctx.fillStyle = Math.floor(time * 4) % 2 ? '#fff' : '#4f4'; ctx.fillRect(Math.round(ox + p.x / TS * s) - 1, Math.round(oy + p.y / TS * s) - 1, 3, 3);
 }
 // ---------- D2-style bottom panel (desktop only) ----------
@@ -1888,7 +1968,7 @@ function drawD2Panel() {
   const S = SKILLS[rskill], rx = VW - 54; iconBox(rx, ly, p.lvl < S.lvl ? '#222' : SKILL_ICON_COL[rskill], String(rskill + 1), p.cds[rskill] / S.cd, true);
   // the three selectable skills (small) + roll
   for (let i = 0; i < 3; i++) { const x = rx - 46 + i * 11, Sk = SKILLS[i], lock = p.lvl < Sk.lvl; ctx.fillStyle = i === rskill ? '#e8c840' : '#000'; ctx.fillRect(x - 1, ly + 3, 10, 10);
-    ctx.fillStyle = lock ? '#222' : SKILL_ICON_COL[i]; ctx.fillRect(x, ly + 4, 8, 8); if (p.cds[i] > 0) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x, ly + 4, 8, Math.round(8 * p.cds[i] / Sk.cd)); } drawText(String(i + 1), x + 3, ly + 6, lock ? '#555' : p.mp >= Sk.mana ? '#fff' : '#88f'); }
+    ctx.fillStyle = lock ? '#222' : SKILL_ICON_COL[i]; ctx.fillRect(x, ly + 4, 8, 8); if (p.cds[i] > 0) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x, ly + 4, 8, Math.round(8 * p.cds[i] / Sk.cd)); } drawText(String(keyOfSkill(i)), x + 3, ly + 6, lock ? '#555' : p.mp >= Sk.mana ? '#fff' : '#88f'); }
   { const x = rx - 64; ctx.fillStyle = '#000'; ctx.fillRect(x - 1, ly + 3, 16, 10); ctx.fillStyle = '#287850'; ctx.fillRect(x, ly + 4, 14, 8); if (p.rollCd > 0) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x, ly + 4, 14, Math.round(8 * p.rollCd / ROLL_CD)); } drawText('SPC', x + 1, ly + 6, '#fff'); }
   // potion belt
   const bx = 60; for (let i = 0; i < 2; i++) { const x = bx + i * 16, n = i ? p.mpPot : p.hpPot; ctx.fillStyle = '#000'; ctx.fillRect(x, ly, 14, 15); ctx.fillStyle = '#241a14'; ctx.fillRect(x + 1, ly + 1, 12, 13);
@@ -1899,6 +1979,7 @@ function drawD2Panel() {
   { const bx2 = cx + 56, warn = p.torchT > 0 && p.torchT <= TORCH_WARN; ctx.fillStyle = '#000'; ctx.fillRect(bx2 - 1, ly + 1, 32, 5); ctx.fillStyle = '#2a1808'; ctx.fillRect(bx2, ly + 2, 30, 3);
     ctx.fillStyle = warn ? (Math.floor(time * 6) % 2 ? '#ff4020' : '#ffb040') : '#ffa030'; ctx.fillRect(bx2, ly + 2, Math.round(30 * p.torchT / TORCH_TIME), 3); }
   ctx.drawImage(ICONS.rp, cx + 89, ly - 2); drawText('X' + (p.rpPot || 0), cx + 100, ly + 1, p.rpPot ? '#ffa850' : '#777');
+  
   const nn = newCount(); drawText('I: BAG', cx, ly + 9, '#aaa');
   if (nn) { const t = nn + ' NEW', x = cx + textW('I: BAG') + 3; ctx.fillStyle = Math.floor(time * 2.5) % 2 ? '#40f0d0' : '#20a090'; ctx.fillRect(x - 1, ly + 8, textW(t) + 3, 7); drawText(t, x + 1, ly + 9, '#062a24'); }
   else if (p.torchT <= 0) drawText('NO LIGHT', cx + 40, ly + 9, Math.floor(time * 2) % 2 ? '#a08870' : '#605040');
@@ -1940,7 +2021,7 @@ document.querySelectorAll('#touch .btn').forEach(b => {
 });
 // suppress zoom / scroll / selection / long-press menus
 ['gesturestart', 'gesturechange', 'gestureend', 'dblclick', 'contextmenu', 'selectstart'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
-document.addEventListener('touchmove', e => { if (!e.target.closest('#dtext,input[type=range]')) e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove', e => { if (!e.target.closest('#dtext,input[type=range],.v4box,#grid')) e.preventDefault(); }, { passive: false });
 document.addEventListener('touchstart', e => {
   if (!touchMode) { touchMode = true; updateTouchUI(); }
   if (e.touches.length > 1 && !e.target.closest('.btn,#joyzone')) e.preventDefault();
@@ -2017,6 +2098,7 @@ $('rAnyway').addEventListener('click', () => { portraitOK = true; checkOrientati
 function action(a) {
   if (a === 'inv') { if (state === 'play') openInv(); else if (state === 'inv') closeInv(); return; }
   if (state !== 'play') return;
+  if (a === 'use') { doInteract(); return; }
   if (a === 'roll') { player.rollQ = .2; return; } // small input buffer so a slightly early press still rolls
   if (a === 'hp') drink('hp');
   if (a === 'mp') drink('mp');
@@ -2038,6 +2120,8 @@ function setState(s) {
   $('menu').classList.toggle('hidden', !(s === 'menu' || s === 'pause'));
   $('dead').classList.toggle('hidden', s !== 'dead');
   $('inv').classList.toggle('hidden', s !== 'inv');
+  for (const id of ['shop', 'rest', 'talk']) $(id).classList.toggle('hidden', s !== id);
+  $('mRest').classList.toggle('hidden', s !== 'pause'); if (s !== 'pause') closeSkills(); if (s !== 'inv') dropAllAsk = false;
   if (s !== 'play' && s !== 'inv' && UPD.pending) setTimeout(maybeShowUpdate, 0);
   for (const k in held) { held[k] = false; tapQ[k] = 0; }
   document.querySelectorAll('#touch .btn').forEach(b => b.classList.remove('down'));
@@ -2046,9 +2130,10 @@ function setState(s) {
 function updateTouchUI() {
   $('touch').classList.toggle('hidden', !(touchMode && state === 'play'));
   $('topbar').classList.toggle('hidden', !(touchMode && state === 'play'));
+  { const sk = document.getElementById('mSkills'); if (sk) sk.classList.toggle('hidden', touchMode); } // skill keys are a keyboard thing
   $('helpTxt').innerHTML = touchMode
-    ? 'Left thumb: drag anywhere to move<br>Right thumb: attack (hold), ROLL to dodge, skills, potions, bag<br>Walk onto the stairs to go deeper. Gold, potions and keys are picked up automatically; tap gear to pick it up, press-and-hold to inspect.'
-    : 'LEFT-CLICK walk / attack / pick up / open (hold to keep going) &middot; SHIFT+CLICK attack in place &middot; RIGHT-CLICK cast selected skill (1 2 3 or F1-F3 to select) &middot; SPACE dodge roll toward cursor (K also) &middot; WASD also moves &middot; J attacks in place &middot; Q / E potions &middot; I inventory &middot; TAB map &middot; hold ALT item labels &middot; ESC pause<br>Walk onto the stairs to go deeper. Gold, potions and keys are picked up automatically; click gear to walk over and pick it up, hover to inspect.';
+    ? 'Left thumb: drag anywhere to move<br>Right thumb: attack (hold), ROLL to dodge, skills, potions, bag; USE appears by doors, water, torches and traders &middot; &#x2317; map<br>Walk onto the stairs to go deeper. Gold, potions and keys are picked up automatically; tap gear to pick it up, press-and-hold to inspect.'
+    : 'LEFT-CLICK walk / attack / pick up / open / use (hold to keep going) &middot; hold CTRL to stand in place (CTRL+CLICK attacks without moving) &middot; RIGHT-CLICK cast selected skill (F1-F3 to select) &middot; 1 2 3 cast skills at the cursor &middot; F use / drink / light &middot; R eat &middot; Z rest &middot; SPACE dodge roll toward cursor (K also) &middot; WASD also moves &middot; J attacks in place &middot; Q / E potions &middot; I inventory &middot; M / TAB map &middot; hold ALT item labels &middot; ESC pause<br>Walk onto the stairs to go deeper. Gold, potions and keys are picked up automatically; click gear to walk over and pick it up, hover to inspect.';
 }
 function pauseGame() { setState('pause'); $('mResume').classList.remove('hidden'); $('mCont').classList.add('hidden'); }
 let confirmNew = false;
@@ -2062,7 +2147,7 @@ $('dRetry').addEventListener('click', retry);
 
 // ---------- inventory (tap-driven) ----------
 let sel = null, repairMode = false, invNote = '';
-function openInv() { sel = null; repairMode = false; invNote = ''; setState('inv'); renderInv(); }
+function openInv() { sel = null; repairMode = false; invNote = ''; dropAllAsk = false; setState('inv'); renderInv(); }
 function closeInv() { repairMode = false; invNote = ''; setState('play'); }
 function slotEl(it, label, selected) {
   const d = document.createElement('div'); d.className = 'slot' + (it ? ' r' + it.rarity : '') + (selected ? ' sel' : '');
@@ -2087,7 +2172,8 @@ function renderInv() {
       sel = it ? { where: 'inv', idx: i, t: Date.now() } : null; if (it) it.isNew = false; renderInv(); });
     slotTipHandlers(el, it, true); g.appendChild(el); });
   const st = p.st;
-  $('stats').textContent = `Level ${p.lvl}  Depth ${depth}\nLife ${Math.ceil(p.hp)}/${st.maxHp}\nMana ${Math.floor(p.mp)}/${st.maxMp}\nDamage ${st.min}-${st.max}\nDefense ${st.def}\nAtk speed ${Math.round(st.aspd * 100)}%\nCrit ${st.crit}%  Leech ${st.ls}%\nPotions ${p.hpPot} life / ${p.mpPot} mana\nRepair potions ${p.rpPot || 0}`;
+  $('stats').textContent = `Level ${p.lvl}  Depth ${depth}\nLife ${Math.ceil(p.hp)}/${st.maxHp}\nMana ${Math.floor(p.mp)}/${st.maxMp}\nDamage ${st.min}-${st.max}\nDefense ${st.def}\nAtk speed ${Math.round(st.aspd * 100)}%\nCrit ${st.crit}%  Leech ${st.ls}%\nPotions ${p.hpPot} life / ${p.mpPot} mana\nRepair potions ${p.rpPot || 0}\nGate keys ${p.gateKeys || 0}  Rations ${p.rations || 0}\nFood ${Math.round(p.hunger)}%  Water ${Math.round(p.thirst)}%  Rest ${Math.round(p.fatigue)}%`;
+  $('ratN').textContent = p.rations || 0; $('fragN').textContent = (p.mapFrags || 0) + '/' + FRAG_NEED; $('gkN').textContent = 'GATE ' + (p.gateKeys || 0); $('dropAllBtn').disabled = !p.inv.some(Boolean);
   $('gold').textContent = p.gold + 'g';
   const dt = $('dtext'), db = $('dbtns'); dt.innerHTML = ''; db.innerHTML = '';
   { const rb = $('rpBtn'), im = $('rpImg'); if (!im.src) im.src = ICONS.rp.toDataURL(); $('rpN').textContent = 'x' + (p.rpPot || 0); rb.classList.toggle('on', repairMode); }
@@ -2096,6 +2182,9 @@ function renderInv() {
     dt.innerHTML = `<div class="nm" style="color:#ffa850">REPAIR POTION</div><div class="c0">Choose an item to repair. Worn items are highlighted (equipped and backpack). One potion restores full durability.</div><div class="cg" style="margin-top:6px">${p.rpPot} potion${p.rpPot === 1 ? '' : 's'} left</div>`;
     addBtn(db, 'CANCEL', () => { repairMode = false; renderInv(); }, 'cancel'); addBtn(db, 'CLOSE', closeInv, 'close'); return;
   }
+  if (dropAllAsk) { const n = p.inv.filter(Boolean).length;
+    dt.innerHTML = `<div class="nm" style="color:#ff8060">DROP ALL ITEMS?</div><div class="c0">Drop all ${n} backpack item${n > 1 ? 's' : ''} on the floor around you? Equipped gear stays on. (Tip: Shift+click DROP ALL skips this.)</div>`;
+    addBtn(db, 'YES, DROP ALL', () => { const k = dropAllItems(); dropAllAsk = false; invNote = `Dropped ${k} item${k > 1 ? 's' : ''} at your feet.`; renderInv(); }, 'dropyes'); addBtn(db, 'NO', () => { dropAllAsk = false; renderInv(); }, 'close'); return; }
   const it = sel ? (sel.where === 'inv' ? p.inv[sel.idx] : p.equip[sel.slot]) : null;
   if (it) {
     itemLines(it).forEach(l => { const d = document.createElement('div'); d.className = l.c + (l.cls ? ' ' + l.cls : ''); d.textContent = l.t; dt.appendChild(d); });
@@ -2136,7 +2225,7 @@ function kindRank(it) { const i = SORT_KIND.indexOf(it.slot); return i < 0 ? 99 
 function compareItems(a, b) { return kindRank(a) - kindRank(b) || b.rarity - a.rarity || b.lvl - a.lvl || itemPower(b) - itemPower(a) || a.name.localeCompare(b.name); }
 function sortInventory() {
   const p = player, items = p.inv.filter(Boolean).sort(compareItems);
-  p.inv = items.concat(new Array(INV_SIZE - items.length).fill(null));
+  p.inv = items.concat(new Array(Math.max(0, invSize() - items.length)).fill(null));
   sel = null; sfx('sort'); if (state === 'inv') renderInv();
 }
 function equipFrom(i) {
@@ -2216,7 +2305,7 @@ function killEnemy(e) {
     drop(makeItem(L, Math.random() < .5 ? 2 : 1), 14, 0);        // rare or magic
     drop(makeItem(L, 1), 0, 12);                                 // magic
     if (B.oswin) drop(bossUnique(L + 2), 0, -26);
-    dropAt(ground, e.x - 8, e.y + 14, { gold: 100 * depth }); dropAt(ground, e.x + 8, e.y + 14, { pot: 'hp' }); dropAt(ground, e.x, e.y + 20, { pot: 'mp' }); dropAt(ground, e.x - 16, e.y + 22, { pot: 'rp' });
+    dropAt(ground, e.x - 8, e.y + 14, { gold: 100 * depth }); dropAt(ground, e.x + 8, e.y + 14, { pot: 'hp' }); dropAt(ground, e.x, e.y + 20, { pot: 'mp' }); dropAt(ground, e.x - 16, e.y + 22, { pot: 'rp' }); bossExtraDrops(e);
     addTrauma(1); burst(e.x, e.y, B.pal[0], 40, 140); burst(e.x, e.y, '#ffe060', 20, 100); effects.push({ kind: 'boom', x: e.x, y: e.y, t: 0, dur: .6, r: 50 });
     teles = teles.filter(q => q.src !== e);
     if (B.oswin && !e.cycle) flashMsg('OSWIN HOLLOWMERE FALLS. VAELMOOR SLEEPS.', '#d8a040');
@@ -2280,7 +2369,7 @@ function doAttack(fixed) {
     damageEnemy(e, dmg, dx / (d || 1) * 60, dy / (d || 1) * 60, '#fff', crit); landed = true;
   }
   if (landed) wearWeapon();
-  breakSecretsAt(p.x + p.fx * 13, p.y + p.fy * 13, 9, true);
+  breakSecretsAt(p.x + p.fx * 13, p.y + p.fy * 13, 9, true); meleeWorld(p.x + p.fx * 13, p.y + p.fy * 13);
   for (const c of chests) if (!c.open && Math.hypot(c.x - p.x, c.y - p.y) < 20) openChest(c);
 }
 // desktop mouse aiming (logical canvas coords)
@@ -2311,7 +2400,7 @@ function castSkill(i) {
   }
 }
 
-const PCOL = { bolt: ['#c060ff', '#802090'], water: ['#b0f0f0', '#24605c'], web: ['#f0f0f0', '#808080'], orb: ['#80ffe0', '#208070'], boss: ['#ffb040', '#c02010'], fire: ['#ff9020', '#ffe060', '#e03030'], arrow: ['#e8e0c8'], snipe: ['#ff4040'] };
+const PCOL = { boulder: ['#8a8070', '#5a5048'], bolt: ['#c060ff', '#802090'], water: ['#b0f0f0', '#24605c'], web: ['#f0f0f0', '#808080'], orb: ['#80ffe0', '#208070'], boss: ['#ffb040', '#c02010'], fire: ['#ff9020', '#ffe060', '#e03030'], arrow: ['#e8e0c8'], snipe: ['#ff4040'] };
 // ---------- dodge roll ----------
 const ROLL_TIME = .3, ROLL_CD = .9, ROLL_SPEED = 165; // ~50px (3 tiles), i-frames for the whole roll
 function startRoll(mv) {
@@ -2326,10 +2415,11 @@ function startRoll(mv) {
 function update(dt) {
   time += dt;
   const p = player;
-  p.atkCd -= dt; p.swing = Math.max(0, p.swing - dt); p.inv0 -= dt;
+  p.atkCd -= dt * (p.fatigue <= 0 ? .8 : 1); p.swing = Math.max(0, p.swing - dt); p.inv0 -= dt;
   for (let i = 0; i < 3; i++) p.cds[i] = Math.max(0, p.cds[i] - dt);
   p.hp = Math.min(p.st.maxHp, p.hp + p.st.regen * dt); p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * .1) * dt);
-  const mv = moveInput(), sp = 62 * p.st.ms * (p.swing > 0 ? .55 : 1) * (p.slowT > 0 ? .6 : 1);
+  const stand = !touchMode && !!keys.Control; if (stand && p.walk) p.walk = null; // Ctrl held = stand in place (attack / cast without moving)
+  const mv = stand ? { x: 0, y: 0 } : moveInput(), sp = 62 * p.st.ms * (p.swing > 0 ? .55 : 1) * (p.slowT > 0 ? .6 : 1) * survSpeed();
   p.rollCd = Math.max(0, p.rollCd - dt); p.rollQ -= dt;
   if (p.rollQ > 0 && p.roll <= 0 && p.rollCd <= 0) startRoll(mv);
   if (p.roll > 0) {
@@ -2347,10 +2437,11 @@ function update(dt) {
   }
   updateTreasure(dt, p.roll > 0); updateTorch(dt);
   if (state !== 'play') return;
+  if (v04Update(dt) || state !== 'play') return;
   const ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
   if (tileAt(ptx, pty) === TILE.STAIRS) {
     const bb = enemies.find(e => e.T.boss); if (bb) { if (msg.life <= 0) flashMsg(bb.name + ' bars the way!', '#f66'); aggro(bb); }
-    else { sfx('stairs'); startFloor(depth + 1); flashMsg('You descend deeper...', '#ccc'); if (UPD.pending && !UPD.shown) { pauseGame(); } return; }
+    else { sfx('stairs'); startFloor(depth + 1); flashMsg('You descend deeper...', '#ccc'); if (Math.random() < .2) sayThought(player, pick(THOUGHTS.floor)); if (UPD.pending && !UPD.shown) { pauseGame(); } return; }
   }
   updateEnemies(dt); if (state !== 'play') return;
   if (enemies.some(e => e.state === 'chase' && dist(e, p) < 170) || projs.some(q => q.owner === 'e')) music.combatUntil = time + 4;
@@ -2378,6 +2469,7 @@ function update(dt) {
     if (d < 10) {
       if (g.torch) { if (giveTorch()) { addText(g.x, g.y - 6, '+TORCH', '#ffb040'); ground.splice(i, 1); } else g.lock = true; }
       else if (g.key) { p.keys += g.key; addText(g.x, g.y - 6, '+KEY', '#ffe060'); sfx('lvl'); ground.splice(i, 1); flashMsg('You found a key! (' + p.keys + ')', '#ffe060'); }
+      else if (pickupExtra(g)) ground.splice(i, 1);
       else if (g.gold) { p.gold += g.gold; addText(g.x, g.y - 6, '+' + g.gold + 'G', '#e8c840'); sfx('gold'); ground.splice(i, 1); }
       else if (g.pot === 'rp') { p.rpPot = (p.rpPot || 0) + 1; addText(g.x, g.y - 6, '+REPAIR POT', '#ffa850'); sfx('pick'); ground.splice(i, 1); flashMsg('Repair Potion (' + p.rpPot + ') - use it from the bag', '#ffa850'); }
       else if (g.pot) { if (g.pot === 'hp') p.hpPot++; else p.mpPot++; addText(g.x, g.y - 6, g.pot === 'hp' ? '+LIFE POT' : '+MANA POT', g.pot === 'hp' ? '#ff6060' : '#6080ff'); sfx('pick'); ground.splice(i, 1); }
@@ -2392,6 +2484,602 @@ function update(dt) {
   const tx = p.x - VW / 2, ty = p.y - VH / 2;
   cam.x += (tx - cam.x) * Math.min(1, dt * 8); cam.y += (ty - cam.y) * Math.min(1, dt * 8);
 }
+// =====================================================================
+//  v0.4.0 — Feature Brief v1: wall-safe drops, Drop All, skill hotkeys, torches, doors & puzzles,
+//  traps, props, survival, crypt shop, boss parley, thought bubbles, ambient audio.
+// =====================================================================
+let doors = [], puzzles = [], traps = [], props = [], decor = [], waters = [], basins = [], shop = null, floorRevealed = false, annexes = [];
+const BAG_MAX = 40, FRAG_NEED = 4;
+function invSize() { return INV_SIZE + clamp(Math.floor(+(player && player.bagBonus) || 0), 0, BAG_MAX - INV_SIZE); }
+function inRect(x, y, R) { return x >= R.x && x < R.x + R.w && y >= R.y && y < R.y + R.h; }
+function tileInClosedVault(x, y) { for (const d of doors) if (!d.open && d.rect && inRect(x, y, d.rect)) return true; return false; }
+function roomOf(tx, ty) { for (const r of rooms) if (inRect(tx, ty, r)) return r; return null; }
+// ---- 0: wall-safe drops: every ground drop lands on walkable floor, never inside / clipped into a wall ----
+function spotOK(x, y) { return !solidAt(x, y) && !solidAt(x - 5, y - 5) && !solidAt(x + 5, y - 5) && !solidAt(x - 5, y + 4) && !solidAt(x + 5, y + 4); }
+function safeSpot(x, y) {
+  const tx = Math.floor(x / TS), ty = Math.floor(y / TS);
+  if (spotOK(x, y) && !tileInClosedVault(tx, ty)) return { x, y };
+  for (let r = 0; r <= 6; r++) { let best = null, bd = 1e9;
+    for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) { if (Math.max(Math.abs(i), Math.abs(j)) !== r) continue;
+      const X = tx + i, Y = ty + j; if (tileAt(X, Y) === TILE.WALL || tileInClosedVault(X, Y)) continue;
+      const cx = (X + .5) * TS, cy = (Y + .5) * TS, d = Math.hypot(cx - x, cy - y); if (d < bd) { bd = d; best = { x: cx, y: cy }; } }
+    if (best) { const jx = best.x + rand(-3, 3), jy = best.y + rand(-3, 3); return spotOK(jx, jy) ? { x: jx, y: jy } : best; } }
+  return player ? { x: player.x, y: player.y } : { x, y };
+}
+// ---- 1: Drop All (backpack only — equipped gear is never touched) ----
+let dropAllAsk = false;
+function dropAllItems() {
+  const p = player, list = p.inv.map((it, i) => ({ it, i })).filter(o => o.it); if (!list.length) return 0;
+  list.forEach((o, k) => { const a = k / list.length * Math.PI * 2 + rand(-.2, .2), r = 14 + (k % 3) * 7, s = safeSpot(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r);
+    o.it.isNew = false; ground.push({ x: s.x, y: s.y, bob: Math.random() * 6, lock: true, item: o.it }); p.inv[o.i] = null; });
+  sfx('pick'); sel = null; save(); return list.length;
+}
+function requestDropAll(skipConfirm) {
+  if (!player.inv.some(Boolean)) { invNote = 'Your backpack is already empty.'; renderInv(); return; }
+  if (skipConfirm) { const n = dropAllItems(); invNote = `Dropped ${n} item${n > 1 ? 's' : ''} at your feet.`; dropAllAsk = false; renderInv(); return; }
+  dropAllAsk = true; repairMode = false; renderInv();
+}
+// ---- generation: annex rooms (vaults / shop) carved off an existing room through a 1-tile doorway ----
+function carveAnnex(pool, minW, maxW, minH, maxH) {
+  for (let k = 0; k < 80; k++) {
+    const r = pick(pool), side = pick(['t', 'b', 'l', 'r']), w = irand(minW, maxW), h = irand(minH, maxH); let dx, dy, R;
+    if (side === 't' || side === 'b') { if (r.w < 3) continue; dx = irand(r.x + 1, r.x + r.w - 2); dy = side === 't' ? r.y - 1 : r.y + r.h; R = { x: dx - Math.floor(w / 2), y: side === 't' ? dy - h : dy + 1, w, h }; }
+    else { if (r.h < 3) continue; dy = irand(r.y + 1, r.y + r.h - 2); dx = side === 'l' ? r.x - 1 : r.x + r.w; R = { x: side === 'l' ? dx - w : dx + 1, y: dy - Math.floor(h / 2), w, h }; }
+    if (R.x < 2 || R.y < 2 || R.x + R.w > MW - 2 || R.y + R.h > MH - 2) continue;
+    if (tileAt(dx, dy) !== TILE.WALL) continue;
+    let ok = true; for (let y = R.y - 1; y <= R.y + R.h && ok; y++) for (let x = R.x - 1; x <= R.x + R.w; x++) if (tileAt(x, y) !== TILE.WALL) { ok = false; break; }
+    if (!ok) continue;
+    // the doorway tile must touch the parent room floor and the annex only
+    const ox = side === 'l' ? dx + 1 : side === 'r' ? dx - 1 : dx, oy = side === 't' ? dy + 1 : side === 'b' ? dy - 1 : dy;
+    if (tileAt(ox, oy) === TILE.WALL) continue;
+    if (side === 't' || side === 'b') { if (tileAt(dx - 1, dy) !== TILE.WALL || tileAt(dx + 1, dy) !== TILE.WALL) continue; }
+    else if (tileAt(dx, dy - 1) !== TILE.WALL || tileAt(dx, dy + 1) !== TILE.WALL) continue;
+    if (secrets.some(s => Math.abs(s.tx - dx) <= 1 && Math.abs(s.ty - dy) <= 1)) continue;
+    for (let y = R.y; y < R.y + R.h; y++) for (let x = R.x; x < R.x + R.w; x++) map[y * MW + x] = TILE.FLOOR;
+    for (let i = torches.length - 1; i >= 0; i--) { const t = torches[i], tx = Math.floor(t.x / TS), ty = Math.floor(t.y / TS); if (Math.abs(tx - dx) <= 1 && ty === dy) torches.splice(i, 1); }
+    const A = { room: r, rect: R, dx, dy, side }; annexes.push(A); return A;
+  }
+  return null;
+}
+const LEVER_COL = [['RED', '#e04040'], ['GREEN', '#40c060'], ['BLUE', '#4a80f0']];
+const RUNES = [[5, 2, 7, 2, 5], [7, 5, 2, 5, 7], [2, 7, 2, 2, 7], [4, 6, 7, 6, 4], [7, 1, 7, 4, 7]]; // 3x5 glyph bitmaps
+function puzzleSpots(r, n, avoid) {
+  const out = [];
+  for (let k = 0; k < 60 && out.length < n; k++) { const tx = irand(r.x, r.x + r.w - 1), ty = irand(r.y, r.y + r.h - 1), x = (tx + .5) * TS, y = (ty + .5) * TS;
+    if (map[ty * MW + tx] !== TILE.FLOOR) continue; if (Math.hypot(x - avoid.x, y - avoid.y) < 28) continue;
+    if (out.some(o => Math.hypot(o.x - x, o.y - y) < 26)) continue; if (chests.some(c => Math.hypot(c.x - x, c.y - y) < 18)) continue; out.push({ x, y }); }
+  return out.length === n ? out : null;
+}
+function vaultLoot(R) {
+  const cx = (R.x + R.w / 2) * TS, cy = (R.y + R.h / 2) * TS, put = (o, dx, dy) => ground.push(Object.assign({ x: cx + dx, y: cy + dy, bob: Math.random() * 6, lock: false }, o));
+  put({ item: chestLoot(depth + 1) }, 0, -2); put({ gold: irand(30, 60) * depth }, -12, 6);
+  const extra = Math.random(); if (extra < .3) put({ ration: 1 }, 12, 6); else if (extra < .45) put({ frag: 1 }, 12, 6); else if (extra < .6) put({ pot: Math.random() < .5 ? 'hp' : 'rp' }, 12, 6); else put({ gold: irand(10, 30) * depth }, 12, 6);
+}
+function placeVaults() {
+  if (depth < 2) return;
+  const pool = rooms.slice(1, rooms.length - 1); if (!pool.length) return;
+  const n = Math.min(3, irand(1, 2) + (depth >= 8 && Math.random() < .5 ? 1 : 0));
+  for (let v = 0; v < n; v++) {
+    const A = carveAnnex(pool, 3, 4, 3, 3); if (!A) break;
+    const kind = Math.random() < .38 ? 'gate' : 'stone', d = { kind, tiles: [{ x: A.dx, y: A.dy }], open: false, rect: A.rect, room: A.room, side: A.side };
+    map[A.dy * MW + A.dx] = TILE.WALL;
+    if (kind === 'stone') {
+      const pk = pick(['lever', 'rune', 'plate']), doorPt = { x: (A.dx + .5) * TS, y: (A.dy + .5) * TS }, pts = puzzleSpots(A.room, 3, doorPt);
+      if (!pts) { d.kind = 'gate'; }
+      else { d.puzzle = pk; d.prog = 0; d.seq = shuffled([0, 1, 2]); d.glyphs = shuffled([0, 1, 2, 3, 4]).slice(0, 3);
+        pts.forEach((pt, i) => puzzles.push({ door: d, kind: pk, x: pt.x, y: pt.y, idx: i, on: false })); }
+    }
+    doors.push(d); vaultLoot(A.rect);
+  }
+}
+function placeShop() {
+  const post = depth > 5 && (depth - 1) % 5 === 0, ch = window.__forceShop !== undefined ? window.__forceShop : post ? .75 : depth >= 3 ? .02 : 0;
+  if (Math.random() >= ch) return;
+  const order = [rooms[0]].concat(rooms.slice(1, rooms.length - 1));
+  for (const r of order) { const A = carveAnnex([r], 5, 6, 4, 4); if (!A) continue;
+    map[A.dy * MW + A.dx] = TILE.FLOOR;
+    const R = A.rect; shop = { x: (R.x + R.w / 2) * TS, y: (R.y + 1) * TS + 6, rect: R, room: r, tx: A.dx, ty: A.dy, stock: { ration: 3 + irand(0, 3), gkey: 1 + irand(0, 2) } };
+    torches.push({ x: R.x * TS + 8, y: (R.y - 1) * TS + 6 }); torches.push({ x: (R.x + R.w - 1) * TS + 8, y: (R.y - 1) * TS + 6 });
+    mapVer++; return; }
+}
+function bfsCount(sx, sy) {
+  const vis = new Uint8Array(MW * MH), q = [sy * MW + sx]; vis[q[0]] = 1; let n = 0;
+  while (q.length) { const c = q.pop(); n++; const x = c % MW, y = (c / MW) | 0;
+    for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + i, Y = y + j; if (X < 0 || Y < 0 || X >= MW || Y >= MH) continue; const k = Y * MW + X; if (vis[k] || map[k] === TILE.WALL) continue; vis[k] = 1; q.push(k); } }
+  return { n, vis };
+}
+function placeBloodDoor() {
+  const bo = enemies.find(e => e.T.boss); if (!bo || rooms.length < 3) return;
+  const R = rooms[rooms.length - 1], ring = [];
+  for (let y = R.y - 1; y <= R.y + R.h; y++) for (let x = R.x - 1; x <= R.x + R.w; x++) { if (inRect(x, y, R)) continue; if (map[y * MW + x] === TILE.FLOOR) ring.push({ x, y }); }
+  if (!ring.length || ring.length > 10) return;
+  const s = rooms[0], before = bfsCount(s.cx, s.cy);
+  let inRoom = 0; for (let y = R.y; y < R.y + R.h; y++) for (let x = R.x; x < R.x + R.w; x++) if (map[y * MW + x] !== TILE.WALL && before.vis[y * MW + x]) inRoom++;
+  for (const t of ring) map[t.y * MW + t.x] = TILE.WALL;
+  const after = bfsCount(s.cx, s.cy);
+  // everything except the boss room itself (and the sealed tiles) must stay reachable
+  if (after.n !== before.n - inRoom - ring.length) { for (const t of ring) map[t.y * MW + t.x] = TILE.FLOOR; return; }
+  doors.push({ kind: 'blood', tiles: ring, open: false, room: R });
+}
+function isCorridor(tx, ty) { if (map[ty * MW + tx] !== TILE.FLOOR) return false; if (roomOf(tx, ty)) return false; for (const A of annexes) if (inRect(tx, ty, A.rect)) return false; return true; }
+function nearDoor(tx, ty, d) { return doors.some(D => D.tiles.some(t => Math.abs(t.x - tx) <= d && Math.abs(t.y - ty) <= d)); }
+function runLen(tx, ty, ax, ay) { let n = 0; for (let k = 1; k < 9; k++) { if (tileAt(tx + ax * k, ty + ay * k) === TILE.WALL) break; n++; } return n; }
+function placeTraps() {
+  if (depth < 2) return;
+  const kinds = ['pit', 'arrows']; if (depth >= 3) kinds.push('collapse'); if (depth >= 5) kinds.push('boulder'); if (depth >= 6) kinds.push('fire');
+  const n = Math.min(6, 1 + Math.floor(depth / 5) + irand(0, 2)), s = rooms[0], cand = [];
+  for (let ty = 1; ty < MH - 1; ty++) for (let tx = 1; tx < MW - 1; tx++) if (isCorridor(tx, ty) && Math.hypot(tx - s.cx, ty - s.cy) > 9 && !nearDoor(tx, ty, 2)) cand.push({ tx, ty });
+  for (let k = 0; k < n && cand.length; k++) {
+    const c = cand.splice(irand(0, cand.length - 1), 1)[0]; if (traps.some(t => Math.hypot(t.tx - c.tx, t.ty - c.ty) < 8)) { k--; if (cand.length < 3) break; continue; }
+    const h = runLen(c.tx, c.ty, 1, 0) + runLen(c.tx, c.ty, -1, 0), v = runLen(c.tx, c.ty, 0, 1) + runLen(c.tx, c.ty, 0, -1);
+    traps.push({ tx: c.tx, ty: c.ty, x: (c.tx + .5) * TS, y: (c.ty + .5) * TS, kind: pick(kinds), axis: h >= v ? 'h' : 'v', cd: 0, armed: true, spotted: false, t: Math.random() * 3 });
+  }
+}
+const PROP_KINDS = ['barrel', 'urn', 'remains', 'chained'];
+function placeProps() {
+  const last = rooms[rooms.length - 1];
+  rooms.forEach((r, ri) => {
+    if (r === last) return;
+    const n = irand(0, 3);
+    for (let k = 0; k < n; k++) {
+      const kind = pick(PROP_KINDS);
+      if (kind === 'chained') { const tx = irand(r.x, r.x + r.w - 1), ty = r.y - 1; if (tileAt(tx, ty) !== TILE.WALL || tileAt(tx, ty + 1) === TILE.WALL) continue;
+        if (torches.some(t => Math.floor(t.x / TS) === tx && Math.floor(t.y / TS) === ty) || secrets.some(s => s.tx === tx && s.ty === ty) || nearDoor(tx, ty, 1)) continue;
+        props.push({ kind, x: (tx + .5) * TS, y: ty * TS + 10, wall: true, broken: false, v: irand(0, 1) }); continue; }
+      const tx = irand(r.x, r.x + r.w - 1), ty = irand(r.y, r.y + r.h - 1), x = (tx + .5) * TS + rand(-3, 3), y = (ty + .5) * TS + rand(-2, 2);
+      if (map[ty * MW + tx] !== TILE.FLOOR) continue; if (ri === 0 && Math.abs(tx - r.cx) <= 1 && Math.abs(ty - r.cy) <= 1) continue;
+      if (props.some(o => Math.hypot(o.x - x, o.y - y) < 14) || chests.some(c => Math.hypot(c.x - x, c.y - y) < 16) || puzzles.some(o => Math.hypot(o.x - x, o.y - y) < 16)) continue;
+      props.push({ kind, x, y, broken: false, v: irand(0, 2) });
+    }
+  });
+}
+function placeDecor() {
+  for (const r of rooms) { const n = irand(0, 3);
+    for (let k = 0; k < n; k++) { const tx = irand(r.x, r.x + r.w - 1), ty = irand(r.y, r.y + r.h - 1); if (map[ty * MW + tx] !== TILE.FLOOR) continue;
+      const kind = Math.random() < .55 ? 'puddle' : 'mold'; decor.push({ kind, x: tx * TS + irand(1, 6), y: ty * TS + irand(2, 9), w: irand(6, 13), h: irand(3, 5), ph: Math.random() * 6 }); } }
+  // corridor damp
+  for (let k = 0; k < 14; k++) { const tx = irand(1, MW - 2), ty = irand(1, MH - 2); if (!isCorridor(tx, ty)) continue; decor.push({ kind: Math.random() < .5 ? 'puddle' : 'mold', x: tx * TS + irand(1, 6), y: ty * TS + irand(2, 9), w: irand(5, 10), h: 3, ph: Math.random() * 6 }); }
+  // running water channels + stone basins (drinkable)
+  const last = rooms[rooms.length - 1];
+  for (const r of shuffled(rooms.slice(1))) { if (waters.length >= 2) break; if (r === last || r.w < 7 || r.h < 5 || Math.random() > .3) continue;
+    const y = r.y + r.h - 1, x0 = r.x, x1 = r.x + r.w - 1; let ok = true; for (let x = x0; x <= x1; x++) if (map[y * MW + x] !== TILE.FLOOR) ok = false;
+    if (!ok || chests.some(c => Math.floor(c.y / TS) === y)) continue; waters.push({ x0, x1, y }); }
+  for (const r of shuffled(rooms.slice(1))) { if (basins.length >= 2) break; if (r === last || Math.random() > .4) continue;
+    const pts = puzzleSpots(r, 1, { x: -999, y: -999 }); if (pts && !props.some(o => Math.hypot(o.x - pts[0].x, o.y - pts[0].y) < 16)) basins.push({ x: pts[0].x, y: pts[0].y, uses: 3 }); }
+  if (!waters.length && !basins.length) { const r = rooms[Math.min(1, rooms.length - 1)], pts = puzzleSpots(r, 1, { x: -999, y: -999 }); if (pts) basins.push({ x: pts[0].x, y: pts[0].y, uses: 3 }); }
+  // the odd ration lies forgotten on the floor
+  if (Math.random() < .45) { const r = pick(rooms.slice(0, rooms.length - 1)); const s = freeSpot(r); dropAt(ground, s.x, s.y, { ration: 1 }); }
+}
+function clearFloorExtras() { doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; annexes = []; } // tests / arenas
+function placeV04Pre() { doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; floorRevealed = false; annexes = [];
+  placeShop(); placeVaults(); }
+function placeV04Post() { placeBloodDoor(); placeTraps(); placeProps(); placeDecor(); mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear(); }
+// ---- doors, puzzles, interactables ----
+function openDoor(d, quiet) {
+  if (d.open) return; d.open = true;
+  for (const t of d.tiles) { map[t.y * MW + t.x] = TILE.FLOOR; seen[t.y * MW + t.x] = true; burst((t.x + .5) * TS, (t.y + .5) * TS, d.kind === 'blood' ? '#a01818' : '#8a8078', 12, 50); }
+  mapVer++; polyCache.clear(); if (!quiet) { sfx('door'); addTrauma(.15); }
+}
+function doorHint(d) {
+  if (d.puzzle === 'lever') return 'A sealed stone door. Three painted marks: ' + d.seq.map(i => LEVER_COL[i][0]).join(', ') + '. Levers nearby...';
+  if (d.puzzle === 'rune') return 'A sealed stone door carved with three runes. Touch the matching runes in order.';
+  if (d.puzzle === 'plate') return 'A sealed stone door. Three worn pressure plates lie in this room.';
+  return 'A sealed stone door.';
+}
+function bloodCost() { return Math.ceil(.15 * player.st.maxHp); }
+function useDoor(d) {
+  const p = player;
+  if (d.kind === 'gate') {
+    if ((p.gateKeys || 0) > 0) { p.gateKeys--; openDoor(d); flashMsg('The Gate Key turns. The iron gate grinds open.' + (p.gateKeys ? ` (${p.gateKeys} left)` : ''), '#c0d0e0'); }
+    else { sfx('fail'); flashMsg('A locked iron gate. It needs a Gate Key (chest keys won\'t fit).', '#a0b0c0'); }
+    return;
+  }
+  if (d.kind === 'blood') {
+    const cost = bloodCost();
+    if (p.hp <= cost) { sfx('fail'); flashMsg(`The blood door wants ${cost} life - more than you can spare. Heal first.`, '#ff6060'); return false; }
+    p.hp -= cost; addText(p.x, p.y - 12, '-' + cost, '#ff3030'); burst(p.x, p.y - 4, '#c01010', 16, 50); sfx('hurt'); openDoor(d);
+    flashMsg('You bleed upon the bones. The door drinks... and opens.', '#ff5050'); return true;
+  }
+  flashMsg(doorHint(d), '#c8b8a0');
+}
+function puzzleStep(o) {
+  const d = o.door; if (d.open || o.on) return;
+  if (o.idx === d.seq[d.prog]) { o.on = true; d.prog++; sfx(o.kind === 'lever' ? 'lever' : 'rune'); burst(o.x, o.y - 6, o.kind === 'lever' ? LEVER_COL[o.idx][1] : '#80f0ff', 8, 30);
+    if (d.prog >= 3) { openDoor(d); flashMsg('Somewhere, stone grinds against stone...', '#c8b8a0'); } }
+  else { sfx('fail'); d.prog = 0; for (const q of puzzles) if (q.door === d) q.on = false; flashMsg(o.kind === 'lever' ? 'The levers clank back. Wrong order.' : 'The runes dim. Wrong order.', '#a08870'); }
+}
+function torchFull() { return player.torchT >= TORCH_TIME - 1; }
+function relightFrom() { const p = player, had = p.torchT > 0; p.torchT = TORCH_TIME; p.torchWarn = false; sfx('whoosh'); burst(p.x, p.y - 10, '#ffb040', 10, 30);
+  flashMsg(had ? 'You rekindle your torch.' : 'You light a fresh torch from the flame.', '#ffb040'); }
+function interactables() {
+  const p = player, L = [], close = (x, y, r) => Math.abs(x - p.x) < r + 60 && Math.abs(y - p.y) < r + 60;
+  for (const d of doors) if (!d.open) for (const t of d.tiles) { const x = (t.x + .5) * TS, y = (t.y + .5) * TS; if (!close(x, y, 20)) continue;
+    L.push({ x, y, r: 20, label: d.kind === 'gate' ? 'UNLOCK GATE' : d.kind === 'blood' ? 'OFFER BLOOD' : 'EXAMINE DOOR', use: () => useDoor(d), ref: d }); }
+  for (const o of puzzles) if (o.kind !== 'plate' && !o.door.open && close(o.x, o.y, 14)) L.push({ x: o.x, y: o.y, r: 14, label: o.kind === 'lever' ? 'PULL LEVER' : 'TOUCH RUNE', use: () => puzzleStep(o), ref: o });
+  for (const b of basins) if (b.uses > 0 && close(b.x, b.y, 14)) L.push({ x: b.x, y: b.y, r: 15, label: 'DRINK', use: () => { b.uses--; drinkWater(b.uses ? 40 : 35); }, ref: b });
+  for (const w of waters) { const x = clamp(p.x, w.x0 * TS + 4, (w.x1 + 1) * TS - 4), y = (w.y + .5) * TS; if (close(x, y, 14)) L.push({ x, y, r: 14, label: 'DRINK', use: () => drinkWater(50), ref: w }); }
+  for (const b of braziers) if (!torchFull() && close(b.x, b.y, 18)) L.push({ x: b.x, y: b.y, r: 20, label: 'LIGHT TORCH', use: relightFrom, ref: b });
+  for (const t of torches) { const x = t.x, y = t.y + 14; if (!close(x, y, 16)) continue;
+    if (!t.out && !torchFull()) L.push({ x, y, r: 16, label: 'LIGHT TORCH', use: relightFrom, ref: t });
+    else if (t.out && !t.take && p.torchT > 0) L.push({ x, y, r: 16, label: 'RELIGHT SCONCE', use: () => { t.out = false; mapVer++; sfx('whoosh'); burst(t.x, t.y, '#ffb040', 8, 25); flashMsg('The sconce flares back to life.', '#ffb040'); }, ref: t }); }
+  if (shop && close(shop.x, shop.y, 20)) L.push({ x: shop.x, y: shop.y + 4, r: 22, label: 'TRADE', use: openShop, ref: shop });
+  return L;
+}
+function nearestInteract() { const p = player; let best = null, bd = 1e9;
+  for (const o of interactables()) { const d = Math.hypot(o.x - p.x, o.y - p.y); if (d < o.r && d < bd) { bd = d; best = o; } } return best; }
+function interactAt(wx, wy) { let best = null, bd = 1e9; for (const o of interactables()) { const d = Math.hypot(o.x - wx, o.y - wy); if (d < 10 && d < bd) { bd = d; best = o; } } return best; }
+function doInteract() { if (state !== 'play') return false; const o = nearestInteract(); if (!o) return false; o.use(); return true; }
+// melee near a lit wall torch snuffs it out (smoke + hiss)
+function meleeWorld(x, y) {
+  for (const t of torches) if (!t.out && Math.abs(t.x - x) < 10 && y - t.y < 20 && y - t.y > -6) { t.out = true; mapVer++; burst(t.x, t.y, '#777', 12, 30); burst(t.x, t.y, '#ffa040', 4, 20); sfx('hiss'); flashMsg('You knock the torch out. Smoke curls up.', '#a09890'); break; }
+}
+// ---- traps ----
+function trapDmg() { return 6 + depth * 1.6; }
+function updateTraps(dt) {
+  const p = player;
+  for (const T of traps) {
+    T.cd -= dt; T.t += dt; const d = Math.hypot(p.x - T.x, p.y - T.y);
+    if (d < 40) T.spotted = true;
+    if (T.kind === 'fire') { if (d > 120) continue; if (T.cd > 0) continue; T.cd = 3.4;
+      const ax = T.axis === 'h' ? 0 : 1, ay = T.axis === 'h' ? 1 : 0; // jet crosses the corridor
+      for (let k = -1; k <= 1; k++) { const x = T.x + ax * k * 9, y = T.y + ay * k * 9; tele({ x, y, r: 8, dur: .75, col: '#ff8020', onDone: () => { blast(x, y, 9, trapDmg() * .7, 'a fire jet', { col: '#ff8020' }); } }); }
+      if (d < 90) sfx('whoosh'); continue; }
+    if (!T.armed || T.cd > 0 || d > 8) continue;
+    T.spotted = true;
+    if (T.kind === 'pit') { T.armed = false; sfx('click'); tele({ x: T.x, y: T.y, r: 11, dur: .55, col: '#c08040', onDone: () => { blast(T.x, T.y, 11, trapDmg() * 1.3, 'a pitfall', { col: '#6a5040', tr: .3 }); T.hole = true; } }); flashMsg('The floor gives way!', '#c08040'); }
+    else if (T.kind === 'arrows') { T.cd = 4; sfx('click');
+      const ax = T.axis === 'h' ? 0 : 1, ay = T.axis === 'h' ? 1 : 0, side = runLen(T.tx, T.ty, -ax, -ay) <= runLen(T.tx, T.ty, ax, ay) ? -1 : 1;
+      const wx = T.x + ax * side * 16, wy = T.y + ay * side * 16; tele({ x: wx, y: wy, r: 6, dur: .4, col: '#e0d0a0', onDone: () => {
+        for (const o of [-5, 5]) projs.push({ x: wx + ay * o, y: wy + ax * o, vx: -ax * side * 200, vy: -ay * side * 200, r: 2, dmg: trapDmg(), owner: 'e', kind: 'arrow', life: 1.2, label: 'a dart trap' }); sfx('swing'); } }); }
+    else if (T.kind === 'collapse') { T.armed = false; sfx('rumble'); addTrauma(.25); flashMsg('The ceiling groans...', '#c8b8a0');
+      for (let k = 0; k < 3; k++) { const x = T.x + rand(-12, 12), y = T.y + rand(-12, 12); tele({ x, y, r: 12, dur: .7 + k * .15, col: '#a09080', onDone: () => { blast(x, y, 12, trapDmg(), 'a collapsing ceiling', { col: '#8a7a6a', tr: .25 }); debris.push({ x: x - 2, y, w: 3, h: 2, col: '#5a5048', sh: true }); } }); } }
+    else if (T.kind === 'boulder') { T.cd = 7; sfx('rumble'); addTrauma(.2); flashMsg('A deep rumble rolls down the corridor!', '#c8b8a0');
+      const ax = T.axis === 'h' ? 1 : 0, ay = T.axis === 'h' ? 0 : 1, a = runLen(T.tx, T.ty, ax, ay), b = runLen(T.tx, T.ty, -ax, -ay), dir = a >= b ? 1 : -1, n = Math.max(a, b);
+      const sx = T.x + ax * dir * n * TS, sy = T.y + ay * dir * n * TS;
+      tele({ kind: 'line', x: sx, y: sy, a: Math.atan2(-ay * dir, -ax * dir), len: n * TS + 20, w: 10, dur: .8, col: '#a08060', onDone: () => {
+        projs.push({ x: sx, y: sy, vx: -ax * dir * 170, vy: -ay * dir * 170, r: 6, dmg: trapDmg() * 1.5, owner: 'e', kind: 'boulder', life: 3, label: 'a rolling stone' }); } }); }
+  }
+  // pressure plates (puzzle) — step on all three
+  for (const o of puzzles) if (o.kind === 'plate' && !o.on && !o.door.open && Math.hypot(p.x - o.x, p.y - o.y) < 7) {
+    o.on = true; sfx('plate'); burst(o.x, o.y, '#c8b8a0', 6, 20);
+    if (puzzles.every(q => q.door !== o.door || q.on)) { openDoor(o.door); flashMsg('The last plate sinks. A stone door grinds open.', '#c8b8a0'); } else flashMsg('A plate sinks with a click.', '#a09890'); }
+}
+// ---- breakable props ----
+function breakPropsAt(x, y, r) {
+  for (const o of props) { if (o.broken) continue; if (Math.hypot(o.x - x, o.y - (o.y - 4 > y ? o.y : o.y - 4)) > r + 6 && Math.hypot(o.x - x, o.y - 4 - y) > r + 6) continue;
+    o.broken = true; const col = o.kind === 'barrel' ? '#7a5030' : o.kind === 'urn' ? '#8a6a50' : '#d8d0b8';
+    burst(o.x, o.y - 4, col, 14, 55); burst(o.x, o.y - 4, '#4a4040', 6, 30); for (let k = 0; k < 4; k++) debris.push({ x: o.x + rand(-6, 6), y: o.y + rand(-3, 4), w: 1 + irand(0, 1), h: 1 + irand(0, 1), col, sh: true });
+    sfx(o.kind === 'urn' ? 'shatter' : 'break');
+    if (o.wall) continue; const roll = Math.random(), drop = obj => dropAt(ground, o.x + rand(-3, 3), o.y + rand(-2, 3), obj);
+    if (roll < .18) drop({ gold: irand(2, 6) * depth }); else if (roll < .23) drop({ pot: Math.random() < .6 ? 'hp' : 'mp' }); else if (roll < .29) drop({ ration: 1 }); else if (roll < .3) drop({ frag: 1 });
+  }
+}
+// ---- survival: hunger / thirst / fatigue ----
+const SURV = { hunger: 100 / 840, thirst: 100 / 600, fatigue: 100 / 1080 }; // per second: ~14 / 10 / 18 minutes from full to empty
+function survSpeed() { const p = player; let m = 1; for (const k of ['hunger', 'thirst', 'fatigue']) { const v = p[k]; if (v < 25) m -= (25 - v) / 25 * .1; } return Math.max(.7, m); }
+function updateSurvival(dt) {
+  const p = player; if (p.hunger === undefined) return;
+  const busy = enemies.some(e => e.state === 'chase' && dist(e, p) < 170) ? 1.25 : 1;
+  p.hunger = Math.max(0, p.hunger - SURV.hunger * dt); p.thirst = Math.max(0, p.thirst - SURV.thirst * dt); p.fatigue = Math.max(0, p.fatigue - SURV.fatigue * dt * busy);
+  let drip = 0; for (const k of ['hunger', 'thirst', 'fatigue']) if (p[k] <= 0) drip += k === 'fatigue' ? .5 : 1;
+  if (drip && p.hp > 1) p.hp = Math.max(1, p.hp - p.st.maxHp * .006 * drip * dt); // harsh: slow life drain (never the killing blow on its own)
+  const warn = (k, lvl, txt) => { const f = k + lvl; if (p[k] < lvl && !p.sw[f]) { p.sw[f] = 1; flashMsg(txt, '#d0a060'); } else if (p[k] > lvl + 10) p.sw[f] = 0; };
+  if (!p.sw) p.sw = {};
+  warn('hunger', 25, 'Your stomach growls. Eat a ration (bag).'); warn('hunger', 1, 'You are starving! Life is draining away.');
+  warn('thirst', 25, 'Your throat is dry. Drink from a basin or running water.'); warn('thirst', 1, 'You are parched! Life is draining away.');
+  warn('fatigue', 25, 'You are tired. Rest in a quiet room (REST).'); warn('fatigue', 1, 'You are exhausted. Find a safe room and sleep.');
+}
+function eatRation() {
+  const p = player; if (!(p.rations > 0)) { flashMsg('No rations left.', '#a08870'); return false; }
+  if (p.hunger >= 99) { flashMsg('You are not hungry.', '#a08870'); return false; }
+  p.rations--; p.hunger = Math.min(100, p.hunger + 45); sfx('eat'); flashMsg(`You eat a ration. (${p.rations} left)`, '#d0b070'); return true;
+}
+function drinkWater(n) { const p = player; p.thirst = Math.min(100, p.thirst + n); sfx('gulp'); burst(p.x, p.y - 6, '#60a0e0', 6, 20); flashMsg('Cold, clean water. You drink deeply.', '#80c0ff'); }
+function restUnsafeReason() {
+  const p = player, tx = Math.floor(p.x / TS), ty = Math.floor(p.y / TS), r = roomOf(tx, ty) || (shop && inRect(tx, ty, shop.rect) ? shop.rect : null);
+  if (!r) return 'Find a quiet room to rest - corridors are too exposed.';
+  if (enemies.some(e => !e.dead && (e.state === 'chase' || dist(e, p) < 150))) return 'You can\'t rest with enemies nearby.';
+  if (enemies.some(e => e.T.boss && roomOf(Math.floor(e.x / TS), Math.floor(e.y / TS)) === r)) return 'Not with that thing in the room.';
+  if (projs.some(q => q.owner === 'e')) return 'You can\'t rest under fire.';
+  return null;
+}
+function doRest(h) {
+  const p = player, k = Math.min(1, h / 6);
+  p.hp = Math.min(p.st.maxHp, p.hp + p.st.maxHp * k); p.mp = Math.min(p.st.maxMp, p.mp + p.st.maxMp * k);
+  p.fatigue = Math.min(100, p.fatigue + 100 * k); p.hunger = Math.max(0, p.hunger - h * 2.5); p.thirst = Math.max(0, p.thirst - h * 3.5);
+  restLog = { h, at: performance.now() }; flashMsg(`You sleep for ${h} hour${h > 1 ? 's' : ''}.` + (h >= 6 ? ' You wake fully rested.' : ''), '#a0b0ff'); sfx('drink');
+}
+let restLog = null;
+// ---- new ground pickups: rations, Gate Keys (not chest keys), map fragments, satchels / backpacks ----
+function pickupExtra(g) {
+  const p = player;
+  if (g.ration) { p.rations = (p.rations || 0) + g.ration; addText(g.x, g.y - 6, '+RATION', '#d0b070'); sfx('pick'); flashMsg(`Ration (${p.rations}) - eat it from the bag`, '#d0b070'); return true; }
+  if (g.gkey) { p.gateKeys = (p.gateKeys || 0) + g.gkey; addText(g.x, g.y - 6, '+GATE KEY', '#c0d0e0'); sfx('lvl'); flashMsg(`Gate Key (${p.gateKeys}) - opens iron gates`, '#c0d0e0'); return true; }
+  if (g.frag) { p.mapFrags = (p.mapFrags || 0) + 1; addText(g.x, g.y - 6, '+MAP FRAGMENT', '#e0d0a0'); sfx('pick'); flashMsg(`Map Fragment (${p.mapFrags}/${FRAG_NEED})` + (p.mapFrags >= FRAG_NEED ? ' - use them from the bag to reveal this floor' : ''), '#e0d0a0'); return true; }
+  if (g.bag) { const room = BAG_MAX - invSize();
+    if (room <= 0) { p.gold += 200 * depth; addText(g.x, g.y - 6, '+' + 200 * depth + 'G', '#e8c840'); flashMsg('Your pack is as big as it gets - you sell the spare bag.', '#e8c840'); sfx('gold'); return true; }
+    const add = Math.min(room, g.bag); p.bagBonus = (p.bagBonus || 0) + add; for (let i = 0; i < add; i++) p.inv.push(null);
+    addText(g.x, g.y - 6, g.bag >= 10 ? '+BACKPACK' : '+SATCHEL', '#d8a040', true); sfx('lvl');
+    flashMsg(`${g.bag >= 10 ? 'Backpack' : 'Satchel'}! Bag space +${add} (${invSize()} slots)`, '#d8a040'); return true; }
+  return false;
+}
+function bossExtraDrops(e) {
+  if (!(e.B && (e.B.oswin || e.cycle > 0))) return; // satchels/backpacks: Bone King and beyond only
+  if (invSize() >= BAG_MAX) return;
+  const r = Math.random(); if (r < .45) dropAt(ground, e.x + 16, e.y - 6, { bag: 5 }); else if (r < .6) dropAt(ground, e.x + 16, e.y - 6, { bag: 10 });
+}
+function useMapFrags() {
+  const p = player; if ((p.mapFrags || 0) < FRAG_NEED) { invNote = `You need ${FRAG_NEED} Map Fragments (you have ${p.mapFrags || 0}).`; renderInv(); return; }
+  if (floorRevealed) { invNote = 'This floor is already revealed.'; renderInv(); return; }
+  p.mapFrags -= FRAG_NEED; revealFloor(); sfx('lvl'); invNote = 'The fragments knit together: the whole floor - secrets and all - is revealed. (M)'; renderInv();
+}
+function revealFloor() { floorRevealed = true; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const k = y * MW + x; if (map[k] !== TILE.WALL || walkable(x + 1, y) || walkable(x - 1, y) || walkable(x, y + 1) || walkable(x, y - 1)) seen[k] = true; }
+  for (const d of doors) { for (const t of d.tiles) seen[t.y * MW + t.x] = true; if (d.rect) for (let y = d.rect.y; y < d.rect.y + d.rect.h; y++) for (let x = d.rect.x; x < d.rect.x + d.rect.w; x++) seen[y * MW + x] = true; }
+  for (const T of traps) T.spotted = true; }
+// ---- crypt shop: the Hollow Pedlar ----
+function shopPrice(k) { const d = depth; return { hp: 20 + d * 3, mp: 18 + d * 3, rp: 60 + d * 6, ration: 12 + d * 2, gkey: 120 + d * 8 }[k]; }
+function sellPrice(it) { return Math.max(3, Math.round((it.lvl || 1) * (3 + it.rarity * 5) * (it.rarity === 3 ? 4 : 1))); }
+function repairAllCost() { let c = 0; for (const it of player.inv.concat(SLOTS.map(k => player.equip[k]))) if (it && needsRepair(it)) c += Math.ceil((it.maxDur - it.dur) * (1 + it.rarity) * .6) + 5; return c; }
+let shopSel = -1, shopNote = '';
+function openShop() { shopSel = -1; shopNote = pick(['"Coin for comfort, comfort for coin."', '"Mind the drips. They bill extra."', '"Bones, bread, keys. I don\'t ask."', '"The Choir sings. I sell earplugs. Sold out."']); setState('shop'); renderShop(); sfx('gold'); }
+function closeShop() { setState('play'); save(); }
+function buy(k) {
+  const p = player, c = shopPrice(k); if (p.gold < c) { shopNote = 'Not enough gold.'; sfx('fail'); renderShop(); return; }
+  if ((k === 'ration' || k === 'gkey') && !(shop.stock[k] > 0)) { shopNote = 'Sold out.'; sfx('fail'); renderShop(); return; }
+  p.gold -= c; if (k === 'hp') p.hpPot++; else if (k === 'mp') p.mpPot++; else if (k === 'rp') p.rpPot = (p.rpPot || 0) + 1; else if (k === 'ration') { p.rations = (p.rations || 0) + 1; shop.stock.ration--; } else if (k === 'gkey') { p.gateKeys = (p.gateKeys || 0) + 1; shop.stock.gkey--; }
+  sfx('gold'); shopNote = 'Bought.'; renderShop();
+}
+function sellSel() { const p = player, it = p.inv[shopSel]; if (!it) return; const g = sellPrice(it); p.inv[shopSel] = null; p.gold += g; shopSel = -1; sfx('gold'); shopNote = `Sold ${it.name} for ${g}g.`; renderShop(); }
+function repairAll() { const p = player, c = repairAllCost(); if (!c) { shopNote = 'Nothing needs mending.'; renderShop(); return; } if (p.gold < c) { shopNote = 'Not enough gold.'; sfx('fail'); renderShop(); return; }
+  p.gold -= c; for (const it of p.inv.concat(SLOTS.map(k => p.equip[k]))) if (it && needsRepair(it)) it.dur = it.maxDur; computeStats(); sfx('repair'); shopNote = 'Everything mended.'; renderShop(); }
+function renderShop() {
+  const p = player; $('shGold').textContent = p.gold + 'g'; $('shNote').textContent = shopNote;
+  const B = $('shBuy'); B.innerHTML = '';
+  const rows = [['hp', 'Life Potion', 'x' + p.hpPot], ['mp', 'Mana Potion', 'x' + p.mpPot], ['rp', 'Repair Potion', 'x' + (p.rpPot || 0)], ['ration', 'Ration', 'x' + (p.rations || 0) + ' (' + shop.stock.ration + ' left)'], ['gkey', 'Gate Key', 'x' + (p.gateKeys || 0) + ' (' + shop.stock.gkey + ' left)']];
+  for (const [k, n, have] of rows) { const b = document.createElement('button'); b.className = 'shb'; b.dataset.k = k; b.innerHTML = `<span>${n} <i>${have}</i></span><b>${shopPrice(k)}g</b>`; if (p.gold < shopPrice(k)) b.classList.add('dis');
+    b.addEventListener('click', () => buy(k)); B.appendChild(b); }
+  const rc = repairAllCost(), rb = $('shRepair'); rb.innerHTML = rc ? `REPAIR ALL <b>${rc}g</b>` : 'REPAIR ALL <b>-</b>'; rb.classList.toggle('dis', !rc || p.gold < rc);
+  const G = $('shGrid'); G.innerHTML = '';
+  p.inv.forEach((it, i) => { const el = slotEl(it, '', i === shopSel); el.addEventListener('pointerdown', e => { e.preventDefault(); if (!it) return; shopSel = i === shopSel ? -1 : i; renderShop(); }); G.appendChild(el); });
+  const it = p.inv[shopSel], sb = $('shSell'); sb.classList.toggle('dis', !it); sb.innerHTML = it ? `SELL <b>${sellPrice(it)}g</b>` : 'SELL';
+  $('shSelTxt').textContent = it ? it.name + (it.reqLvl ? '  (req lv ' + it.reqLvl + ')' : '') : 'Tap an item in your backpack to sell it.';
+  $('shSelTxt').style.color = it ? RCOL[it.rarity] : '#888';
+}
+// ---- rest ----
+let restH = 6;
+function openRest() {
+  if (state !== 'play' && state !== 'inv' && state !== 'pause') return;
+  const why = restUnsafeReason(); if (why) { if (state === 'inv') { invNote = why; renderInv(); } else { if (state === 'pause') setState('play'); flashMsg(why, '#d0a060'); } sfx('fail'); return; }
+  setState('rest'); renderRest();
+}
+function renderRest() { const H = $('rsHours'); H.innerHTML = ''; for (let h = 1; h <= 8; h++) { const b = document.createElement('button'); b.className = 'shb rh' + (h === restH ? ' on' : ''); b.textContent = h + 'h'; b.addEventListener('click', () => { restH = h; renderRest(); }); H.appendChild(b); }
+  const k = Math.min(1, restH / 6); $('rsTxt').textContent = `Sleep ${restH} hour${restH > 1 ? 's' : ''}: restores ${Math.round(k * 100)}% life, mana and rest.` + (restH >= 6 ? ' (full rest)' : '') + ` Hunger and thirst will grow.`; }
+function confirmRest() { const why = restUnsafeReason(); setState('play'); if (why) { flashMsg(why, '#d0a060'); return; } doRest(restH); save(); }
+// ---- boss parley: a short, witty exchange before the fight (never blocks: BEGIN / Esc / Enter always continue) ----
+const BOSS_LINES = {
+  'MOTHER MURK': 'Another little candle, wading into my bog. Vaelmoor drowned slow, dearie. You\'ll drown quick.',
+  'THE GNAWER KING': 'Squeak squeak, says the meat. Every tunnel here is mine, every bone is gnawed. Yours next.',
+  'THE DROWNED BELL': 'I tolled when the sea came in. I toll still. Shall I ring you down to Vaelmoor\'s bed?',
+  'SISTER VEY': 'Lift the veil, they said. I did. The Pale Choir was singing behind it. Shall I show you?',
+  'OLD TAM': 'Dug a thousand graves for the Bone King. Got one more shovel-load left in me. It has your shape.',
+  'THE SILKMOTHER': 'Hush now. Every thread down here hums. Every thread tells me you are tired, and tender.',
+  'SIR CALDER': 'I swore an oath to King Oswin. Then I broke it. Then he broke me. I am... very cross about it.',
+  'LADY MERROW': 'My husband went down to fetch the king a crown. The crypt kept him. I\'ll keep you.',
+  'DEEPCOIL': 'Ssso warm. Ssso dry. The flood forgot you, little torch. I never forget.',
+  'CHOIRMASTER AUREL': 'You are flat. Off-key. Breathing. The Pale Choir has no room for breath. Let us fix that.',
+  'THE OSSUARY COLOSSUS': 'WE ARE THE PEOPLE OF VAELMOOR. ALL OF US. STACKED. THERE IS ROOM FOR ONE MORE.',
+  'ABBOT MORCANT': 'Kneel, child. Confess. Then cough. Everyone coughs, near the end.',
+  'CAPTAIN BRANNOC': 'Last bastion of Vaelmoor. Nobody passes. The sea passed. You will not.',
+  'QUEEN LIRAEL': 'Sing with me, wanderer. The tide sang to Oswin and he listened. Such a good king. Such a quiet one now.',
+  'MOTLEY': 'A torch! A sword! A punchline! Oswin laughed once. I made sure of it. Then I made sure of him.',
+  'THE NINTH EYE': 'I have watched you since the first stair. Eight eyes saw your death. I am the one that enjoys it.',
+  'THE PENITENT HOST': 'WE WALKED TO THE BONE KING TO BE FORGIVEN. HE FORGAVE NOTHING. JOIN THE PROCESSION.',
+  'THE NINTH PSALM': 'I am the verse the Choir saves for last. Few hear me twice.',
+  'THE CROWN-WRAITH': 'Heir to Hollowmere, they called me. Heir to rot. Father waits below. He will not want you either.',
+  'OSWIN, THE BONE KING': 'I sold Vaelmoor to the Pale Choir for one more century. It was a bad bargain. You are worse.'
+};
+const TALK_REPLIES = [
+  ['"Stand aside."', 'Aside? Down here, there is only down.'],
+  ['"I\'ve come for Oswin."', 'Everyone comes for Oswin. Oswin keeps them all.'],
+  ['"Nice place. Smells like soup."', 'That is the last adventurer. Season to taste.'],
+  ['"Can we talk about this?"', 'We are. This is the talking. Next is the screaming.'],
+  ['"The Pale Choir can sing without you."', 'Blasphemy! ...Fair, though.'],
+  ['"I have a torch and a grudge."', 'A grudge burns longer. Shame about the torch.']
+];
+let talkBoss = null;
+function openTalk(e) {
+  talkBoss = e; e.talked = true; const B = e.B || {}, nm = (B.n || e.name || 'THE BOSS');
+  $('tkName').textContent = e.name || nm; $('tkTitle').textContent = B.t || ''; $('tkLine').textContent = BOSS_LINES[B.n] || 'You should not have come down here, little light.';
+  $('tkResp').textContent = ''; const R = $('tkReplies'); R.innerHTML = '';
+  for (const [q, a] of shuffled(TALK_REPLIES).slice(0, 3)) { const b = document.createElement('button'); b.className = 'shb'; b.textContent = q;
+    b.addEventListener('click', () => { $('tkResp').textContent = (e.name || nm) + ': ' + a; R.querySelectorAll('button').forEach(x => x.classList.add('dis')); b.classList.remove('dis'); b.classList.add('on'); sfx('pick'); }); R.appendChild(b); }
+  const cv = $('tkPort'), c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#0c080a'; c.fillRect(0, 0, cv.width, cv.height);
+  try { const img = enemyImg(e); if (img) { const s = Math.min(cv.width / img.width, cv.height / img.height) * .9; c.drawImage(img, (cv.width - img.width * s) / 2, (cv.height - img.height * s) / 2, img.width * s, img.height * s); } } catch (_) {}
+  setState('talk'); sfx('stairs');
+}
+function beginFight() { if (state !== 'talk') return; const e = talkBoss; talkBoss = null; setState('play'); if (e && enemies.includes(e)) { aggro(e); music.combatUntil = time + 4; } }
+function checkBossTalk() {
+  const p = player;
+  for (const e of enemies) if (e.T.boss && !e.talked && e.state !== 'chase' && !e.hidden && dist(e, p) < 175 && los(p, e)) { openTalk(e); return true; }
+  return false;
+}
+// ---- thought bubbles: rare, curated, never generated ----
+const THOUGHTS = {
+  idle: ['THIS PLACE SMELLS LIKE WET BONES.', 'WHO BUILDS A CRYPT UNDER A LAKE?', 'I SHOULD HAVE BEEN A BAKER.', '(-_-) ...', 'DRIP. DRIP. DRIP.', 'SOMEONE IS HUMMING. I HOPE IT\'S ME.', 'NOTE TO SELF: BRING MORE TORCHES.', 'OSWIN, YOU OLD FOOL.', 'IS THAT SINGING? NOPE. NOPE.', 'MY BOOTS ARE FULL OF VAELMOOR.'],
+  hurt: ['OW. OW. OW.', 'THAT WILL LEAVE A MARK.', '>_< NOT THE FACE!', 'I\'M FINE. THIS IS FINE.'],
+  hungry: ['I COULD EAT A RAT. RAW.', 'MY STOMACH IS LOUDER THAN THE CHOIR.'],
+  thirsty: ['WATER. ANY WATER. NOT THAT WATER.', 'SO DRY... IN A DROWNED CITY.'],
+  tired: ['JUST... FIVE MINUTES...', 'MY EYELIDS WEIGH A TON.'],
+  floor: ['DEEPER. ALWAYS DEEPER.', 'NEW FLOOR, SAME DREAD.', 'THE AIR GETS COLDER DOWN HERE.']
+};
+const MOB_THOUGHTS = ['FRESH MEAT!', 'GRR.', 'SHINY BOOTS...', 'HUNGRY...', '*RATTLE*', 'MINE!', 'THE CHOIR CALLS...', 'O_O', 'NOT ANOTHER ONE.'];
+const thought = { t: 0, text: '', life: 0, ent: null, next: 60, mobNext: 30 };
+function sayThought(ent, text, life = 3.2) { thought.text = text; thought.ent = ent; thought.life = life; thought.t = 0; }
+function updateThoughts(dt) {
+  const p = player; thought.life -= dt; thought.next -= dt; thought.mobNext -= dt;
+  if (thought.life > 0) return; thought.ent = null;
+  if (thought.next > 0) return;
+  let pool = THOUGHTS.idle;
+  if (p.hp < p.st.maxHp * .3) pool = THOUGHTS.hurt; else if (p.hunger < 25) pool = THOUGHTS.hungry; else if (p.thirst < 25) pool = THOUGHTS.thirsty; else if (p.fatigue < 25) pool = THOUGHTS.tired;
+  sayThought(p, pick(pool)); thought.next = rand(70, 150);
+}
+function mobThought(e) { if (thought.mobNext > 0 || thought.life > 0 || e.T.boss || Math.random() > .015) return; sayThought(e, pick(MOB_THOUGHTS), 2.4); thought.mobNext = 40; }
+function drawThought() {
+  const e = thought.ent; if (!e || thought.life <= 0 || (e !== player && !enemies.includes(e))) return;
+  const t = thought.text, w = textW(t), x = Math.round(e.x - w / 2 - 3), y = Math.round(e.y - (e.r || 6) - 26 - Math.round(e.z || 0)), a = Math.min(1, thought.life * 2);
+  ctx.globalAlpha = a; ctx.fillStyle = '#e8dcc0'; ctx.fillRect(x, y, w + 6, 9); ctx.fillStyle = '#2a2018'; ctx.fillRect(x + 1, y + 1, w + 4, 7);
+  ctx.fillStyle = '#e8dcc0'; ctx.fillRect(Math.round(e.x) - 1, y + 9, 2, 2); ctx.fillRect(Math.round(e.x), y + 11, 1, 1);
+  drawText(t, x + 3, y + 2, '#e8dcc0', false); ctx.globalAlpha = 1;
+}
+// ---- skills: hotkeys CAST (rebindable), right-click skill selectable ----
+function hotkeys() { const h = settings.hotkeys; return Array.isArray(h) && h.length === 3 && [0, 1, 2].every(i => h.includes(i)) ? h : (settings.hotkeys = [0, 1, 2]); }
+function keyOfSkill(i) { return hotkeys().indexOf(i) + 1; }
+function bindHotkey(slot, skill) { const h = hotkeys().slice(), j = h.indexOf(skill); h[j] = h[slot]; h[slot] = skill; settings.hotkeys = h; saveSettings(); renderSkillsPanel(); }
+function renderSkillsPanel() {
+  const P = $('skRows'); P.innerHTML = '';
+  SKILLS.forEach((S, i) => { const row = document.createElement('div'); row.className = 'skrow';
+    row.innerHTML = `<span class="skn" style="color:${SKILL_ICON_COL[i]}">${S.name.toUpperCase()}</span><span class="skl">LV ${S.lvl}</span>`;
+    for (let k = 0; k < 3; k++) { const b = document.createElement('button'); b.className = 'shb skb' + (hotkeys()[k] === i ? ' on' : ''); b.textContent = 'KEY ' + (k + 1); b.dataset.sk = i; b.dataset.key = k + 1;
+      b.addEventListener('click', () => bindHotkey(k, i)); row.appendChild(b); }
+    const r = document.createElement('button'); r.className = 'shb skb rc' + (rskill === i ? ' on' : ''); r.textContent = 'RIGHT-CLICK'; r.dataset.sk = i;
+    r.addEventListener('click', () => { rskill = i; settings.rskill = i; saveSettings(); renderSkillsPanel(); }); row.appendChild(r);
+    P.appendChild(row); });
+}
+function openSkills() { renderSkillsPanel(); $('skills').classList.remove('hidden'); }
+function closeSkills() { $('skills').classList.add('hidden'); }
+// ---- ambient + new SFX (all procedural) ----
+function sfxTone(type, f0, f1, dur, vol, dly = 0) { const t = actx.currentTime + dly, o = actx.createOscillator(), g = actx.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  o.connect(g); g.connect(bus.sx); g.gain.setValueAtTime(.0001, actx.currentTime); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.start(t); o.stop(t + dur + .02); }
+function sfxNoise(ft, fr, dur, vol, dly = 0, q = 1) { if (!noiseBuf) return; const t = actx.currentTime + dly, n = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain(); n.buffer = noiseBuf; f.type = ft; f.frequency.value = fr; f.Q.value = q;
+  n.connect(f); f.connect(g); g.connect(bus.sx); g.gain.setValueAtTime(.0001, actx.currentTime); g.gain.linearRampToValueAtTime(vol, t + Math.min(.05, dur * .3)); g.gain.exponentialRampToValueAtTime(.001, t + dur); n.start(t); n.stop(t + dur + .05); }
+function sfxExtra(type) {
+  switch (type) {
+    case 'crackle': for (let i = 0; i < 3; i++) sfxNoise('highpass', 2500 + Math.random() * 2000, .03, .05, i * rand(.03, .09)); return true;
+    case 'drip': { const f = rand(900, 1500); sfxTone('sine', f, f * 2.2, .06, .05); sfxTone('sine', f * .8, f * 1.7, .05, .02, .16); return true; } // with a wet echo
+    case 'wind': sfxNoise('bandpass', rand(300, 600), 2.2, .05, 0, 2); return true;
+    case 'growl': sfxTone('sawtooth', rand(70, 110), 50, .45, .06); sfxNoise('lowpass', 300, .4, .05); return true;
+    case 'hiss': sfxNoise('highpass', 3000, .45, .12); return true;
+    case 'click': sfxTone('square', 1800, 900, .03, .08); return true;
+    case 'rumble': sfxNoise('lowpass', 120, 1.1, .3); sfxTone('sine', 50, 30, 1, .15); return true;
+    case 'eat': for (let i = 0; i < 3; i++) sfxNoise('bandpass', 800, .06, .12, i * .12, 3); return true;
+    case 'gulp': sfxTone('sine', 300, 500, .09, .1); sfxTone('sine', 260, 460, .09, .1, .15); return true;
+    case 'door': sfxNoise('lowpass', 200, .9, .3); sfxTone('sawtooth', 60, 40, .8, .08); return true;
+    case 'lever': sfxTone('square', 220, 140, .12, .08); sfxNoise('bandpass', 1200, .1, .1, .05, 4); return true;
+    case 'rune': sfxTone('sine', 660, 990, .3, .07); return true;
+    case 'plate': sfxTone('triangle', 160, 90, .15, .12); return true;
+    case 'whoosh': sfxNoise('bandpass', 900, .35, .14, 0, .7); return true;
+  }
+  return false;
+}
+const amb = { crackle: 0, drip: 4, wind: 9, growl: 0 };
+function ambientTick(dt) {
+  const p = player; amb.crackle -= dt; amb.drip -= dt; amb.wind -= dt; amb.growl -= dt;
+  if (amb.crackle <= 0) { amb.crackle = rand(.5, 1.4); let near = false; for (const t of torches) if (!t.out && Math.hypot(t.x - p.x, t.y - p.y) < 60) { near = true; break; }
+    if (!near) for (const b of braziers) if (Math.hypot(b.x - p.x, b.y - p.y) < 70) { near = true; break; } if (near) sfx('crackle'); }
+  if (amb.drip <= 0) { amb.drip = rand(3, 9) * (waters.length || decor.length > 12 ? .7 : 1); sfx('drip'); }
+  if (amb.wind <= 0) { amb.wind = rand(9, 18); if (isCorridor(Math.floor(p.x / TS), Math.floor(p.y / TS))) sfx('wind'); }
+}
+function onAggroV04(e) { if (amb.growl <= 0 && !e.T.boss && dist(e, player) < 200) { amb.growl = 1.6; if (Math.random() < .5) sfx('growl'); } mobThought(e); }
+// ---- drawing ----
+function drawFloorDecor() {
+  for (const d of decor) { if (d.kind === 'puddle') { ctx.fillStyle = 'rgba(40,60,80,.55)'; ctx.fillRect(Math.round(d.x), Math.round(d.y), d.w, d.h); ctx.fillStyle = 'rgba(120,160,200,.25)'; ctx.fillRect(Math.round(d.x + 1 + (Math.sin(time * 1.3 + d.ph) + 1) * (d.w - 4) / 2), Math.round(d.y), 2, 1); }
+    else { ctx.fillStyle = 'rgba(70,100,40,.45)'; ctx.fillRect(Math.round(d.x), Math.round(d.y), d.w, d.h - 1); ctx.fillStyle = 'rgba(110,140,60,.35)'; ctx.fillRect(Math.round(d.x + 2), Math.round(d.y - 1), Math.max(2, d.w - 5), 1); } }
+  for (const w of waters) { const y = w.y * TS; for (let x = w.x0; x <= w.x1; x++) { const X = x * TS; ctx.fillStyle = '#14283a'; ctx.fillRect(X, y + 3, TS, 10); ctx.fillStyle = '#1e4058'; ctx.fillRect(X, y + 5, TS, 6);
+      for (let k = 0; k < 3; k++) { const o = ((time * 18 + k * 6 + x * 5) % TS); ctx.fillStyle = 'rgba(150,200,230,.5)'; ctx.fillRect(X + Math.floor(o), y + 6 + k * 2, 3, 1); } ctx.fillStyle = '#3a3a40'; ctx.fillRect(X, y + 2, TS, 1); ctx.fillRect(X, y + 13, TS, 1); } }
+  for (const T of traps) { if (!T.spotted && !floorRevealed) continue; const X = Math.round(T.x), Y = Math.round(T.y);
+    if (T.hole) { ctx.fillStyle = '#050304'; ctx.fillRect(X - 6, Y - 5, 12, 10); ctx.fillStyle = '#2a2020'; ctx.fillRect(X - 6, Y - 5, 12, 1); continue; }
+    ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(X - 5, Y - 5, 10, 10); ctx.fillStyle = T.kind === 'fire' ? 'rgba(200,80,20,.5)' : 'rgba(90,80,70,.6)';
+    if (T.kind === 'fire') { ctx.fillRect(X - 3, Y - 3, 2, 2); ctx.fillRect(X + 1, Y + 1, 2, 2); } else { ctx.fillRect(X - 4, Y - 4, 8, 1); ctx.fillRect(X - 4, Y + 3, 8, 1); ctx.fillRect(X - 4, Y - 4, 1, 8); ctx.fillRect(X + 3, Y - 4, 1, 8); } }
+  for (const o of puzzles) { const X = Math.round(o.x), Y = Math.round(o.y);
+    if (o.kind === 'plate') { ctx.fillStyle = o.on ? '#3a342c' : '#6a6050'; ctx.fillRect(X - 5, Y - 4, 10, 8); ctx.fillStyle = o.on ? '#2a241c' : '#8a8070'; ctx.fillRect(X - 5, Y - 4, 10, 1); }
+    else if (o.kind === 'rune') { ctx.fillStyle = '#2a2830'; ctx.fillRect(X - 5, Y - 6, 10, 10); const g = RUNES[o.door.glyphs[o.idx]]; ctx.fillStyle = o.on ? '#80f0ff' : '#5a6a80'; for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (g[r] & (4 >> c)) ctx.fillRect(X - 3 + c * 2, Y - 5 + r * 2, 2, 2); } }
+  for (const b of basins) { const X = Math.round(b.x), Y = Math.round(b.y); ctx.fillStyle = '#4a4650'; ctx.fillRect(X - 6, Y - 6, 12, 9); ctx.fillStyle = '#6a6670'; ctx.fillRect(X - 6, Y - 6, 12, 1); ctx.fillStyle = b.uses ? '#2a5878' : '#1a1a20'; ctx.fillRect(X - 4, Y - 5, 8, 4);
+    if (b.uses) { ctx.fillStyle = 'rgba(180,220,255,.6)'; ctx.fillRect(X - 3 + Math.floor((time * 2) % 6), Y - 4, 1, 1); } ctx.fillStyle = '#3a3640'; ctx.fillRect(X - 2, Y + 3, 4, 3); }
+}
+function drawProps() {
+  for (const o of props) { const X = Math.round(o.x), Y = Math.round(o.y);
+    if (o.wall) { if (o.broken) { ctx.fillStyle = '#5a5040'; ctx.fillRect(X - 3, Y - 4, 1, 4); ctx.fillRect(X + 3, Y - 4, 1, 4); continue; }
+      ctx.fillStyle = '#5a5a60'; ctx.fillRect(X - 4, Y - 8, 1, 5); ctx.fillRect(X + 4, Y - 8, 1, 5); ctx.fillStyle = '#d8d0b8'; ctx.fillRect(X - 2, Y - 6, 4, 3); ctx.fillRect(X - 1, Y - 3, 2, 5); ctx.fillRect(X - 3, Y - 2, 6, 1); ctx.fillRect(X - 2, Y + 2, 1, 3); ctx.fillRect(X + 1, Y + 2, 1, 3);
+      ctx.fillStyle = '#000'; ctx.fillRect(X - 1, Y - 5, 1, 1); ctx.fillRect(X + 1, Y - 5, 1, 1); continue; }
+    if (o.broken) { ctx.fillStyle = o.kind === 'barrel' ? '#4a3020' : o.kind === 'urn' ? '#5a4030' : '#a8a088'; ctx.fillRect(X - 4, Y - 1, 3, 2); ctx.fillRect(X + 1, Y, 3, 1); ctx.fillRect(X - 1, Y - 2, 2, 1); continue; }
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(X - 4, Y + 1, 8, 2);
+    if (o.kind === 'barrel') { ctx.fillStyle = '#6a4428'; ctx.fillRect(X - 4, Y - 9, 8, 10); ctx.fillStyle = '#8a5a34'; ctx.fillRect(X - 3, Y - 9, 6, 10); ctx.fillStyle = '#3a3a40'; ctx.fillRect(X - 4, Y - 7, 8, 1); ctx.fillRect(X - 4, Y - 2, 8, 1); }
+    else if (o.kind === 'urn') { ctx.fillStyle = '#7a5a40'; ctx.fillRect(X - 3, Y - 7, 6, 8); ctx.fillRect(X - 2, Y - 9, 4, 2); ctx.fillStyle = '#9a7a58'; ctx.fillRect(X - 2, Y - 6, 2, 5); ctx.fillStyle = '#4a3020'; ctx.fillRect(X - 3, Y - 4, 6, 1); }
+    else { ctx.fillStyle = '#c8c0a8'; ctx.fillRect(X - 5, Y - 1, 10, 1); ctx.fillRect(X - 2, Y - 4, 4, 3); ctx.fillRect(X + 2, Y - 2, 3, 1); ctx.fillStyle = '#000'; ctx.fillRect(X - 1, Y - 3, 1, 1); ctx.fillRect(X + 1, Y - 3, 1, 1); }
+  }
+}
+function drawDoors() {
+  for (const d of doors) { if (d.open) continue;
+    for (const t of d.tiles) { const X = t.x * TS, Y = t.y * TS;
+      if (d.kind === 'stone') { ctx.fillStyle = '#4a4650'; ctx.fillRect(X, Y, TS, TS); ctx.fillStyle = '#5e5a66'; ctx.fillRect(X + 1, Y + 1, TS - 2, TS - 2); ctx.fillStyle = '#34303a'; ctx.fillRect(X + 7, Y + 1, 1, TS - 2);
+        if (d.puzzle === 'lever') d.seq.forEach((i, k) => { ctx.fillStyle = LEVER_COL[i][1]; ctx.fillRect(X + 3 + k * 4, Y + 4, 2, 2); });
+        else if (d.puzzle === 'rune') d.seq.forEach((i, k) => { const g = RUNES[d.glyphs[i]]; ctx.fillStyle = '#80c0d0'; for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (g[r] & (4 >> c)) ctx.fillRect(X + 2 + k * 4 + c, Y + 5 + r, 1, 1); });
+        else { ctx.fillStyle = '#8a8070'; for (let k = 0; k < 3; k++) ctx.fillRect(X + 3 + k * 4, Y + 10, 2, 1); } }
+      else if (d.kind === 'gate') { ctx.fillStyle = '#121014'; ctx.fillRect(X, Y, TS, TS); ctx.fillStyle = '#7a8088'; for (let k = 1; k < TS; k += 3) ctx.fillRect(X + k, Y, 1, TS); ctx.fillRect(X, Y + 3, TS, 1); ctx.fillRect(X, Y + 11, TS, 1); ctx.fillStyle = '#c0a040'; ctx.fillRect(X + 6, Y + 6, 4, 3); }
+      else { ctx.fillStyle = '#2a0a0c'; ctx.fillRect(X, Y, TS, TS); ctx.fillStyle = '#d8d0b8'; for (let k = 1; k < TS; k += 4) ctx.fillRect(X + k, Y, 2, TS); ctx.fillStyle = '#a01010'; ctx.fillRect(X + 3, Y + 2 + Math.floor((time * 3 + t.x) % 10), 1, 3); ctx.fillRect(X + 11, Y + 5, 1, 4); ctx.fillStyle = 'rgba(200,20,20,.25)'; ctx.fillRect(X, Y, TS, TS); } } }
+  for (const o of puzzles) if (o.kind === 'lever') { const X = Math.round(o.x), Y = Math.round(o.y); ctx.fillStyle = '#3a3a40'; ctx.fillRect(X - 3, Y - 2, 6, 3); ctx.fillStyle = '#7a7070'; ctx.fillRect(X + (o.on ? 1 : -2), Y - 9, 1, 8); ctx.fillStyle = LEVER_COL[o.idx][1]; ctx.fillRect(X + (o.on ? 0 : -3), Y - 11, 3, 3); }
+  if (shop) { const X = Math.round(shop.x), Y = Math.round(shop.y); // the Hollow Pedlar and his stall
+    ctx.fillStyle = '#4a3420'; ctx.fillRect(X - 14, Y + 4, 28, 6); ctx.fillStyle = '#6a4a2c'; ctx.fillRect(X - 14, Y + 4, 28, 1); ctx.fillStyle = '#e8c840'; ctx.fillRect(X - 10, Y + 2, 3, 2); ctx.fillStyle = '#c02028'; ctx.fillRect(X + 7, Y + 1, 2, 3); ctx.fillStyle = '#3050d0'; ctx.fillRect(X + 10, Y + 1, 2, 3);
+    const b = Math.round(Math.sin(time * 2) * .8); ctx.fillStyle = '#3a2a3a'; ctx.fillRect(X - 4, Y - 8 + b, 8, 12); ctx.fillStyle = '#2a1e2a'; ctx.fillRect(X - 5, Y - 11 + b, 10, 4); ctx.fillStyle = '#d8d0b8'; ctx.fillRect(X - 2, Y - 8 + b, 4, 3); ctx.fillStyle = '#80ff80'; ctx.fillRect(X - 1, Y - 7 + b, 1, 1); ctx.fillRect(X + 1, Y - 7 + b, 1, 1);
+    ctx.fillStyle = '#ffb040'; ctx.fillRect(X + 6, Y - 6, 2, 3); }
+}
+function drawGroundExtra(g, by) { const X = Math.round(g.x), Y = Math.round(g.y + by);
+  if (g.ration) { ctx.fillStyle = '#7a5030'; ctx.fillRect(X - 4, Y - 5, 8, 5); ctx.fillStyle = '#c8a070'; ctx.fillRect(X - 3, Y - 6, 6, 2); ctx.fillStyle = '#e8e0c8'; ctx.fillRect(X + 3, Y - 6, 2, 2); return true; }
+  if (g.gkey) { ctx.fillStyle = '#9aa4b0'; ctx.fillRect(X - 5, Y - 5, 4, 4); ctx.fillRect(X - 1, Y - 4, 7, 2); ctx.fillRect(X + 3, Y - 2, 1, 2); ctx.fillRect(X + 5, Y - 2, 1, 2); ctx.fillStyle = '#000'; ctx.fillRect(X - 4, Y - 4, 2, 2); return true; }
+  if (g.frag) { ctx.fillStyle = '#d8c8a0'; ctx.fillRect(X - 4, Y - 7, 8, 6); ctx.fillStyle = '#8a6a40'; ctx.fillRect(X - 3, Y - 5, 5, 1); ctx.fillRect(X - 1, Y - 4, 1, 2); ctx.fillStyle = '#c02020'; ctx.fillRect(X + 1, Y - 3, 1, 1); return true; }
+  if (g.bag) { ctx.fillStyle = g.bag >= 10 ? '#6a4020' : '#8a6030'; ctx.fillRect(X - 5, Y - 8, 10, 8); ctx.fillStyle = '#c8a040'; ctx.fillRect(X - 5, Y - 5, 10, 1); ctx.fillRect(X - 2, Y - 10, 4, 2); return true; }
+  return false; }
+function groundLabel(g) { return g.ration ? 'RATION' : g.gkey ? 'GATE KEY' : g.frag ? 'MAP FRAGMENT' : g.bag ? (g.bag >= 10 ? 'BACKPACK +10' : 'SATCHEL +5') : null; }
+function drawInteractPrompt() {
+  if (touchMode && state !== 'play') return; const o = nearestInteract(); if (!o) return;
+  const t = (touchMode ? '' : 'F ') + o.label, w = textW(t), x = Math.round(o.x - w / 2 - 2), y = Math.round(o.y - 22);
+  ctx.fillStyle = 'rgba(20,14,10,.8)'; ctx.fillRect(x, y, w + 5, 9); ctx.fillStyle = '#8a7050'; ctx.fillRect(x, y + 8, w + 5, 1); drawText(t, x + 2, y + 2, '#e8dcc0', false);
+}
+function drawMapExtras(ox, oy, s) {
+  const dot = (tx, ty, col, n = 1) => { ctx.fillStyle = col; ctx.fillRect(Math.round(ox + tx * s) - (n > 1 ? 1 : 0), Math.round(oy + ty * s) - (n > 1 ? 1 : 0), Math.ceil(s) * n, Math.ceil(s) * n); };
+  for (const d of doors) for (const t of d.tiles) if (seen[t.y * MW + t.x]) dot(t.x, t.y, d.open ? '#605850' : d.kind === 'blood' ? '#e02020' : d.kind === 'gate' ? '#a0b0c0' : '#c0b0a0');
+  for (const w of waters) if (seen[w.y * MW + w.x0] || seen[w.y * MW + w.x1]) for (let x = w.x0; x <= w.x1; x++) dot(x, w.y, '#3070b0');
+  for (const b of basins) { const tx = Math.floor(b.x / TS), ty = Math.floor(b.y / TS); if (seen[ty * MW + tx]) dot(tx, ty, '#60b0ff'); }
+  if (shop && seen[Math.floor(shop.y / TS) * MW + Math.floor(shop.x / TS)]) dot(Math.floor(shop.x / TS), Math.floor(shop.y / TS), '#40e080', 2);
+  if (floorRevealed) { for (const s2 of secrets) if (!s2.broken) dot(s2.tx, s2.ty, Math.floor(time * 3) % 2 ? '#ff40ff' : '#a020a0'); for (const T of traps) if (!T.hole) dot(T.tx, T.ty, '#ff8040'); }
+}
+function drawSurvivalHUD(x, y, w) { const p = player; if (p.hunger === undefined) return;
+  [['F', p.hunger, '#d0a050'], ['W', p.thirst, '#4a90e0'], ['R', p.fatigue, '#a080e0']].forEach(([l, v, c], i) => { const X = x + i * (w + 10), low = v < 25, col = low && Math.floor(time * 3) % 2 ? '#ff4030' : c;
+    drawText(l, X, y, low ? '#ff6050' : '#c8b8a0'); ctx.fillStyle = '#000'; ctx.fillRect(X + 4, y, w + 2, 5); ctx.fillStyle = '#1a1410'; ctx.fillRect(X + 5, y + 1, w, 3); ctx.fillStyle = col; ctx.fillRect(X + 5, y + 1, Math.round(w * v / 100), 3); }); }
+function extraLights(L, view) {
+  for (const w of waters) { const cx = (w.x0 + w.x1 + 1) / 2 * TS, cy = (w.y + .5) * TS; if (view(cx, cy, 60)) L.push({ x: cx, y: cy, r: 40 + Math.sin(time * 2 + w.y) * 2, col: 'cold', a: .22 }); }
+  for (const b of basins) if (b.uses && view(b.x, b.y, 30)) L.push({ x: b.x, y: b.y, r: 18, col: 'cold', a: .25 });
+  if (shop && view(shop.x, shop.y, 80)) L.push({ x: shop.x + 7, y: shop.y - 4, r: 54 + Math.sin(time * 5) * 1.5, col: 'warm', a: .7 });
+  for (const o of puzzles) if (o.kind === 'rune' && view(o.x, o.y, 20)) L.push({ x: o.x, y: o.y, r: o.on ? 18 : 10, col: 'cold', a: o.on ? .6 : .25 });
+}
+// ---- per-frame hook (play state only) ----
+function v04Update(dt) {
+  const p = player;
+  if (checkBossTalk()) return true;
+  updateTraps(dt); if (state !== 'play') return true;
+  updateSurvival(dt); updateThoughts(dt); ambientTick(dt);
+  if (p.useT) { const o = p.useT; if (Math.hypot(o.x - p.x, o.y - p.y) < o.r) { p.useT = null; p.walk = null; o.use(); } else if (!p.walk) p.useT = null; }
+  if (touchMode) { const o = nearestInteract(), b = $('bUse'); b.classList.toggle('hidden', !o); if (o) $('bUseL').textContent = o.label.split(' ')[0]; }
+  return false;
+}
+function panelClick() { // desktop bottom panel: click a skill box to make it the right-click skill (never walks)
+  const ly = VH - 30 + 7, rx = VW - 54;
+  for (let i = 0; i < 3; i++) { const x = rx - 46 + i * 11; if (mouse.x >= x - 1 && mouse.x < x + 10 && mouse.y >= ly + 2 && mouse.y < ly + 14) { selectSkill(i); return; } }
+}
+// ---- DOM wiring ----
+$('dropAllBtn').addEventListener('click', e => { if (state === 'inv') requestDropAll(e.shiftKey); });
+$('ratBtn').addEventListener('click', () => { if (state !== 'inv') return; if (eatRation()) invNote = `You eat a ration. Hunger ${Math.round(player.hunger)}%. (${player.rations} left)`; else invNote = player.rations > 0 ? 'You are not hungry.' : 'No rations left. Find them in crates and urns, or buy them from a crypt pedlar.'; renderInv(); });
+$('fragBtn').addEventListener('click', () => { if (state === 'inv') useMapFrags(); });
+$('restBtn').addEventListener('click', () => openRest());
+$('mRest').addEventListener('click', () => openRest());
+$('rsGo').addEventListener('click', confirmRest); $('rsNo').addEventListener('click', () => setState('play'));
+$('shLeave').addEventListener('click', closeShop); $('shSell').addEventListener('click', sellSel); $('shRepair').addEventListener('click', repairAll);
+$('tkBegin').addEventListener('click', beginFight);
+$('mSkills').addEventListener('click', openSkills); $('skClose').addEventListener('click', closeSkills);
+$('mBattle').addEventListener('click', () => { settings.battleMusic = !settings.battleMusic; saveSettings(); syncBattleBtn(); });
+function syncBattleBtn() { $('mBattle').textContent = 'BATTLE MUSIC: ' + (settings.battleMusic ? 'ON' : 'OFF'); }
+syncBattleBtn();
+$('tMap').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'play') mapOpen = !mapOpen; });
 // ---------- render ----------
 function render() {
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
@@ -2409,13 +3097,14 @@ function render() {
     else { ctx.drawImage(tileImgs.floor[v], X, Y);
       if (tileAt(tx, ty - 1) === TILE.WALL) { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(X, Y, TS, 3); } }
   }
-  drawDebris(); drawSecrets(); drawHazards(); drawChests();
+  drawFloorDecor(); drawDebris(); drawSecrets(); drawHazards(); drawChests(); drawProps(); drawDoors();
   for (const g of ground) {
     const by = Math.round(Math.sin(time * 3 + g.bob));
     if (g.item) { if (g.item.rarity >= 2) { ctx.fillStyle = g.item.rarity === 3 ? 'rgba(216,160,64,.3)' : 'rgba(240,240,96,.2)'; ctx.fillRect(Math.round(g.x) - 1, Math.round(g.y) - 22, 2, 18); }
       ctx.drawImage(ICONS[g.item.icon], Math.round(g.x - 6), Math.round(g.y - 8 + by)); }
     else if (g.pot) ctx.drawImage(ICONS[g.pot], Math.round(g.x - 4), Math.round(g.y - 6 + by));
     else if (g.gold) ctx.drawImage(ICONS.gold, Math.round(g.x - 4), Math.round(g.y - 3));
+    else if (drawGroundExtra(g, by)) { /* v0.4 pickups */ }
     else if (g.torch) ctx.drawImage(TORCH_ICON, Math.round(g.x - 2), Math.round(g.y - 8 + by));
     else if (g.key) { if (Math.floor(time * 3 + g.bob) % 4 === 0) { ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(g.x + 2), Math.round(g.y - 6 + by), 1, 1); } ctx.drawImage(KEY_ICON, Math.round(g.x - 4), Math.round(g.y - 4 + by)); }
   }
@@ -2443,14 +3132,15 @@ function render() {
     if (labelShown(g)) { const nm = g.item.name.toUpperCase(), w = textW(nm);
       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 17), w + 3, 7); drawTextC(nm, g.x, g.y - 16, RCOL[g.item.rarity], false); } }
   drawTeles(); drawClickMark();
-  if (!touchMode && keys.Alt) for (const g of ground) { if (g.item) continue; const t = g.gold ? g.gold + ' GOLD' : g.pot ? (g.pot === 'hp' ? 'LIFE POTION' : g.pot === 'rp' ? 'REPAIR POTION' : 'MANA POTION') : g.key ? 'KEY' : g.torch ? 'TORCH' : ''; if (!t) continue;
-    const w = textW(t); ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 13), w + 3, 7); drawTextC(t, g.x, g.y - 12, g.gold ? '#e8c840' : g.key ? '#ffe060' : g.torch ? '#ffb040' : g.pot === 'rp' ? '#ffa850' : g.pot === 'mp' ? '#8098ff' : '#ff8080'); }
+  if (!touchMode && keys.Alt) for (const g of ground) { if (g.item) continue; const t = groundLabel(g) || (g.gold ? g.gold + ' GOLD' : g.pot ? (g.pot === 'hp' ? 'LIFE POTION' : g.pot === 'rp' ? 'REPAIR POTION' : 'MANA POTION') : g.key ? 'KEY' : g.torch ? 'TORCH' : ''); if (!t) continue;
+    const w = textW(t); ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 13), w + 3, 7); drawTextC(t, g.x, g.y - 12, groundLabel(g) ? '#e8dcc0' : g.gold ? '#e8c840' : g.key ? '#ffe060' : g.torch ? '#ffb040' : g.pot === 'rp' ? '#ffa850' : g.pot === 'mp' ? '#8098ff' : '#ff8080'); }
   for (const e of enemies) if (e.state === 'chase' && !e.T.boss && !e.hidden && !e.disg && dist(e, p) < 150 && !(e.T.ai === 'shade' && dist(e, p) > 40)) {
     const w = 12, X = Math.round(e.x - w / 2), Y = Math.round(e.y - e.r - 9 - Math.round(e.z || 0));
     ctx.fillStyle = '#000'; ctx.fillRect(X - 1, Y - 1, w + 2, 4);
     ctx.fillStyle = '#c02020'; ctx.fillRect(X, Y, Math.max(0, Math.round(w * e.hp / e.maxHp)), 2);
     if (e.name) drawTextC(e.name, e.x, Y - 7, '#7a9cff');
   }
+  drawInteractPrompt(); drawThought();
   for (const q of texts) drawTextC(q.t, q.x, q.y, q.col);
   ctx.restore();
   drawVignette();
@@ -2504,10 +3194,12 @@ function drawHUD() {
       ctx.fillStyle = warn ? (Math.floor(time * 6) % 2 ? '#ff4020' : '#ffb040') : '#ffa030'; ctx.fillRect(bx, ty + 1, Math.round(30 * p.torchT / TORCH_TIME), 3);
       if (p.torchT <= 0) drawText('NO LIGHT', bx + 34, ty, Math.floor(time * 2) % 2 ? '#a08870' : '#605040'); }
     ctx.drawImage(ICONS.rp, 1, 36); drawText('X' + (p.rpPot || 0), 12, 39, p.rpPot ? '#ffa850' : '#777');
+    { const gx = 12 + textW('X' + (p.rpPot || 0)) + 6, gl = 'GATE X' + (p.gateKeys || 0); drawText(gl, gx, 39, p.gateKeys ? '#c0d0e0' : '#777'); drawText('FOOD X' + (p.rations || 0), gx + textW(gl) + 6, 39, p.rations ? '#d0b070' : '#777'); }
+    drawSurvivalHUD(4, 47, 14);
     ctx.fillStyle = '#000'; ctx.fillRect(0, VH - 2, VW, 2); ctx.fillStyle = '#c8a040'; ctx.fillRect(0, VH - 2, Math.round(VW * p.xp / xpNeed(p.lvl)), 2);
   } else drawText(`LV ${p.lvl}  DEPTH ${depth}`, 4, 4, '#d8c8a0');
   // minimap (top right)
-  if (!(mapOpen && !touchMode)) {
+  if (!mapOpen) {
   const mmS = 2, mw = Math.min(MW * mmS, Math.floor(VW * .26)), mh = Math.min(MH * mmS, Math.floor(VH * .3));
   const mx = VW - mw - 4, my = 4, ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
   const cw = Math.floor(mw / mmS), ch = Math.floor(mh / mmS);
@@ -2519,8 +3211,8 @@ function drawHUD() {
   ctx.fillStyle = Math.floor(time * 4) % 2 ? '#fff' : '#4f4'; ctx.fillRect(mx + (ptx - ox) * mmS, my + (pty - oy) * mmS, mmS, mmS);
   }
   drawDurWarn();
-  if (!touchMode) { drawD2Panel(); if (mapOpen) drawBigMap(); }
-  const bo = activeBoss(); let my2 = 40, hy = bossBarY();
+  if (!touchMode) { drawD2Panel(); drawSurvivalHUD(4, VH - 41, 16); { const gl = 'GATE KEYS ' + (p.gateKeys || 0); drawText(gl, 96, VH - 41, p.gateKeys ? '#c0d0e0' : '#777'); drawText('FOOD ' + (p.rations || 0), 96 + textW(gl) + 6, VH - 41, p.rations ? '#d0b070' : '#777'); } } if (mapOpen) drawBigMap();
+  const bo = activeBoss(); let my2 = touchMode ? 56 : 40, hy = bossBarY();
   if (hoverEnemy && hoverEnemy !== bo && !touchMode) { hy = drawHoverBar(hoverEnemy, hy); my2 = Math.max(my2, hy + 2); }
   if (bo) my2 = Math.max(40, drawBossBar(bo, hy) + 2);
   if (msg.life > 0) { const w = textW(msg.t); ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(VW / 2 - w / 2 - 3), my2, w + 6, 9); drawTextC(msg.t, VW / 2, my2 + 2, msg.col); }

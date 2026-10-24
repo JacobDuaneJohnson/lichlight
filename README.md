@@ -2,7 +2,7 @@
 
 **[▶ Play Lichlight](https://jacobduanejohnson.github.io/lichlight/)**
 
-Current version: **v0.3.2** · [What's new](CHANGELOG.md) · [All releases](https://github.com/JacobDuaneJohnson/lichlight/releases)
+Current version: **v0.4.0** · [What's new](CHANGELOG.md) · [All releases](https://github.com/JacobDuaneJohnson/lichlight/releases)
 
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 
@@ -27,6 +27,14 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 - **Chests and keys:** locked chests hold magic and rare gear. Keys are hidden under cracked floor tiles and behind cracked brick walls (hit them to break them open), and champions sometimes drop one.
 - **Loot:** regular monsters drop gold, potions, and the occasional normal item. Only bosses drop uniques.
 - **Level requirements:** every piece of gear has a required level. Gear you are too low to wear is tinted red in your bag, and you can't equip it until you reach that level.
+- **Bigger floors, sealed doors:** floors are larger now. Stone doors are sealed by a puzzle in the room (pull levers or touch runes in the order shown on the door, or stand on every pressure plate). Iron gates need a **Gate Key**, which is a separate item from chest keys. The boss room is behind a **blood door** that costs 15% of your max life to open. It never kills you; if you're too low it refuses until you heal.
+- **Traps:** narrow corridors can hide pitfalls, dart traps, collapsing ceilings, rolling stones, and fire jets. Each one flashes a warning first, so roll.
+- **Torches:** hit a wall torch to knock it out. Walk up to a lit torch or brazier and use it (**F** / **USE**) to relight your own torch, and use a lit torch on an empty sconce to relight it.
+- **Survival:** watch **F**ood, **W**ater, and **R**est. When a bar runs low you move slower. When it's empty you slowly lose life, but this alone never kills you. Eat rations from your bag (they turn up in crates, urns, and vaults, or from the trader), drink from stone basins and running water, and **REST** for 1 to 8 hours in a quiet room with no enemies nearby. 6 to 8 hours is a full rest.
+- **Crypt shop:** sometimes the floor right after a boss has the Hollow Pedlar in a side room. Sell backpack items, repair everything, and buy potions, rations, and Gate Keys.
+- **Map Fragments:** very rare. Collect 4 and use them from your bag to reveal the whole floor, including hidden walls and traps.
+- **Satchels and backpacks:** the Bone King and later bosses can drop bags that add 5 or 10 slots (40 max).
+- **Drop All:** the **DROP ALL** button in the bag drops every backpack item after you confirm (Shift+click skips the confirm). Equipped gear stays on.
 - **Durability and Repair Potions:** weapons wear down as you land hits and armor wears down as you take them. Below 10% the item's icon turns red and you get a warning. At 0 the item shatters and is gone for good. Orange **Repair Potions** fully restore one item: select the potion in your bag, then tap the item. They turn up on the floor, in chests, on champions, and from every boss.
 
 ### Touch controls
@@ -39,8 +47,10 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 | Skills | **FIRE** (level 1), Whirlwind (level 2), Frost Nova (level 4) |
 | Pick up gear | Tap the item. Press and hold it to see its stats. |
 | Potions | Heart button for life, blue button for mana |
-| Inventory | Bag button. Tap an item to see stats and lore, then **EQUIP** or **DROP**. **SORT** organizes your backpack. |
-| Pause / settings | ❚❚ button at the top (sound, music, volume, screenshake) |
+| Use / interact | **USE** button (appears next to doors, levers, runes, water, torches, and the trader) |
+| Map | ⌗ button at the top |
+| Inventory | Bag button. Tap an item to see stats and lore, then **EQUIP** or **DROP**. **SORT** organizes your backpack. Rations, Map Fragments, and **REST** are in the bag too. |
+| Pause / settings | ❚❚ button at the top (sound, music, battle music, volume, screenshake) |
 
 ### Computer controls (Diablo-style)
 
@@ -48,14 +58,17 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 | --- | --- |
 | Walk | Left-click the ground (hold to keep walking toward the cursor) |
 | Attack | Left-click an enemy (hold to keep attacking) |
-| Attack in place | Shift + left-click |
+| Stand in place | Hold **Ctrl**: you won't move. Ctrl + left-click attacks toward the cursor without moving. (Shift no longer does this; Shift+click is a normal click.) |
 | Pick up gear / open chest | Left-click it. Hover over an item to see its stats. |
-| Cast skill | Right-click (casts the selected skill toward the cursor) |
-| Choose skill | 1, 2, 3 (or F1–F3) |
+| Cast skill | 1, 2, 3 cast a skill toward the cursor. Right-click casts the selected right-click skill. |
+| Choose right-click skill | F1–F3, or click a skill box on the bottom bar |
+| Rebind skill keys | Pause → **SKILL KEYS** (choose which skill each of 1/2/3 and right-click casts) |
+| Use / interact | F, or left-click it (doors, levers, runes, water, torches, the trader) |
+| Eat a ration / rest | R / Z |
 | Dodge roll | Space (or K) |
 | Potions | Q (life), E (mana) |
 | Inventory | I or B |
-| Map | Tab |
+| Map | M or Tab |
 | Show item labels | Hold Alt |
 | Pause | Esc or P |
 | Optional movement | WASD or arrow keys, J to attack |
@@ -65,4 +78,6 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 - Use the roll to dodge through projectiles. You can't be hit mid-roll.
 - Watch for red warning markers before a boss's big attacks. Bosses get angrier at half health.
 - Save a torch for boss floors. Fighting in the dark is rough.
+- Battle music is **Off** by default. Turn it on in the pause menu (**BATTLE MUSIC**) if you want the combat track.
+- Heal up before you open a blood door, and rest before a boss if you can.
 - Compare gear in the inventory before equipping. The detail panel shows how it stacks up against what you're wearing.
