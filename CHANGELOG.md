@@ -4,6 +4,14 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.3.2] - 2026-10-24
+
+_Update prompt_
+
+### Added
+- **Update prompt.** When a newer build of Lichlight is live, the game tells you when it launches or when you come back to it. Tap **Update** to reload into the latest version (your saved progress stays). Tap **Later** to keep playing; you will be asked again next time you return to the game.
+- If you are in the middle of a run, the prompt waits until you pause, take the stairs, die, or return to the title screen, so it never interrupts a fight.
+
 ## [0.3.1] - 2026-10-24
 
 _Rarer keys and version display_
@@ -101,6 +109,7 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.3.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.2
 [0.3.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.1
 [0.3.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.0
 [0.2.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.2.0

@@ -3,7 +3,7 @@
 #   ./release.sh <version> <notes.md> "<short title>" [--dry-run]
 # Example:
 #   ./release.sh 0.3.2 notes/0.3.2.md "Faster torches"
-# Does: bump VERSION in index.html + README, prepend CHANGELOG.md, commit, annotated tag,
+# Does: bump VERSION in index.html + README, write version.json (read by the in-game update check), prepend CHANGELOG.md, commit, annotated tag,
 #       push main + tag, create the GitHub release (marked Latest), wait for the Pages build.
 # Copy the new build into index.html (e.g. cp ../dungeon/index.html .) BEFORE running this.
 set -euo pipefail
@@ -24,6 +24,8 @@ command -v gh >/dev/null || die "gh CLI not installed"
 # 1. bump the version shown in the game and README
 sed -i "s/^const VERSION = '[^']*';/const VERSION = '$VER';/" index.html
 sed -i "s/^Current version: \*\*v[0-9.]*\*\*/Current version: **$TAG**/" README.md
+printf '{"version":"%s"}\n' "$VER" > version.json   # players on older builds see an "Update available" prompt
+grep -q "^const VERSION = '$VER';" index.html && grep -q "\"$VER\"" version.json || die "VERSION / version.json mismatch"
 # 2. prepend the notes to CHANGELOG.md (above the newest entry) + add the link reference
 python3 - "$VER" "$DATE" "$TITLE" "$NOTES" <<'PY'
 import sys, re
@@ -41,7 +43,7 @@ PY
 git --no-pager diff --stat
 if [[ "$DRY" == "--dry-run" ]]; then echo "dry run: changes left uncommitted (git checkout -- . to undo)"; exit 0; fi
 # 3. commit, tag, push
-git add -u; git add CHANGELOG.md
+git add -u; git add CHANGELOG.md version.json
 git commit -m "Release $TAG: $TITLE"
 git tag -a "$TAG" --cleanup=verbatim -F "$NOTES"   # verbatim keeps the "### Added" headings
 git push origin main
@@ -56,3 +58,4 @@ for i in $(seq 1 40); do
   sleep 10
 done
 echo "Released $TAG: https://github.com/$REPO/releases/tag/$TAG"
+echo "Tip: copy index.html + version.json back to your working copy (e.g. ../dungeon) so both stay identical."

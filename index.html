@@ -103,6 +103,11 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .lore{color:#d8b060;font-style:italic;font-size:11.5px;line-height:1.35;margin-top:6px;padding-left:6px;border-left:2px solid #6a5020;white-space:normal;overflow-wrap:break-word;opacity:.92}
 .a2hs{position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:10px;
   max-width:92vw;padding:8px 8px 8px 12px;background:#1c1424;border:2px solid #a06030;border-radius:6px;color:#ddd;font-size:12px;line-height:1.35}
+#updModal{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);touch-action:none}
+#updModal.hidden{display:none}
+.updBox{background:#1a1014;border:3px solid #c9a050;border-radius:6px;padding:14px 22px;max-width:min(92vw,460px);text-align:center;box-shadow:0 0 24px rgba(0,0,0,.8);font-family:"Courier New",monospace;color:#ddd}
+.updBox h2{margin:0 0 6px;color:#e0b040;font-size:20px;letter-spacing:2px}.updBox p{margin:4px 0;font-size:14px;line-height:1.4}.updBox .updSub{color:#888;font-size:12px}
+.updBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}#updGo{background:#2a4a1a;border-color:#80c040}
 .verbar{position:absolute;right:calc(8px + env(safe-area-inset-right));top:calc(2px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;font:bold 11px "Courier New",monospace;color:#8a7a6a;z-index:2}
 .verbar a{color:#c9a050;text-decoration:underline;padding:11px 8px;touch-action:manipulation}.verbar a:focus-visible{outline:2px solid #c9a050}
 .a2hs b{color:#e0b040}.a2hs .shr{color:#60a0ff}
@@ -155,6 +160,12 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="verbar"><a id="whatsNew" href="https://github.com/JacobDuaneJohnson/lichlight/releases" target="_blank" rel="noopener">WHAT'S NEW</a><span id="verTxt"></span></div>
   <div class="a2hs hidden" id="a2hs"><span>For true fullscreen: tap <b>Share</b> <span class="shr">&#x2191;&#x20DE;</span>, then <b>Add to Home Screen</b>.</span><button id="a2hsX" aria-label="Dismiss">&times;</button></div>
 </div>
+<div id="updModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="updT"><div class="updBox">
+  <h2 id="updT">UPDATE AVAILABLE</h2>
+  <p id="updMsg">A newer version of Lichlight is ready.</p>
+  <p class="updSub">Your progress is saved at the start of each floor.</p>
+  <div class="updBtns"><button class="mbtn" id="updGo">UPDATE</button><button class="mbtn small" id="updLater">LATER</button></div>
+</div></div>
 <div id="dead" class="overlay hidden">
   <h1 class="title" style="color:#c03030">YOU DIED</h1>
   <div class="subt" id="deadTxt"></div>
@@ -166,7 +177,8 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.3.1'; // bump with release.sh (also tags + publishes the GitHub release)
+const VERSION = '0.3.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1567,6 +1579,7 @@ const joy = { id: null, ox: 0, oy: 0, x: 0, y: 0, active: false };
 const KEYMAP = { 'j': 'attack' }; // 1/2/3 (F1-F3) select the right-click skill
 function normKey(e) { return e.key.length === 1 ? e.key.toLowerCase() : e.key; }
 window.addEventListener('keydown', e => {
+  if (UPD.shown) { if (e.key === 'Escape') updateLater(); else if (e.key === 'Enter') { e.preventDefault(); updateNow(); } return; }
   const k = normKey(e);
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Tab', 'Alt', 'F1', 'F2', 'F3'].includes(e.key)) e.preventDefault();
   if (e.key === ' ' && document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); // never "click" a focused button
@@ -2025,6 +2038,7 @@ function setState(s) {
   $('menu').classList.toggle('hidden', !(s === 'menu' || s === 'pause'));
   $('dead').classList.toggle('hidden', s !== 'dead');
   $('inv').classList.toggle('hidden', s !== 'inv');
+  if (s !== 'play' && s !== 'inv' && UPD.pending) setTimeout(maybeShowUpdate, 0);
   for (const k in held) { held[k] = false; tapQ[k] = 0; }
   document.querySelectorAll('#touch .btn').forEach(b => b.classList.remove('down'));
   updateTouchUI(); updateA2HS();
@@ -2336,7 +2350,7 @@ function update(dt) {
   const ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
   if (tileAt(ptx, pty) === TILE.STAIRS) {
     const bb = enemies.find(e => e.T.boss); if (bb) { if (msg.life <= 0) flashMsg(bb.name + ' bars the way!', '#f66'); aggro(bb); }
-    else { sfx('stairs'); startFloor(depth + 1); flashMsg('You descend deeper...', '#ccc'); return; }
+    else { sfx('stairs'); startFloor(depth + 1); flashMsg('You descend deeper...', '#ccc'); if (UPD.pending && !UPD.shown) { pauseGame(); } return; }
   }
   updateEnemies(dt); if (state !== 'play') return;
   if (enemies.some(e => e.state === 'chase' && dist(e, p) < 170) || projs.some(q => q.owner === 'e')) music.combatUntil = time + 4;
@@ -2556,6 +2570,35 @@ if (loadSave()) $('mCont').classList.remove('hidden');
 requestAnimationFrame(loop);
 // debug/test hook
 $('verTxt').textContent = 'v' + VERSION;
+// ---------- update check: compare version.json on Pages with the running VERSION ----------
+// Boot + resume (visibilitychange / pageshow / focus). Never blocks play; any error is silent.
+function semverGt(a, b) { const pa = String(a).split('.').map(n => parseInt(n, 10) || 0), pb = String(b).split('.').map(n => parseInt(n, 10) || 0);
+  for (let i = 0; i < 3; i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); return false; }
+async function checkUpdate(force) {
+  if (UPD.checking || UPD.shown || UPD.pending || location.protocol === 'file:') return;
+  const now = Date.now(); if (!force && now - UPD.lastCheck < UPD.minGap) return; UPD.lastCheck = now; UPD.checking = true;
+  try {
+    const r = await fetch('version.json?t=' + now, { cache: 'no-store' }); if (!r.ok) return;
+    const j = await r.json(), v = String((j && j.version) || '');
+    if (/^\d+\.\d+\.\d+$/.test(v) && semverGt(v, VERSION)) { UPD.pending = v; maybeShowUpdate(); }
+  } catch (e) { /* offline / 404 / bad json: ignore */ } finally { UPD.checking = false; }
+}
+function updateSafeNow() { return state === 'menu' || state === 'pause' || state === 'dead'; }
+function maybeShowUpdate() { // during a run (play / inventory) the prompt waits for a pause, the next floor, death or the title
+  if (!UPD.pending || UPD.shown || !updateSafeNow()) return false;
+  UPD.shown = true; $('updMsg').textContent = `A newer version of Lichlight is ready (v${UPD.pending}).`;
+  $('updModal').classList.remove('hidden'); setTimeout(() => { try { $('updGo').focus({ preventScroll: true }); } catch (e) {} }, 0); return true;
+}
+function updateNow() { const u = new URL(location.href); u.searchParams.set('v', UPD.pending || VERSION); u.hash = ''; try { save(); } catch (e) {} location.replace(u.toString()); }
+function updateLater() { UPD.shown = false; UPD.pending = null; $('updModal').classList.add('hidden'); } // ask again only on the next launch / resume
+$('updGo').addEventListener('click', e => { e.preventDefault(); updateNow(); });
+$('updLater').addEventListener('click', e => { e.preventDefault(); updateLater(); });
+['keydown', 'keyup'].forEach(t => $('updModal').addEventListener(t, e => e.stopPropagation()));
+$('updModal').addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); updateLater(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+window.addEventListener('pageshow', e => { if (e.persisted) checkUpdate(true); });
+window.addEventListener('focus', () => checkUpdate());
+setTimeout(() => checkUpdate(true), 600); // launch (title screen)
 $('whatsNew').addEventListener('keydown', e => e.stopPropagation()); // Enter/Space on the focused link shouldn't start a game
 window.game = { version: VERSION, get state() { return state; }, get player() { return player; }, get enemies() { return enemies; }, get depth() { return depth; },
   astar, planWalk, selectSkill, enemyAtCursor, dm, get rskill() { return rskill; }, get mapOpen() { return mapOpen; }, get hoverEnemy() { return hoverEnemy; }, get walk() { return player && player.walk; },

@@ -31,10 +31,13 @@ const VERSION = '0.3.1';
 `release.sh` then does the following:
 
 - bumps `VERSION` in `index.html` and the "Current version" line in `README.md`
+- writes `version.json` (`{"version":"X.Y.Z"}`). When the game launches or comes back from the background, it compares this file with its own `VERSION` and offers an **Update** button if a newer build is live.
 - adds the notes to the top of `CHANGELOG.md` with today's date
 - commits, creates an annotated tag `vX.Y.Z`, and pushes `main` and the tag
 - runs `gh release create vX.Y.Z --latest` with the same notes
 - waits until GitHub Pages has built the new commit
+
+Afterwards, copy `index.html` and `version.json` back to your working copy (for example `/workspace/dungeon`) so the two stay identical.
 
 Links:
 
