@@ -141,6 +141,11 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #bUse.hidden{display:none}
 .overlay.hidden,#shop.hidden,#rest.hidden,#talk.hidden,#skills.hidden{display:none}
 #skills{z-index:25}
+/* v0.4.2: bigger, more readable inventory text */
+#inv h3{font-size:15px}#stats{font-size:12px}#dtext{font-size:13px}#dtext .nm{font-size:15px}.slot .lbl{font-size:10px}.lore{font-size:12.5px}#gtip{font-size:13px}#gtip .nm{font-size:15px}
+#stats{flex:1;min-height:0;overflow-y:auto;touch-action:pan-y;white-space:pre-wrap}
+@media (min-width:900px) and (min-height:500px){#inv{--slot:min(12.5vh,7.3vw)}#detail{width:min(30vw,300px)}#inv h3{font-size:clamp(15px,1.6vw,18px)}#stats{font-size:clamp(13px,1.35vw,15px);line-height:1.5}#dtext{font-size:clamp(14px,1.5vw,16px)}#dtext .nm{font-size:clamp(16px,1.75vw,19px)}
+  .slot .lbl{font-size:11px}.lore{font-size:clamp(13px,1.4vw,15px)}#dbtns button,.sortb{font-size:15px}#gtip{font-size:14px}#gtip .nm{font-size:16px}}
 .v4box h3{margin:2px 0 4px;font-size:13px}
 @media (max-height:460px){.mbtn.small{padding:5px 9px;font-size:12px}.aopts{gap:4px 10px;margin-top:2px}.help{font-size:11px;line-height:1.35;margin-top:4px}.title{margin:0 0 2px}.subt{margin-bottom:4px}}
 @media (max-height:460px){.v4box{padding:6px 12px;max-height:96vh}.v4box h2{font-size:15px;margin:0 0 2px}.v4sub{font-size:11px;margin:2px 0}.shb{min-height:28px;margin:2px 0;padding:2px 8px;font-size:12px}.shcols{margin:2px 0}#shGrid{--slot:min(10vh,38px)}
@@ -233,7 +238,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.4.1'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.4.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -807,8 +812,8 @@ function genDungeon(depth) {
 let state = 'menu', depth = 1, player = null, enemies = [], projs = [], parts = [], texts = [], ground = [], effects = [];
 let cam = { x: 0, y: 0 }, msg = { t: '', life: 0, col: '#fff' }, time = 0, bannerT = 0;
 const SKILLS = [
-  { name: 'Fireball', mana: 5, cd: 0.45, lvl: 1 },
-  { name: 'Whirlwind', mana: 9, cd: 1.6, lvl: 2 },
+  { name: 'Fireball', mana: 4, cd: 0.45, lvl: 1 },
+  { name: 'Whirlwind', mana: 8, cd: 1.6, lvl: 2 },
   { name: 'Frost Nova', mana: 14, cd: 4.5, lvl: 4 },
 ];
 const SLOTS = ['weapon', 'helm', 'armor', 'boots', 'ring'];
@@ -1260,8 +1265,9 @@ function populate() {
   rooms.forEach((r, i) => {
     if (i === 0) return;
     if (boss && i === rooms.length - 1) return; // boss room is the boss's alone
-    if (Math.random() < .22) return; // bigger floors: some rooms are quiet
-    const n = Math.min(4, irand(1, 2) + Math.floor(depth / 5) + (Math.random() < .3 ? 1 : 0));
+    const early = depth <= 3;
+    if (!(early && i <= 2) && Math.random() < (early ? .08 : .22)) return; // bigger floors: some rooms are quiet (rarely on depth 1-3; never the first 2 rooms there)
+    const n = Math.min(4, irand(1, 2) + Math.floor(depth / 5) + (Math.random() < (early ? .55 : .3) ? 1 : 0));
     const eliteRoom = Math.random() < .12 + Math.min(depth, 40) * .008;
     for (let k = 0; k < n && enemies.length < MAX_ENEMIES - 12; k++) {
       const type = pick(floorPool), T = ETYPES[type], cnt = T.pack ? irand(T.pack[0], T.pack[1]) : 1, s = freeSpot(r);
@@ -1870,6 +1876,11 @@ function desktopClick(e) {
   if (dm.ctrl) { p.walk = null; held.attack = true; tapQ.attack = performance.now() + 250; return; } // Ctrl+click: attack in place toward cursor (Shift is a normal click)
   const g = groundItemAt(e.clientX, e.clientY, 2); if (g) { p.walk = null; requestPickup(g); return; }
   const en = enemyAtCursor(); if (en) { startWalk('enemy', en, en.x, en.y); return; }
+  { const tt = torchAtCursor() || propAtCursor(); if (tt) { const isT = torches.includes(tt), ax = tt.x, ay = isT ? tt.y + 6 : tt.y - 4, stand = isT ? { x: tt.x, y: tt.y + 20 } : null;
+      const swing = () => { faceTo(ax, ay); p.atkCd = 0; doAttack(true); };
+      if (Math.hypot(ax - p.x, ay - p.y) < (isT ? 26 : 18)) { p.walk = null; swing(); }
+      else { const q = stand || { x: tt.x, y: tt.y + 10 }; startWalk('ground', null, q.x, q.y); p.useT = { x: q.x, y: q.y, r: isT ? 10 : 12, use: swing }; }
+      return; } }
   { const c0 = cursorWorld(), io = interactAt(c0.x, c0.y); if (io) { if (Math.hypot(io.x - p.x, io.y - p.y) < io.r) { p.walk = null; io.use(); } else { startWalk('ground', null, io.x, io.y + (io.ref && torches.includes(io.ref) ? 0 : 6)); p.useT = io; } return; } }
   const ch = chestAtCursor(); if (ch) { startWalk('chest', ch, ch.x, ch.y); return; }
   const se = secretAtCursor(); if (se) { const t = walkTargetPoint({ kind: 'secret', ref: se }); startWalk('secret', se, t.x, t.y); return; }
@@ -1902,7 +1913,7 @@ function setCursor(k) { if (curKind !== k) { curKind = k; canvas.style.cursor = 
 function updateHover() { // desktop: hovered monster (top bar) + cursor kind
   if (touchMode || state !== 'play' || !mouse.active) { hoverEnemy = null; return; }
   hoverEnemy = enemyAtCursor(); if (hoverEnemy && hoverEnemy.disg) hoverEnemy = null;
-  setCursor(hoverEnemy ? 'attack' : (groundItemAt(mouse.cx, mouse.cy, 2) || chestAtCursor()) ? 'take' : 'hand');
+  setCursor(hoverEnemy || torchAtCursor() || propAtCursor() ? 'attack' : (groundItemAt(mouse.cx, mouse.cy, 2) || chestAtCursor()) ? 'take' : 'hand');
 }
 function drawClickMark() { if (!clickMark) return; const k = clickMark.t / .5; if (k >= 1) { clickMark = null; return; } const r = Math.round(2 + k * 5), X = Math.round(clickMark.x), Y = Math.round(clickMark.y);
   ctx.globalAlpha = 1 - k; ctx.fillStyle = '#e8c840'; for (const [a, b] of [[-r, 0], [r, 0], [0, -r], [0, r]]) ctx.fillRect(X + a, Y + Math.round(b * .6), 1, 1); ctx.fillRect(X, Y, 1, 1); ctx.globalAlpha = 1; }
@@ -2021,7 +2032,7 @@ document.querySelectorAll('#touch .btn').forEach(b => {
 });
 // suppress zoom / scroll / selection / long-press menus
 ['gesturestart', 'gesturechange', 'gestureend', 'dblclick', 'contextmenu', 'selectstart'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
-document.addEventListener('touchmove', e => { if (!e.target.closest('#dtext,input[type=range],.v4box,#grid')) e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove', e => { if (!e.target.closest('#dtext,input[type=range],.v4box,#grid,#stats')) e.preventDefault(); }, { passive: false });
 document.addEventListener('touchstart', e => {
   if (!touchMode) { touchMode = true; updateTouchUI(); }
   if (e.touches.length > 1 && !e.target.closest('.btn,#joyzone')) e.preventDefault();
@@ -2172,7 +2183,7 @@ function renderInv() {
       sel = it ? { where: 'inv', idx: i, t: Date.now() } : null; if (it) it.isNew = false; renderInv(); });
     slotTipHandlers(el, it, true); g.appendChild(el); });
   const st = p.st;
-  $('stats').textContent = `Level ${p.lvl}  Depth ${depth}\nLife ${Math.ceil(p.hp)}/${st.maxHp}\nMana ${Math.floor(p.mp)}/${st.maxMp}\nDamage ${st.min}-${st.max}\nDefense ${st.def}\nAtk speed ${Math.round(st.aspd * 100)}%\nCrit ${st.crit}%  Leech ${st.ls}%\nPotions ${p.hpPot} life / ${p.mpPot} mana\nRepair potions ${p.rpPot || 0}\nGate keys ${p.gateKeys || 0}  Rations ${p.rations || 0}\nFood ${Math.round(p.hunger)}%  Water ${Math.round(p.thirst)}%  Rest ${Math.round(p.fatigue)}%`;
+  $('stats').textContent = `Level ${p.lvl}  Depth ${depth}\nLife ${Math.ceil(p.hp)}/${st.maxHp}\nMana ${Math.floor(p.mp)}/${st.maxMp}\nDamage ${st.min}-${st.max}\nDefense ${st.def}\nAtk speed ${Math.round(st.aspd * 100)}%\nCrit ${st.crit}%  Leech ${st.ls}%\nPotions ${p.hpPot} life / ${p.mpPot} mana\nRepair potions ${p.rpPot || 0}\nGate keys ${p.gateKeys || 0}  Rations ${p.rations || 0}\nFood ${Math.round(p.hunger)}%  Water ${Math.round(p.thirst)}%\nRest ${Math.round(p.fatigue)}%`;
   $('ratN').textContent = p.rations || 0; $('fragN').textContent = (p.mapFrags || 0) + '/' + FRAG_NEED; $('gkN').textContent = 'GATE ' + (p.gateKeys || 0); $('dropAllBtn').disabled = !p.inv.some(Boolean);
   $('gold').textContent = p.gold + 'g';
   const dt = $('dtext'), db = $('dbtns'); dt.innerHTML = ''; db.innerHTML = '';
@@ -2711,8 +2722,14 @@ function nearestInteract() { const p = player; let best = null, bd = 1e9;
 function interactAt(wx, wy) { let best = null, bd = 1e9; for (const o of interactables()) { const d = Math.hypot(o.x - wx, o.y - wy); if (d < 10 && d < bd) { bd = d; best = o; } } return best; }
 function doInteract() { if (state !== 'play') return false; const o = nearestInteract(); if (!o) return false; o.use(); return true; }
 // melee near a lit wall torch snuffs it out (smoke + hiss)
+function torchInReach(t) { // a lit wall torch the player can hit: adjacent (below / beside it) and inside the facing cone
+  const p = player, tx = t.x, ty = t.y + 6, dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy);
+  if (d > 30) return false; if (d < 8) return true; return (dx * p.fx + dy * p.fy) / d > .35;
+}
+function torchAtCursor() { const c = cursorWorld(); return torches.find(t => !t.out && Math.abs(c.x - t.x) < 8 && c.y > t.y - 10 && c.y < t.y + 12) || null; }
+function propAtCursor() { const c = cursorWorld(); return props.find(o => !o.broken && Math.abs(c.x - o.x) < 7 && c.y > o.y - 12 && c.y < o.y + 4) || null; }
 function meleeWorld(x, y) {
-  for (const t of torches) if (!t.out && Math.abs(t.x - x) < 10 && y - t.y < 20 && y - t.y > -6) { t.out = true; mapVer++; burst(t.x, t.y, '#777', 12, 30); burst(t.x, t.y, '#ffa040', 4, 20); sfx('hiss'); flashMsg('You knock the torch out. Smoke curls up.', '#a09890'); break; }
+  for (const t of torches) if (!t.out && ((Math.abs(t.x - x) < 14 && y - t.y < 24 && y - t.y > -10) || torchInReach(t))) { t.out = true; mapVer++; burst(t.x, t.y, '#777', 12, 30); burst(t.x, t.y, '#ffa040', 4, 20); sfx('hiss'); flashMsg('You knock the torch out. Smoke curls up.', '#a09890'); break; }
 }
 // ---- traps ----
 function trapDmg() { return 6 + depth * 1.6; }

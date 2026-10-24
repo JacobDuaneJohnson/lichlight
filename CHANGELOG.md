@@ -4,6 +4,19 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.4.2] - 2026-10-24
+
+_Depth 1 playtest fixes_
+
+### Changed
+- **Floors 1–3 are livelier.** Fewer empty rooms on the first three floors: about 8% are quiet, down from 22%. The first two rooms past the start always have monsters, and early packs are a little bigger. Deeper floors are unchanged.
+- **Cheaper spells.** Fireball costs 4 mana (was 5) and Whirlwind costs 8 (was 9). Frost Nova stays at 14.
+- **Easier-to-read inventory.** The bag, stats, item details, lore, and tooltips use larger text, especially on computer screens. On phones, the stats list scrolls instead of getting cut off.
+- **Clicking a wall torch or a breakable prop** now walks you up to it and swings, instead of trying to walk into the wall. The cursor turns red over them.
+
+### Fixed
+- Knocking out wall torches was unreliable. Any melee swing (click or J) while you're next to a lit wall torch and facing it now puts it out.
+
 ## [0.4.1] - 2026-10-24
 
 _Gate Keys on the floor_
@@ -149,6 +162,7 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.4.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.2
 [0.4.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.1
 [0.4.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.0
 [0.3.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.2
