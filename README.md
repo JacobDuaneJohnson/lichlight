@@ -2,6 +2,8 @@
 
 **[▶ Play Lichlight](https://jacobduanejohnson.github.io/lichlight/)**
 
+Current version: **v0.3.1** · [What's new](CHANGELOG.md) · [All releases](https://github.com/JacobDuaneJohnson/lichlight/releases)
+
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 
 Fight your way down endless, randomly generated crypt floors in near-total darkness. You'll face 30 kinds of monsters, plus tougher champions, and a boss guards the stairs every 5th floor. There are 20 bosses, from Mother Murk on floor 5 to Oswin, the Bone King, on floor 100, and after that they return as stronger "+1", "+2" versions. Collect gear in four rarities (white normal, blue magic, yellow rare, gold unique) and hunt the named uniques, each with its own lore. Level up and unlock Fireball, Whirlwind, and Frost Nova.
