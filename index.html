@@ -233,7 +233,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.4.0'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.4.1'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -2570,6 +2570,7 @@ function placeVaults() {
         pts.forEach((pt, i) => puzzles.push({ door: d, kind: pk, x: pt.x, y: pt.y, idx: i, on: false })); }
     }
     doors.push(d); vaultLoot(A.rect);
+    if (d.kind === 'gate' && Math.random() < .6) { const q = freeSpot(pick(pool)); ground.push({ x: q.x, y: q.y, bob: Math.random() * 6, lock: false, gkey: 1 }); } // most gates have their key somewhere on the floor
   }
 }
 function placeShop() {

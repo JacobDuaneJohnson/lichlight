@@ -4,6 +4,13 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] - 2026-10-24
+
+_Gate Keys on the floor_
+
+### Changed
+- Most iron gates now have a **Gate Key** lying somewhere on the same floor, so vaults aren't locked away unless you happen to find the trader.
+
 ## [0.4.0] - 2026-10-24
 
 _Feature Brief v1: bigger crypts, survival, shop, doors and traps_
@@ -142,6 +149,7 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.4.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.1
 [0.4.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.0
 [0.3.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.2
 [0.3.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.1
