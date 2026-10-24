@@ -43,7 +43,7 @@ if [[ "$DRY" == "--dry-run" ]]; then echo "dry run: changes left uncommitted (gi
 # 3. commit, tag, push
 git add -u; git add CHANGELOG.md
 git commit -m "Release $TAG: $TITLE"
-git tag -a "$TAG" -F "$NOTES"
+git tag -a "$TAG" --cleanup=verbatim -F "$NOTES"   # verbatim keeps the "### Added" headings
 git push origin main
 git push origin "$TAG"
 # 4. GitHub release (Latest)
