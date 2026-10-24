@@ -24,6 +24,8 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 - **Light:** you start with only a faint glow. Pick up torches to light the walls around you, but each one burns out after a while. Some unique rings give off magic light of their own.
 - **Chests and keys:** locked chests hold magic and rare gear. Keys are hidden under cracked floor tiles and behind cracked brick walls (hit them to break them open), and champions sometimes drop one.
 - **Loot:** regular monsters drop gold, potions, and the occasional normal item. Only bosses drop uniques.
+- **Level requirements:** every piece of gear has a required level. Gear you are too low to wear is tinted red in your bag, and you can't equip it until you reach that level.
+- **Durability and Repair Potions:** weapons wear down as you land hits and armor wears down as you take them. Below 10% the item's icon turns red and you get a warning. At 0 the item shatters and is gone for good. Orange **Repair Potions** fully restore one item: select the potion in your bag, then tap the item. They turn up on the floor, in chests, on champions, and from every boss.
 
 ### Touch controls
 
