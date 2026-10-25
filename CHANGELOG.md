@@ -4,6 +4,31 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.6.2] - 2026-10-25
+
+_Razz's music, ambience slider and polish sounds_
+
+### Added
+- **Music by Razz**: real music now replaces the synth drones. There are 7 looping tracks:
+  - title screen
+  - three exploration themes, chosen by floor (crypt, cave and fire)
+  - combat (only when **BATTLE MUSIC** is on, which is still Off by default)
+  - shop
+  - boss (it shifts into its second, heavier half when the boss enrages)
+
+  Tracks crossfade as you go. When you come back from a fight or the shop, exploration music picks up where it left off.
+- **Music stingers**: a short phrase when you reach a new floor, a small "room clear" tag after a fight of three or more kills, a victory theme when the final boss falls, and a game-over theme. The music dips under each stinger.
+- **AMBIENCE volume slider** (beside MUSIC and SFX). It's saved with your settings. Ambience beds, drips, wind gusts and distant creepy sounds follow it, and Sound Off still mutes everything.
+- **More sounds (P2 polish tier)**: 10 more cues, including cave drips, wind gusts, distant moans and chains, a sewer bed on the catacomb floors, the rolling boulder trap, the mimic reveal, a wobble when you're slowed, a "game loaded" chime on Continue, a soft tick when a tooltip appears, and an idle fidget if you stand still for a while.
+
+### Changed
+- **Mixing**: the music dips 3–6 dB under big moments (level up, boss intro, rare loot, floor entry, game over, boss phase change and death). When you get hit, music and ambience duck for about 150 ms so the hit always reads. Ambience sits a little lower while music plays and during fights.
+- Every sound layers on top of the others. A new sound only cuts off an older one when too many of the same kind play at once (for example footsteps or coins).
+- If the music can't load (offline or opened as a local file), the game falls back to the old synthesized music.
+
+### Notes
+- Version 0.6.1 (the first sample-sound release) never finished publishing to the live site. This build includes all of it: 116 sound cues across P0 + P1 + P2, plus 11 music tracks. Everything is still an approved placeholder until the final masters arrive.
+
 ## [0.6.1] - 2026-10-25
 
 _Razz's sound effects_
@@ -304,6 +329,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.6.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.2
 [0.6.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.1
 [0.6.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.0
 [0.5.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.5.0

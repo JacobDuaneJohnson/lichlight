@@ -206,6 +206,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small" id="mDim">UI DIM: OFF</button>
     <label>MUSIC <input type="range" id="volMusic" min="0" max="100" step="5"></label>
     <label>SFX <input type="range" id="volSfx" min="0" max="100" step="5"></label>
+    <label>AMBIENCE <input type="range" id="volAmb" min="0" max="100" step="5"></label>
   </div>
   <div class="help" id="helpTxt"></div>
   <div class="verbar"><a id="whatsNew" href="https://github.com/gamedevjake/lichlight/releases" target="_blank" rel="noopener">WHAT'S NEW</a><span id="verTxt"></span></div>
@@ -251,7 +252,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.6.1'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.6.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -415,7 +416,7 @@ for (let f = 0; f < 3; f++) tileImgs.torch.push(makeSprite([
   f === 0 ? "..F.." : f === 1 ? ".F..." : "...F.", f === 0 ? ".FfF." : ".fFf.", ".ffr.", "..r..", ".kwk.", "..w..", "..w.."]));
 
 // ---------- audio: settings, buses, sfx ----------
-const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, shake: 'full', battleMusic: false, hotkeys: [0, 1, 2], uiDim: 'off' },
+const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, ambVol: 65, shake: 'full', battleMusic: false, hotkeys: [0, 1, 2], uiDim: 'off' },
   (() => { try { return JSON.parse(localStorage.getItem('cryptdelve-settings')) || {}; } catch (e) { return {}; } })());
 function saveSettings() { try { localStorage.setItem('cryptdelve-settings', JSON.stringify(settings)); } catch (e) {} }
 let actx = null, bus = null, noiseBuf = null, audioErr = null;
@@ -428,7 +429,7 @@ function initAudio() {
       try { if ('audioSession' in navigator) navigator.audioSession.type = 'playback'; } catch (_) {}
       actx = new AC(); setupBus(); startMusic();
     }
-    smpInit(); // v0.6.1 sample SFX (no-op once loading)
+    smpInit(); musInit(); // v0.6.1 sample SFX + v0.6.2 sample music (no-ops once loading)
     if (!audioUnlocked) { // iOS: play a 1-sample silent buffer inside the gesture to fully unlock output
       try { const b = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource(); src.buffer = b; src.connect(actx.destination); src.start(0); audioUnlocked = true; } catch (_) {}
     }
@@ -447,20 +448,24 @@ function setupBus() {
   const A = actx;
   const master = A.createGain(), mus = A.createGain(), sx = A.createGain();
   master.connect(A.destination); mus.connect(master); sx.connect(master);
+  // v0.6.2: procedural music -> proc -> musDuck -> mus; sample beds -> musBed -> musDuck; stingers -> mus (never ducked)
+  const proc = A.createGain(), musDuck = A.createGain(), musBed = A.createGain(); proc.connect(musDuck); musBed.connect(musDuck); musDuck.connect(mus);
+  // v0.6.2: ambience beds + ambient one-shots -> ambDip (combat / menus) -> ambG (AMBIENCE slider) -> ambDuck -> master (Sound Off still mutes)
+  const ambDip = A.createGain(), ambG = A.createGain(), ambDuck = A.createGain(); ambDip.connect(ambG); ambG.connect(ambDuck); ambDuck.connect(master);
   const verb = A.createConvolver(); verb.buffer = makeImpulse(3.2, 2.6);
-  const verbOut = A.createGain(); verbOut.gain.value = .6; verb.connect(verbOut); verbOut.connect(mus);
+  const verbOut = A.createGain(); verbOut.gain.value = .6; verb.connect(verbOut); verbOut.connect(proc);
   const delay = A.createDelay(2); delay.delayTime.value = .43;
   const fb = A.createGain(); fb.gain.value = .45; const dlp = A.createBiquadFilter(); dlp.type = 'lowpass'; dlp.frequency.value = 2000;
-  delay.connect(dlp); dlp.connect(fb); fb.connect(delay); dlp.connect(mus); dlp.connect(verb);
+  delay.connect(dlp); dlp.connect(fb); fb.connect(delay); dlp.connect(proc); dlp.connect(verb);
   const amb = A.createGain(), cbt = A.createGain(); amb.gain.value = 0; cbt.gain.value = 0;
-  amb.connect(mus); amb.connect(verb);
-  const cv = A.createGain(); cv.gain.value = .12; cbt.connect(mus); cbt.connect(cv); cv.connect(verb);
+  amb.connect(proc); amb.connect(verb);
+  const cv = A.createGain(); cv.gain.value = .12; cbt.connect(proc); cbt.connect(cv); cv.connect(verb);
   noiseBuf = A.createBuffer(1, A.sampleRate, A.sampleRate);
   const nd = noiseBuf.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
   // v0.4.6: a short damp echo on the SFX bus (drips, chimes, cave tails) - obeys the SFX volume / mute like everything else
   const sxEcho = A.createGain(), exd = A.createDelay(1), exfb = A.createGain(), exlp = A.createBiquadFilter(); sxEcho.gain.value = .55; exd.delayTime.value = .27; exfb.gain.value = .36; exlp.type = 'lowpass'; exlp.frequency.value = 2200;
   sxEcho.connect(exd); exd.connect(exlp); exlp.connect(exfb); exfb.connect(exd); exlp.connect(sx);
-  bus = { master, mus, sx, verb, delay, amb, cbt, dripIn: A.createGain(), sxEcho };
+  bus = { master, mus, sx, verb, delay, amb, cbt, dripIn: A.createGain(), sxEcho, proc, musDuck, musBed, ambDip, ambG, ambDuck };
   bus.dripIn.connect(amb); bus.dripIn.connect(delay);
   applyVolumes(true);
 }
@@ -470,6 +475,7 @@ function applyVolumes(instant) {
   bus.master.gain.setTargetAtTime(settings.sound ? 1 : 0, t, instant ? tc : .05);
   bus.mus.gain.setTargetAtTime(settings.music ? settings.musicVol / 100 * .55 : 0, t, tc);
   bus.sx.gain.setTargetAtTime(settings.sfxVol / 100, t, tc);
+  if (bus.ambG) bus.ambG.gain.setTargetAtTime((settings.ambVol != null ? settings.ambVol : 65) / 100 * SMP_AMB_GAIN, t, tc);
 }
 const sfxLog = []; // last sounds requested (for tests / debugging)
 function sfxShatter() { // metallic crack + tinkling shards, a bit louder than hits
@@ -529,6 +535,9 @@ const SMP_GAIN = .42; // samples peak at -1 dBFS; this sits them next to the old
 const SMP_MIX = { player_step_stone_01: .32, cbt_miss_01: .8, ui_slider_tick_01: .8, wld_pickup_gold_01: .8, cbt_kill_confirm_01: .7, enm_grunt_hurt_01: .7, enm_ranged_hurt_01: .7,
   player_hurt_01: 1.15, player_death_01: 1.1, enm_boss_intro_sting_01: .9, meta_floor_enter_01: .7, meta_gameover_01: .85, cbt_proj_arrow_impact_01: .6, cbt_proj_magic_bolt_impact_01: .7,
   ui_hover_01: .7, ui_menu_open_01: .8, ui_menu_close_01: .8, enm_grunt_alert_01: .75, enm_ranged_alert_01: .75, enm_skeleton_rattle_01: .7, enm_ghost_wail_01: .7, wld_mechanism_loop_01: .8 };
+// big stingers duck the music 3-6 dB for their length; player hurt ducks music + ambience ~150 ms so the hit reads
+const SMP_DUCK = { player_levelup_01: -5, enm_boss_intro_sting_01: -6, wld_pickup_rare_01: -4, wld_loot_rare_drop_01: -4, meta_floor_enter_01: -5, meta_gameover_01: -6, player_death_01: -6,
+  enm_boss_death_01: -6, enm_boss_phase_change_01: -5, meta_quest_complete_01: -4, ui_newgame_01: -3, enm_elite_death_01: -3, player_hurt_01: -6 };
 const SMP_CAP = { player_step: 2, cbt_hit: 4, wld_pickup_gold: 3, enm_: 3 }, SMP_VOICES = 32, SMP_FLY_LOOPS = 6;
 function smpOn() { return SMP.state === 'ready' && !window.__noSampleSfx; }
 function smpInit() {
@@ -538,7 +547,7 @@ function smpInit() {
   fetch('assets/sfx/sfx.json').then(r => { if (!r.ok) throw new Error('sfx.json ' + r.status); return r.json(); }).then(j => {
     SMP.man = j; SMP.state = 'ready';
     // one-shots + short loops preload (UI / combat first); the long ambience beds load only when a floor needs them
-    const ids = Object.keys(j.cues).filter(x => !x.startsWith('amb_')).sort((x, y) => (/^(ui_|player_|cbt_)/.test(y) ? 1 : 0) - (/^(ui_|player_|cbt_)/.test(x) ? 1 : 0));
+    const ids = Object.keys(j.cues).filter(x => !/^amb_.*_loop_/.test(x)).sort((x, y) => (/^(ui_|player_|cbt_)/.test(y) ? 1 : 0) - (/^(ui_|player_|cbt_)/.test(x) ? 1 : 0));
     let q = 0; const files = []; for (const id of ids) j.cues[id].files.forEach(f => files.push([id, f]));
     const next = () => { if (q >= files.length) return; const [id, f] = files[q++]; smpLoad(id, f).finally(next); };
     for (let k = 0; k < 6; k++) next();
@@ -570,10 +579,11 @@ function smpPlay(id, o = {}) {
   src.playbackRate.value = (o.rate || 1) * (loop ? 1 : 1 + (Math.random() * 2 - 1) * (ui ? .015 : .04));
   const g = actx.createGain(); g.gain.value = vol; src.connect(g);
   let out = g; if (o.pan && actx.createStereoPanner) { try { const pn = actx.createStereoPanner(); pn.pan.value = Math.max(-.85, Math.min(.85, o.pan)); g.connect(pn); out = pn; } catch (_) {} }
-  out.connect(bus.sx); if (o.wet && bus.sxEcho) { const wg = actx.createGain(); wg.gain.value = o.wet * .6; out.connect(wg); wg.connect(bus.sxEcho); }
+  out.connect(smpIsAmb(id) ? smpAmbBus() : bus.sx); if (o.wet && bus.sxEcho) { const wg = actx.createGain(); wg.gain.value = o.wet * .6; out.connect(wg); wg.connect(bus.sxEcho); }
   const t = now + (o.delay || 0); let end;
   if (loop) { src.loop = true; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .06); g.gain.setValueAtTime(vol, t + Math.max(.07, o.loopFor - .2)); g.gain.linearRampToValueAtTime(0, t + o.loopFor); src.start(t); src.stop(t + o.loopFor + .05); end = t + o.loopFor + .05; }
   else { src.start(t); end = t + b.duration / src.playbackRate.value + .05; }
+  { const dk = SMP_DUCK[id]; if (dk) { const h = id === 'player_hurt_01' ? .15 : b.duration * .8; smpDuck(bus.musDuck, dk, h, o.delay || 0); smpDuck(bus.ambDuck, id === 'player_hurt_01' ? -6 : -3, h, o.delay || 0); } }
   SMP.voices.push({ src, end, g: gk, id }); SMP.played++; SMP.log.push(id); if (SMP.log.length > 40) SMP.log.shift();
   return true;
 }
@@ -588,7 +598,8 @@ function swingCue() { return heavyWeapon() ? 'player_swing_heavy_01' : 'player_s
 // logical type -> cue(s). A function gets (opts) and returns a cue id, an array of [id, opts] / ids, or null (= procedural voice).
 const SFX_CUE = {
   swing: 'player_swing_light_01', hurt: 'player_hurt_01', fire: 'wld_torch_light_01', pick: () => 'wld_pickup_item_01', lvl: 'player_levelup_01',
-  drink: 'wld_potion_drink_01', stairs: 'wld_stairs_down_01', die: () => ['player_death_01', ['meta_gameover_01', { delay: 1.5 }]], roll: 'player_dash_01', fail: 'ui_error_01',
+  drink: 'wld_potion_drink_01', stairs: 'wld_stairs_down_01', die: () => ['player_death_01'].concat(musSting('mus_gameover_01', { delay: 1.5 }) ? [] : [['meta_gameover_01', { delay: 1.5 }]]),
+  drip: 'wld_water_drip_01', wind: 'amb_wind_gust_01', mob: 'amb_creepy_distant_01', /* P2 ambient one-shots (ambience slider) */ roll: 'player_dash_01', fail: 'ui_error_01',
   break: 'wld_breakable_crate_01', shatter: 'wld_breakable_pot_01', nova: 'player_cast_release_01',
   fbcast: 'player_cast_release_01', fbboom: 'cbt_proj_fireball_impact_01', whirl: 'player_swing_heavy_01', frost: ['player_cast_release_01', 'cbt_status_freeze_apply_01'],
   whiff: () => [swingCue(), ['cbt_miss_01', { delay: .03 }]],
@@ -628,10 +639,15 @@ function smpReconcile(want) {
       if (!b) { if (!SMP.fail[w.id] && !SMP.pend[w.id] && SMP.man.cues[w.id]) { SMP.pend[w.id] = true; smpLoad(w.id, SMP.man.cues[w.id].files[0]); } continue; }
       const src = actx.createBufferSource(); src.buffer = b; src.loop = true; const g = actx.createGain(); g.gain.value = 0; src.connect(g); let out = g, pn = null;
       if (actx.createStereoPanner) { try { pn = actx.createStereoPanner(); g.connect(pn); out = pn; } catch (_) { pn = null; } }
-      out.connect(bus.sx); src.start(now, w.id.startsWith('amb_') ? Math.random() * b.duration : 0); L = { id: w.id, src, g, pn }; SMP.loops.set(k, L); SMP.played++; }
+      out.connect(smpIsAmb(w.id) ? smpAmbBus() : bus.sx); src.start(now, w.id.startsWith('amb_') ? Math.random() * b.duration : 0); L = { id: w.id, src, g, pn }; SMP.loops.set(k, L); SMP.played++; }
     L.g.gain.setTargetAtTime(v, now, w.id.startsWith('amb_') ? .8 : .05); if (L.pn) L.pn.pan.setTargetAtTime(Math.max(-.85, Math.min(.85, w.pan || 0)), now, .05);
   }
 }
+// ambience (amb_* beds + ambient one-shots) has its own chain: bus.ambDip -> bus.ambG (AMBIENCE slider) -> bus.ambDuck -> master.
+// Sound On/Off still mutes it; it is scaled / dipped / ducked separately from one-shot SFX. (bus.amb is the procedural MUSIC drone bus.)
+const SMP_AMB_GAIN = .5;
+function smpAmbBus() { return bus.ambDip || bus.sx; }
+function smpIsAmb(id) { return /^amb_|^wld_water_drip/.test(id); }
 function smpStopAll() { if (!SMP.loops.size) return; try { smpReconcile(new Map()); } catch (_) {} }
 function smpTick(dt) {
   if (!actx || !bus) return;
@@ -646,12 +662,13 @@ function smpTick(dt) {
       S.st = state; }
     if (S.map !== mapOpen) { if (state === 'play') cue(mapOpen ? 'ui_map_open_01' : 'ui_map_close_01'); S.map = mapOpen; }
     if (p && S.pl !== p) { if (S.pl && state === 'play' && p.lvl === 1 && !p.xp && !p.kills) cue('ui_newgame_01'); S.pl = p; S.px = p.x; S.py = p.y; S.cds = p.cds.slice(); }
-    if (p && S.rooms !== rooms) { if (S.rooms && state === 'play') cue('meta_floor_enter_01', { delay: .8 }); S.rooms = rooms; S.px = p.x; S.py = p.y; }
+    if (p && S.rooms !== rooms) { if (S.rooms && state === 'play' && !musSting('mus_floor_enter_01', { delay: .8, duck: -6 })) cue('meta_floor_enter_01', { delay: .8 }); S.rooms = rooms; S.px = p.x; S.py = p.y; }
     if (p && (state === 'play' || state === 'inv' || state === 'shop' || state === 'talk')) {
       // ambience bed (sparse, under everything; through the SFX bus)
       const B = music.bedObj || BEDS[0], boss = enemies.find(e => e.T.boss);
-      const bed = state === 'shop' ? 'amb_shop_loop_01' : boss && boss.state === 'idle' && dist(boss, p) < 320 ? 'amb_boss_arena_loop_01' : (B.id === 'drowned deep' || B.id === 'cistern' && (typeof basins !== 'undefined' && basins.length > 1)) ? 'amb_cave_wet_loop_01' : 'amb_crypt_stone_loop_01';
-      smpLoop('amb', bed, (music.mode === 'combat' ? .22 : .38) * (state === 'play' ? 1 : .6), 0, want);
+      const bed = state === 'shop' ? 'amb_shop_loop_01' : boss && boss.state === 'idle' && dist(boss, p) < 320 ? 'amb_boss_arena_loop_01' : (B.id === 'drowned deep' || B.id === 'cistern' && (typeof basins !== 'undefined' && basins.length > 1)) ? 'amb_cave_wet_loop_01' : B.id === 'catacomb' ? 'amb_sewer_loop_01' : 'amb_crypt_stone_loop_01';
+      smpLoop('amb', bed, .76, 0, want);
+      smpAmbBus().gain.setTargetAtTime((music.mode === 'combat' ? .6 : 1) * (state === 'play' ? 1 : .6) * (MUS.cur && settings.music ? .75 : 1), actx.currentTime, .5); // sits under music
     }
     if (p && state === 'play') {
       // footsteps on stone (P0)
@@ -662,6 +679,10 @@ function smpTick(dt) {
       if (fr < .25 && p.hp > 0) { if (!S.lowWarned) { S.lowWarned = true; cue('meta_lowhealth_warn_01'); } smpLoop('lowhp', 'player_hurt_lowhp_01', 1, 0, want); } else if (fr > .4) S.lowWarned = false;
       // skills off cooldown (long ones only)
       for (let i = 0; i < 3; i++) { if (S.cds[i] > 0 && p.cds[i] <= 0 && SKILLS[i].cd >= 1.5) cue('ui_cooldown_ready_01', { vol: .8 }); S.cds[i] = p.cds[i]; }
+      // P2: slowed (webs / brine), idle fidget after ~12 s standing still out of combat
+      if ((p.slowT || 0) > 0 && !(S.slow > 0)) cue('cbt_status_slow_01', { vol: .8 }); S.slow = p.slowT || 0;
+      if (mv > .2 || music.mode === 'combat' || time < music.combatUntil) S.idleT = time; else if (time - (S.idleT || time) > 12 && !S.fidg) { S.fidg = true; cue('player_idle_fidget_01', { vol: .7 }); }
+      if (mv > .2) S.fidg = false;
       // projectiles: fly loops, volleys, impacts
       let fly = 0, arrowNew = false, bossNew = 0; const live = new Map();
       for (const pr of projs) { let id = S.seen.get(pr); const fresh = id == null; if (fresh) { id = ++S.pid; S.seen.set(pr, id); }
@@ -669,6 +690,7 @@ function smpTick(dt) {
         if (fresh && pr.owner === 'e') { if (pr.kind === 'arrow' && pr.label !== 'a dart trap') arrowNew = true; else if (pr.kind === 'boss') bossNew++; }
         const d = Math.hypot(pr.x - p.x, pr.y - p.y), k = Math.max(0, 1 - d / 300);
         if (fly < SMP_FLY_LOOPS && k > 0) { if (pr.owner === 'p' && pr.kind === 'fire') { fly++; smpLoop('pr' + id, 'cbt_proj_fireball_fly_01', .55 * k, (pr.x - p.x) / 170, want); }
+          else if (pr.kind === 'boulder') { fly++; smpLoop('pr' + id, 'wld_trap_boulder_01', .9 * k, (pr.x - p.x) / 170, want); }
           else if (pr.owner === 'e' && pr.kind === 'bolt') { fly++; smpLoop('pr' + id, 'cbt_proj_magic_bolt_fly_01', .35 * k, (pr.x - p.x) / 170, want); } } }
       if (arrowNew) { const a = projs.find(q => q.owner === 'e' && q.kind === 'arrow'); if (a) { cueAt('cbt_proj_arrow_fly_01', a.x, a.y, 320); cueAt('enm_ranged_attack_01', a.x, a.y, 300, .6); } }
       if (bossNew >= 3 && time - S.bhT > .3) { S.bhT = time; const e = enemies.find(q => q.T.boss); cue('cbt_proj_bullet_hell_01', { vol: .8, pan: e ? (e.x - p.x) / 170 : 0 }); }
@@ -677,10 +699,90 @@ function smpTick(dt) {
     smpReconcile(want);
   } catch (e) { SMP.err = String(e); }
 }
+// ---------- v0.6.2: Razz's music (assets/music/music.json): sample beds + stingers on the music bus ----------
+// Beds crossfade by state: title -> explore (crypt / cave / fire by floor bed) -> combat (only with BATTLE MUSIC on) -> shop -> boss.
+// mus_boss_01: phase 1 loops 0-60 s, phase 2 (boss enrages) loops 60-120 s. Stingers duck the bed 3-6 dB. If the music pack can't
+// load / decode (file://, offline, window.__noSampleSfx / __noSampleMusic), the procedural music keeps playing as before.
+const MUS = { state: 'idle', man: null, buf: {}, pend: {}, fail: {}, cur: null, pos: {}, lru: [], err: null, played: 0, log: [] };
+const MUS_BED_BY_BEDS = { cistern: 'mus_explore_crypt_01', catacomb: 'mus_explore_cave_01', choir: 'mus_explore_crypt_01', abyss: 'mus_explore_fire_01', 'drowned deep': 'mus_explore_cave_01' };
+const MUS_GAIN = 1.2, MUS_BOSS_P2 = 60;
+function musOn() { return MUS.state === 'ready' && !window.__noSampleSfx && !window.__noSampleMusic; }
+function musInit() {
+  if (MUS.state !== 'idle' || !actx || window.__noSampleSfx || window.__noSampleMusic || location.protocol === 'file:' || typeof fetch !== 'function') return;
+  MUS.state = 'loading';
+  fetch('assets/music/music.json').then(r => { if (!r.ok) throw new Error('music.json ' + r.status); return r.json(); }).then(j => {
+    MUS.man = j; MUS.state = 'ready'; for (const id in j.tracks) if (j.tracks[id].kind === 'sting') musLoad(id); musLoad(musWantBed() || 'mus_explore_crypt_01'); })
+    .catch(e => { MUS.state = 'off'; MUS.err = String(e); });
+}
+function musLoad(id) {
+  if (!MUS.man || !MUS.man.tracks[id] || MUS.buf[id] || MUS.pend[id] || MUS.fail[id]) return;
+  MUS.pend[id] = true; const f = MUS.man.tracks[id], url = 'assets/music/' + (SMP.fmt === 'm' || !SMP.fmt && !document.createElement('audio').canPlayType('audio/ogg; codecs="vorbis"') ? f.m : f.o);
+  const dec = u => fetch(u).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(ab => new Promise((res, rej) => { const p = actx.decodeAudioData(ab, res, rej); if (p && p.catch) p.catch(rej); }));
+  dec(url).catch(() => dec('assets/music/' + f.m)).then(b => { MUS.buf[id] = b; if (f.kind === 'bed') musTouch(id); }).catch(e => { MUS.fail[id] = true; MUS.err = String(e); }).finally(() => { delete MUS.pend[id]; });
+}
+// decoded beds are big (~50 MB each): keep only the most recent few
+function musTouch(id) { MUS.lru = MUS.lru.filter(x => x !== id); MUS.lru.push(id); const keep = touchMode ? 2 : 3;
+  while (MUS.lru.length > keep) { const old = MUS.lru.find(x => x !== id && !(MUS.cur && MUS.cur.id === x)); if (!old) break; MUS.lru = MUS.lru.filter(x => x !== old); delete MUS.buf[old]; } }
+function musWantBed() {
+  if (state === 'dead') return null;
+  if (state === 'menu' || !player) return 'mus_title_01';
+  if (state === 'shop') return 'mus_shop_01';
+  const boss = enemies.find(e => e.T.boss && e.state === 'chase' && dist(e, player) < 420);
+  if (boss) return 'mus_boss_01'; // set-piece: boss bed plays whenever a boss is awake
+  if (music.mode === 'combat') return 'mus_combat_01'; // only when BATTLE MUSIC is on (updateMusic rule, default Off)
+  return MUS_BED_BY_BEDS[music.bed] || 'mus_explore_crypt_01';
+}
+function musStart(id, offset, fade, p2) {
+  const b = MUS.buf[id], now = actx.currentTime, f = MUS.man.tracks[id], src = actx.createBufferSource(), g = actx.createGain();
+  src.buffer = b; src.loop = true;
+  if (id === 'mus_boss_01') { src.loopStart = p2 ? MUS_BOSS_P2 : 0; src.loopEnd = p2 ? b.duration : MUS_BOSS_P2; offset = p2 ? MUS_BOSS_P2 : 0; }
+  offset = (offset || 0) % b.duration; g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(MUS_GAIN, now + fade);
+  src.connect(g); g.connect(bus.musBed); src.start(now, offset); musTouch(id);
+  MUS.cur = { id, src, g, t0: now, off: offset, p2: !!p2 }; MUS.played++; MUS.log.push(id); if (MUS.log.length > 20) MUS.log.shift();
+}
+function musStop(fade) { const c = MUS.cur; if (!c) return; const now = actx.currentTime;
+  if (c.id !== 'mus_boss_01' && c.id !== 'mus_combat_01') MUS.pos[c.id] = (now - c.t0 + c.off) % (c.src.buffer.duration || 1); // explore beds resume where they left off
+  try { c.g.gain.cancelScheduledValues(now); c.g.gain.setValueAtTime(c.g.gain.value, now); c.g.gain.linearRampToValueAtTime(0, now + fade); c.src.stop(now + fade + .05); } catch (_) {}
+  MUS.cur = null; }
+function musProc(on) { if (bus.proc) bus.proc.gain.setTargetAtTime(on ? 1 : 0, actx.currentTime, on ? .4 : .25); }
+function musTick() {
+  if (!actx || !bus || !bus.musBed) return;
+  if (!musOn()) { if (MUS.cur) musStop(.5); if (MUS.state !== 'idle' && MUS.state !== 'loading') musProc(true); return; }
+  try {
+    const id = musWantBed();
+    if (!id) { musStop(1.2); musProc(false); return; }
+    if (MUS.fail[id]) { musStop(1); musProc(true); return; } // this bed failed: procedural music fills in
+    if (!MUS.buf[id]) { musLoad(id); if (!MUS.cur) musProc(true); return; } // keep what's playing until the new bed decodes
+    const boss = id === 'mus_boss_01' && enemies.find(e => e.T.boss && e.state === 'chase'), p2 = !!(boss && boss.phase >= 2);
+    if (!MUS.cur || MUS.cur.id !== id || (id === 'mus_boss_01' && p2 && !MUS.cur.p2)) {
+      const fast = id === 'mus_combat_01' || id === 'mus_boss_01' || (MUS.cur && MUS.cur.id === 'mus_combat_01');
+      musStop(fast ? .8 : 2); musStart(id, MUS.pos[id] || 0, fast ? .6 : 2, p2); musProc(false); }
+    // warm the next likely beds
+    if (player && state === 'play') { if (settings.battleMusic) musLoad('mus_combat_01'); if (enemies.some(e => e.T.boss)) musLoad('mus_boss_01'); }
+  } catch (e) { MUS.err = String(e); }
+}
+// stinger on the music bus (not ducked itself); ducks the bed for its length. false = not available (caller may use an SFX sting)
+function musSting(id, o = {}) {
+  if (!actx || !bus || !musOn() || !settings.sound || !settings.music) return false;
+  const b = MUS.buf[id]; if (!b) { musLoad(id); return false; }
+  const now = actx.currentTime, t = now + (o.delay || 0), src = actx.createBufferSource(), g = actx.createGain(); src.buffer = b; g.gain.value = MUS_GAIN * (o.vol || 1);
+  src.connect(g); g.connect(bus.mus); src.start(t); smpDuck(bus.musDuck, o.duck || -6, b.duration - .4, o.delay || 0); smpDuck(bus.ambDuck, -4, b.duration - .4, o.delay || 0);
+  MUS.played++; MUS.log.push(id); return true;
+}
+// one ducking helper for music + ambience (overlapping ducks keep the deepest level and the latest end)
+function smpDuck(node, db, hold, delay = 0) {
+  if (!node || !actx) return; const now = actx.currentTime, t = now + delay, lv = Math.pow(10, db / 20), D = node.__d || (node.__d = { end: 0, lv: 1 });
+  const L = D.end > t ? Math.min(D.lv, lv) : lv, end = Math.max(D.end, t + Math.max(.05, hold));
+  const g = node.gain, cur = g.value; g.cancelScheduledValues(now); g.setValueAtTime(cur, now); if (t > now) g.setValueAtTime(cur, t);
+  g.linearRampToValueAtTime(L, t + .03); g.setValueAtTime(L, end); g.linearRampToValueAtTime(1, end + .25); D.end = end; D.lv = L;
+}
 // enemy notices you: bark by kind (rate-limited), skeleton rattle / ghost wail flavour
 function smpAggro(e) { if (!smpOn() || !e || e.T.boss || !player || time - smpT.alertT < .6) return; smpT.alertT = time;
   const ty = e.type || '', T = e.T; const id = T.ghost ? 'enm_ghost_wail_01' : (T.th === 'bone' && Math.random() < .5) ? 'enm_skeleton_rattle_01' : 'enm_' + enmKind(e) + '_alert_01';
   cueAt(id, e.x, e.y, 320); }
+// a fight of 3+ kills ends with nobody left hunting you -> small room-clear stinger (music), rate-limited
+function smpFightKill(e) { const S = smpT; if (time - (S.fkT || -99) > 15) S.fk = 0; S.fk = (S.fk || 0) + 1; S.fkT = time;
+  if (S.fk >= 3 && time - (S.rcT || -99) > 20 && player && !enemies.some(q => q !== e && q.hp > 0 && q.state === 'chase' && dist(q, player) < 240)) { S.rcT = time; S.fk = 0; musSting('mus_room_clear_01', { delay: .35, duck: -5 }); } }
 function smpEnemyAttack(e) { if (!smpOn() || !e || e.T.boss || time - smpT.atkT < .35) return; smpT.atkT = time; cueAt('enm_grunt_attack_01', e.x, e.y, 260, .7); }
 // UI: menu buttons read back their new label (": ON" / ": OFF") after their own click handler has run
 document.addEventListener('click', ev => { const b = ev.target && ev.target.closest && ev.target.closest('#menu button, #dead button'); if (!b || !smpOn()) return;
@@ -1870,7 +1972,7 @@ function aggro(e) {
   if (e.T.ai === 'eel') { e.mode = 'under'; e.t = 2; e.hidden = true; }
   if (e.T.boss) { bossIntro = 2.8; introBoss = e; addTrauma(.35); flashMsg(e.name + ' AWAKENS', '#f44'); sfx('awaken'); bossVoice(e, 'intro'); e.patCd = 1.4; }
 }
-function wakeMimic(e) { if (!e.disg) return; e.disg = false; e.state = 'chase'; flashMsg('A MIMIC!', '#ffb040'); addTrauma(.2); burst(e.x, e.y, '#a87038', 12, 60); }
+function wakeMimic(e) { if (!e.disg) return; e.disg = false; e.state = 'chase'; cueAt('enm_mimic_reveal_01', e.x, e.y, 320); flashMsg('A MIMIC!', '#ffb040'); addTrauma(.2); burst(e.x, e.y, '#a87038', 12, 60); }
 // ---------- rendering helpers for the bestiary ----------
 const LIGHT = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
   const g = x.createRadialGradient(64, 64, 0, 64, 64, 64); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(.6, 'rgba(0,0,0,.75)'); g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1971,6 +2073,7 @@ function loadSave() { try { return JSON.parse(localStorage.getItem('cryptdelve')
 function newGame() { player = newPlayer(); computeStats(); startFloor(1, true); setState('play'); }
 function continueGame() {
   const s = loadSave(); if (!s) return newGame();
+  cue('meta_load_01'); // P2
   player = newPlayer(); Object.assign(player, s.p); itemId = s.itemId || 1000;
   player.bagBonus = clamp(Math.floor(+s.p.bagBonus || 0), 0, BAG_MAX - INV_SIZE); // old saves: no satchels yet
   { const inv0 = Array.isArray(player.inv) ? player.inv : [], items = inv0.filter(Boolean); // never drop items: grow the bag if an old save somehow holds more
@@ -2055,13 +2158,14 @@ function itemTipHTML(it, cmp) {
 }
 let tipItem = null;
 function showTip(it, cx, cy, cmp = true) {
+  if (it !== smpT.tip) { smpT.tip = it; if (time - (smpT.tipT || -9) > .25) { smpT.tipT = time; cue('ui_tooltip_01', { vol: .6 }); } }
   if (tipItem !== it) { gtip.innerHTML = itemTipHTML(it, cmp); tipItem = it; }
   gtip.classList.remove('hidden');
   const w = gtip.offsetWidth, h = gtip.offsetHeight, W = appW || innerWidth, H = appH || innerHeight;
   let x = cx + 16, y = cy - h - 12; if (x + w > W - 4) x = cx - w - 16; if (x < 4) x = 4; if (y < 4) y = Math.min(H - h - 4, cy + 20);
   gtip.style.left = x + 'px'; gtip.style.top = y + 'px';
 }
-function hideTip() { if (tipItem || !gtip.classList.contains('hidden')) { gtip.classList.add('hidden'); tipItem = null; } }
+function hideTip() { smpT.tip = null; if (tipItem || !gtip.classList.contains('hidden')) { gtip.classList.add('hidden'); tipItem = null; } }
 function clientToWorld(cx, cy) { const r = canvas.getBoundingClientRect(); return { x: cam.x + (cx - r.left) / (r.width || 1) * VW, y: cam.y + (cy - r.top) / (r.height || 1) * VH }; }
 function labelShown(g) { const d = Math.hypot(g.x - player.x, g.y - player.y); if (!touchMode && keys.Alt) return d < 400; return (g.item.rarity >= 1 || d < 40 || touchMode) && d < 130; }
 function groundItemAt(cx, cy, pad) { // hit-test icon + name label in world space; pad = extra slack (bigger for fingers)
@@ -2439,12 +2543,13 @@ function syncAudioUI() {
   $('mMusic').textContent = 'MUSIC: ' + (settings.music ? 'ON' : 'OFF');
   if (!(settings.shake in SHAKE_MULT)) settings.shake = 'full';
   $('mShake').textContent = 'SHAKE: ' + settings.shake.toUpperCase();
-  $('volMusic').value = settings.musicVol; $('volSfx').value = settings.sfxVol;
+  $('volMusic').value = settings.musicVol; $('volSfx').value = settings.sfxVol; $('volAmb').value = settings.ambVol != null ? settings.ambVol : 65;
   applyVolumes(); saveSettings();
 }
 $('mSound').addEventListener('click', () => { initAudio(); settings.sound = !settings.sound; syncAudioUI(); });
 $('mMusic').addEventListener('click', () => { initAudio(); settings.music = !settings.music; syncAudioUI(); });
 $('mShake').addEventListener('click', () => { settings.shake = { full: 'low', low: 'off', off: 'full' }[settings.shake] || 'full'; syncAudioUI(); if (settings.shake !== 'off' && player) addTrauma(.4); });
+$('volAmb').addEventListener('input', e => { initAudio(); settings.ambVol = +e.target.value; syncAudioUI(); });
 $('volMusic').addEventListener('input', e => { initAudio(); settings.musicVol = +e.target.value; syncAudioUI(); });
 $('volSfx').addEventListener('input', e => { initAudio(); settings.sfxVol = +e.target.value; syncAudioUI(); sfx('pick', { cue: 'ui_slider_tick_01' }); });
 $('sortBtn').addEventListener('click', e => { e.preventDefault(); repairMode = false; sortInventory(); });
@@ -2667,7 +2772,7 @@ function killEnemy(e) {
   const T = e.T;
   if (T.revive && !e.revived) { e.revived = true; e.hp = 1; e.downT = 2.5; e.mode = ''; addText(e.x, e.y - 14, 'IT STIRS...', '#c0c0ff'); cueAt('enm_skeleton_reassemble_01', e.x, e.y, 320); burst(e.x, e.y, '#888', 10, 50); return; }
   removeEnemy(e);
-  burst(e.x, e.y, '#888', 14, 80); sfxEnt = e; sfx('hit'); sfxEnt = null;
+  burst(e.x, e.y, '#888', 14, 80); sfxEnt = e; sfx('hit'); sfxEnt = null; if (!T.boss) smpFightKill(e);
   if (T.ai === 'bomber' && e.mode !== 'boom') { const x = e.x, y = e.y, dmg = e.dmg; cueAt('cbt_explosion_small_01', x, y, 420, 1, { delay: .45 }); tele({ x, y, r: 30, dur: .45, col: '#a0e040', onDone: () => blast(x, y, 30, dmg, T.label, { col: '#a0e040', tr: .4 }) }); }
   if (T.split) for (let k = 0; k < 2 && enemies.length < MAX_ENEMIES; k++) { const m = spawnEnemy(T.split, e.x + (k ? 5 : -5), e.y, false); m.state = 'chase'; m.kx = (k ? 80 : -80); }
   player.kills++; gainXp(e.xp); powersOnKill(e); if (T.boss) bossVoice(e, 'die'); else eventThought('postkill', .1, 40);
@@ -2683,6 +2788,7 @@ function killEnemy(e) {
     dropAt(ground, e.x - 8, e.y + 14, { gold: 100 * depth }); dropAt(ground, e.x + 8, e.y + 14, { pot: 'hp' }); dropAt(ground, e.x, e.y + 20, { pot: 'mp' }); dropAt(ground, e.x - 16, e.y + 22, { pot: 'rp' }); bossExtraDrops(e);
     addTrauma(1); burst(e.x, e.y, B.pal[0], 40, 140); burst(e.x, e.y, '#ffe060', 20, 100); effects.push({ kind: 'boom', x: e.x, y: e.y, t: 0, dur: .6, r: 50 });
     teles = teles.filter(q => q.src !== e);
+    musSting(B.oswin && !e.cycle ? 'mus_victory_01' : 'mus_room_clear_01', { delay: 1.2 });
     if (B.oswin && !e.cycle) flashMsg('OSWIN HOLLOWMERE FALLS. VAELMOOR SLEEPS.', '#d8a040');
     else flashMsg(e.name + ' FALLS. THE WAY DOWN IS OPEN.', '#d8a040');
     music.combatUntil = time + 2; sfx('lvl', { cue: [['wld_loot_rare_drop_01', { delay: 1.4 }]] });
@@ -4635,7 +4741,7 @@ function loop(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   const blocked = !$('rotate').classList.contains('hidden');
   if (state === 'play' && !blocked) update(dt); else { time += dt; if (state === 'sleep') updateSleep(dt); }
-  updateHover(); render(); updateTouchHUD(); updateMusic(); smpTick(dt); updateGroundTip();
+  updateHover(); render(); updateTouchHUD(); updateMusic(); smpTick(dt); musTick(); updateGroundTip();
   requestAnimationFrame(loop);
 }
 document.addEventListener('visibilitychange', () => {
@@ -4690,7 +4796,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   bestiary, ETYPES, MOB_IDS, MOBS, BOSSES, spawnEnemy, spawnBoss, damageEnemy, bossForDepth, addTrauma, shakeOffset, mouse, get trauma() { return trauma; }, get teles() { return teles; }, get hazards() { return hazards; }, get projs() { return projs; }, settings,
   newGame, continueGame, itemLines, UNIQUES, eligibleUniques, pickUnique, openInv, closeInv, makeItem, renderInv, gainXp, startFloor, sortInventory, compareItems, itemPower,
   get ios() { return { ios: isIOS(), safari: isIOSSafari(), fs: fsAvailable(), standalone: isStandalone(), appW, appH }; },
-  get audio() { return { ctx: actx ? actx.state : null, unlocked: audioUnlocked, err: audioErr, music: music.mode, started: music.started, boss: music.boss, settings, samples: { state: SMP.state, fmt: SMP.fmt, cues: SMP.man ? Object.keys(SMP.man.cues).length : 0, loaded: Object.keys(SMP.buf).length, failed: Object.keys(SMP.fail), loops: [...SMP.loops.keys()], played: SMP.played, err: SMP.err } }; } };
+  get audio() { return { ctx: actx ? actx.state : null, unlocked: audioUnlocked, err: audioErr, music: music.mode, started: music.started, boss: music.boss, settings, musicSamples: { state: MUS.state, cur: MUS.cur && MUS.cur.id, p2: !!(MUS.cur && MUS.cur.p2), loaded: Object.keys(MUS.buf), failed: Object.keys(MUS.fail), played: MUS.played, err: MUS.err }, samples: { state: SMP.state, fmt: SMP.fmt, cues: SMP.man ? Object.keys(SMP.man.cues).length : 0, loaded: Object.keys(SMP.buf).length, failed: Object.keys(SMP.fail), loops: [...SMP.loops.keys()], played: SMP.played, err: SMP.err } }; } };
 </script>
 </body>
 </html>
