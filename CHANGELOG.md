@@ -4,6 +4,29 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.6.1] - 2026-10-25
+
+_Razz's sound effects_
+
+### Added
+- **Real sound effects**: Razz's Lichlight sound pack is now in the game. 105 cues from the first two tiers (P0 + P1), 213 sample files, replace the old synth beeps wherever there's a matching sound:
+  - **Combat**: light and heavy swings (axes and mauls sound heavier), hits, crits, misses, and bone / armour / flesh hit layers. Also kill confirms, blocks, shield up / break, and a fizzle when you're out of mana.
+  - **Spells and projectiles**: cast release, a looping crackle that follows each Fireball, the Fireball impact, Frost Nova, and arrows whizzing and thunking. Cultist and wisp bolts hum while they're in the air, and boss volleys get their own sound.
+  - **Enemies**: barks when they notice you (skeletons rattle, ghosts wail), hurt sounds, deaths for grunts, archers, slimes and elites, and attack swings and wind-up tells. Bosses get an intro sting, an enrage roar and a death collapse. Bomber blasts explode.
+  - **World**: wooden doors and iron gates, locked doors and chests, chest opening and loot drops, levers, pressure plates and grinding slabs. Also dart, pit and flame traps, the stairs down, pots and crates, torches and secret walls.
+  - **Pickups and shop**: gold (rapid pickups climb in pitch), potions, keys, items, rare and unique finds, drinking, the merchant greeting, buying, selling and "can't afford".
+  - **Player and feedback**: footsteps on stone, dodge, getting hurt, death and the game-over sting, level up, a floor-entry sting, a low-life warning with a quiet heartbeat, and a chime when Whirlwind or Frost Nova is ready again.
+  - **Menus**: clicks, ON / OFF toggles, inventory, pause menu and map open / close, equip sounds (weapon, armour, trinket), the volume slider tick and the new-game confirm.
+  - **Ambience**: a quiet looping bed under each floor (stone crypt or wet cave), the shop hearth, and a tense drone near a sleeping boss.
+
+### Changed
+- Variations of a sound never play the same clip twice in a row, and most get a slight random pitch change so repeats sound less mechanical.
+- Sound On/Off and the SFX volume slider control all of the new sounds. Sound Off is still completely silent, music is still synthesized, and battle music still starts Off.
+- A few sounds without a sampled version yet (vines, webs, boss voices, drips and wind, sleeping, eating, examining) keep their synth sounds. If the sound pack can't load (offline or opened as a local file), the game uses the old synth sounds.
+
+### Notes
+- These are approved **placeholder** sounds for timing and mix. Final masters will be dropped in later under the same names.
+
 ## [0.6.0] - 2026-10-25
 
 _Characters, spell books, vines and wardrobe_
@@ -281,6 +304,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.6.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.1
 [0.6.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.0
 [0.5.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.5.0
 [0.4.6]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.6

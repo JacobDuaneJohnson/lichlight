@@ -24,3 +24,9 @@ built-in art. Pixel art only: no anti-aliasing, it's scaled up with nearest-neig
 
 Without a matching file, magic / rare / unique items get a generated icon (recoloured metal, gem studs,
 a halo on uniques) seeded from the item's name and powers, so the same unique always looks the same.
+
+## Sound effects (v0.6.1)
+
+`sfx/sfx.json` maps each Sound Bible cue id (e.g. `cbt_hit_light_01`) to its runtime files in `sfx/`. Variant pools are `<cue>_01 … _NN` (never the same clip twice in a row).
+`ui_toggle_01` (ON) and `ui_toggle_02` (OFF) are separate cues. Cues under ~1 s, and loops of 3 s or less, are 16-bit WAV. Longer cues are OGG Vorbis q5, with an AAC `.m4a` copy for browsers without Vorbis. Everything is 48 kHz.
+Only P0 + P1 cues that the game actually plays are shipped. To swap in final masters, replace the files under the same names, or rebuild them from `audio/runtime/_placeholder/` with the same conversion settings. If a mapped cue's file is missing, that cue is silent. If `sfx.json` can't be loaded, the game uses its procedural voices.

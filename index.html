@@ -251,7 +251,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.6.0'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.6.1'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -428,6 +428,7 @@ function initAudio() {
       try { if ('audioSession' in navigator) navigator.audioSession.type = 'playback'; } catch (_) {}
       actx = new AC(); setupBus(); startMusic();
     }
+    smpInit(); // v0.6.1 sample SFX (no-op once loading)
     if (!audioUnlocked) { // iOS: play a 1-sample silent buffer inside the gesture to fully unlock output
       try { const b = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource(); src.buffer = b; src.connect(actx.destination); src.start(0); audioUnlocked = true; } catch (_) {}
     }
@@ -494,6 +495,7 @@ function sfxOut() { return sfxDest || bus.sx; }
 function sfx(type, o) {
   sfxLog.push(type); if (sfxLog.length > 40) sfxLog.shift(); sfxN++; sfxLast = { type, vol: o && o.vol != null ? o.vol : 1, pan: o && o.pan || 0, wet: o && o.wet || 0 };
   if (!actx || !bus || !settings.sound) return;
+  try { if (sfxSample(type, o)) return; } catch (e) {} // v0.6.1: Razz's sample pack first
   const vol = (o && o.vol != null ? o.vol : 1) * (SFX_MIX[type] || 1); if (vol < .015) return;
   if (type === 'shatter') { try { sfxShatter(); } catch (e) {} return; }
   sfxMul = vol; sfxWet = o && o.wet != null ? o.wet : SFX_WET[type] || 0; sfxDest = null;
@@ -516,6 +518,175 @@ function sfxAt(type, x, y, range = 260, vol = 1, wet = 0) {
   const d = Math.hypot(x - p.x, y - p.y), k = Math.max(0, 1 - d / range);
   return sfx(type, { vol: vol * Math.pow(k, 1.3), pan: (x - p.x) / 170, wet });
 }
+// ---------- v0.6.1: sample SFX (Razz's P0+P1 placeholder pack, assets/sfx/sfx.json) ----------
+// Logical sfx(type) names stay the same (sfxLog unchanged). A type that maps to a Razz cue plays the sample through the SFX bus
+// (mute + SFX volume gate it); a mapped cue whose file is missing / failed to decode plays SILENCE (never the old beep).
+// Unmapped types (vines, webs, boss voices, ambient drips...) keep their procedural voices. If the whole pack can't load
+// (file://, offline, window.__noSampleSfx test hook), every type falls back to the procedural voices.
+// Pools: cue_01..cue_N = random variant, never the same file twice in a row. ui_toggle_01 = ON, ui_toggle_02 = OFF (separate cues).
+const SMP = { state: 'idle', man: null, buf: {}, fail: {}, last: {}, voices: [], loops: new Map(), err: null, pend: {}, played: 0, log: [], fmt: '' };
+const SMP_GAIN = .42; // samples peak at -1 dBFS; this sits them next to the old procedural mix
+const SMP_MIX = { player_step_stone_01: .32, cbt_miss_01: .8, ui_slider_tick_01: .8, wld_pickup_gold_01: .8, cbt_kill_confirm_01: .7, enm_grunt_hurt_01: .7, enm_ranged_hurt_01: .7,
+  player_hurt_01: 1.15, player_death_01: 1.1, enm_boss_intro_sting_01: .9, meta_floor_enter_01: .7, meta_gameover_01: .85, cbt_proj_arrow_impact_01: .6, cbt_proj_magic_bolt_impact_01: .7,
+  ui_hover_01: .7, ui_menu_open_01: .8, ui_menu_close_01: .8, enm_grunt_alert_01: .75, enm_ranged_alert_01: .75, enm_skeleton_rattle_01: .7, enm_ghost_wail_01: .7, wld_mechanism_loop_01: .8 };
+const SMP_CAP = { player_step: 2, cbt_hit: 4, wld_pickup_gold: 3, enm_: 3 }, SMP_VOICES = 32, SMP_FLY_LOOPS = 6;
+function smpOn() { return SMP.state === 'ready' && !window.__noSampleSfx; }
+function smpInit() {
+  if (SMP.state !== 'idle' || !actx || window.__noSampleSfx || location.protocol === 'file:' || typeof fetch !== 'function') return;
+  SMP.state = 'loading';
+  const a = document.createElement('audio'); SMP.fmt = a.canPlayType && a.canPlayType('audio/ogg; codecs="vorbis"') ? 'o' : 'm';
+  fetch('assets/sfx/sfx.json').then(r => { if (!r.ok) throw new Error('sfx.json ' + r.status); return r.json(); }).then(j => {
+    SMP.man = j; SMP.state = 'ready';
+    // one-shots + short loops preload (UI / combat first); the long ambience beds load only when a floor needs them
+    const ids = Object.keys(j.cues).filter(x => !x.startsWith('amb_')).sort((x, y) => (/^(ui_|player_|cbt_)/.test(y) ? 1 : 0) - (/^(ui_|player_|cbt_)/.test(x) ? 1 : 0));
+    let q = 0; const files = []; for (const id of ids) j.cues[id].files.forEach(f => files.push([id, f]));
+    const next = () => { if (q >= files.length) return; const [id, f] = files[q++]; smpLoad(id, f).finally(next); };
+    for (let k = 0; k < 6; k++) next();
+  }).catch(e => { SMP.state = 'off'; SMP.err = String(e); });
+}
+function smpFileUrl(f) { return 'assets/sfx/' + (f.w || (SMP.fmt === 'o' ? f.o : f.m)); }
+function smpLoad(id, f) {
+  const url = smpFileUrl(f);
+  return fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+    .then(ab => new Promise((res, rej) => { const p = actx.decodeAudioData(ab, res, rej); if (p && p.catch) p.catch(rej); }))
+    .then(b => { (SMP.buf[id] = SMP.buf[id] || []).push(b); })
+    .catch(e => { // ogg refused? try the AAC copy once
+      if (!f.w && SMP.fmt === 'o' && f.m) return fetch('assets/sfx/' + f.m).then(r => r.arrayBuffer()).then(ab => new Promise((res, rej) => actx.decodeAudioData(ab, res, rej))).then(b => { (SMP.buf[id] = SMP.buf[id] || []).push(b); }).catch(() => { SMP.fail[id] = true; });
+      SMP.fail[id] = true; });
+}
+function smpPick(id) { const B = SMP.buf[id]; if (!B || !B.length) return null; if (B.length === 1) return B[0];
+  let i; do i = Math.floor(Math.random() * B.length); while (i === SMP.last[id]); SMP.last[id] = i; return B[i]; }
+function smpGroup(id) { for (const k in SMP_CAP) if (id.startsWith(k)) return k; return null; }
+// play one cue: o = { vol, pan, wet, delay, rate, loopFor }. Returns true if a voice started.
+function smpPlay(id, o = {}) {
+  if (!actx || !bus || !settings.sound || !smpOn()) return false;
+  const b = smpPick(id); if (!b) return false; // missing / not decoded = silence
+  const now = actx.currentTime; SMP.voices = SMP.voices.filter(v => v.end > now);
+  const gk = smpGroup(id); if (gk) { const same = SMP.voices.filter(v => v.g === gk); if (same.length >= SMP_CAP[gk]) { try { same[0].src.stop(); } catch (_) {} SMP.voices.splice(SMP.voices.indexOf(same[0]), 1); } }
+  if (SMP.voices.length >= SMP_VOICES) { try { SMP.voices[0].src.stop(); } catch (_) {} SMP.voices.shift(); }
+  const ui = /^(ui_|meta_)/.test(id), loop = !!o.loopFor;
+  const vol = (o.vol == null ? 1 : o.vol) * (SMP_MIX[id] || 1) * SMP_GAIN * (loop ? 1 : Math.pow(10, (Math.random() * 3 - 1.5) / 20)); if (vol < .004) return false;
+  const src = actx.createBufferSource(); src.buffer = b;
+  src.playbackRate.value = (o.rate || 1) * (loop ? 1 : 1 + (Math.random() * 2 - 1) * (ui ? .015 : .04));
+  const g = actx.createGain(); g.gain.value = vol; src.connect(g);
+  let out = g; if (o.pan && actx.createStereoPanner) { try { const pn = actx.createStereoPanner(); pn.pan.value = Math.max(-.85, Math.min(.85, o.pan)); g.connect(pn); out = pn; } catch (_) {} }
+  out.connect(bus.sx); if (o.wet && bus.sxEcho) { const wg = actx.createGain(); wg.gain.value = o.wet * .6; out.connect(wg); wg.connect(bus.sxEcho); }
+  const t = now + (o.delay || 0); let end;
+  if (loop) { src.loop = true; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .06); g.gain.setValueAtTime(vol, t + Math.max(.07, o.loopFor - .2)); g.gain.linearRampToValueAtTime(0, t + o.loopFor); src.start(t); src.stop(t + o.loopFor + .05); end = t + o.loopFor + .05; }
+  else { src.start(t); end = t + b.duration / src.playbackRate.value + .05; }
+  SMP.voices.push({ src, end, g: gk, id }); SMP.played++; SMP.log.push(id); if (SMP.log.length > 40) SMP.log.shift();
+  return true;
+}
+function cue(id, o) { try { return smpPlay(id, o); } catch (e) { return false; } } // extra layers: never logged in sfxLog
+function cueAt(id, x, y, range = 300, vol = 1, o = {}) { const p = player; if (!p) return cue(id, Object.assign({ vol }, o)); const d = Math.hypot(x - p.x, y - p.y), k = Math.max(0, 1 - d / range); if (k <= 0) return false; return cue(id, Object.assign({ vol: vol * Math.pow(k, 1.3), pan: (x - p.x) / 170 }, o)); }
+// context set by call sites (enemy hit / killed, melee crit)
+let sfxEnt = null, smpCrit = false, smpHitEnt = null, smpGoldT = -9, smpGoldN = 0;
+function enmKind(e) { const T = e && e.T || {}; return T.ai === 'archer' || T.ai === 'kite' || T.ai === 'wisp' || T.ai === 'spider' ? 'ranged' : 'grunt'; }
+function enmMat(e) { const T = e && e.T || {}, ty = e && e.type || ''; if (ty === 'guard' || T.th === 'construct') return 'cbt_hit_armor_01'; if (T.th === 'bone' || /skel/.test(ty)) return 'cbt_hit_bone_01'; if (T.th === 'drowned' || T.an === 'squash') return 'cbt_hit_flesh_01'; return null; }
+function heavyWeapon() { const w = player && player.equip && player.equip.weapon; return !!(w && (w.icon === 'axe' || w.icon === 'maul')); }
+function swingCue() { return heavyWeapon() ? 'player_swing_heavy_01' : 'player_swing_light_01'; }
+// logical type -> cue(s). A function gets (opts) and returns a cue id, an array of [id, opts] / ids, or null (= procedural voice).
+const SFX_CUE = {
+  swing: 'player_swing_light_01', hurt: 'player_hurt_01', fire: 'wld_torch_light_01', pick: () => 'wld_pickup_item_01', lvl: 'player_levelup_01',
+  drink: 'wld_potion_drink_01', stairs: 'wld_stairs_down_01', die: () => ['player_death_01', ['meta_gameover_01', { delay: 1.5 }]], roll: 'player_dash_01', fail: 'ui_error_01',
+  break: 'wld_breakable_crate_01', shatter: 'wld_breakable_pot_01', nova: 'player_cast_release_01',
+  fbcast: 'player_cast_release_01', fbboom: 'cbt_proj_fireball_impact_01', whirl: 'player_swing_heavy_01', frost: ['player_cast_release_01', 'cbt_status_freeze_apply_01'],
+  whiff: () => [swingCue(), ['cbt_miss_01', { delay: .03 }]],
+  meat: () => { const e = smpHitEnt, m = enmMat(e), h = smpCrit ? 'cbt_hit_crit_01' : heavyWeapon() ? 'cbt_hit_heavy_01' : 'cbt_hit_light_01'; return [swingCue(), [h, { delay: .02 }]].concat(m ? [[m, { delay: .03, vol: .6 }]] : []); },
+  ehit: () => { const e = sfxEnt, m = enmMat(e) || 'cbt_hit_light_01'; return [m].concat(Math.random() < .35 ? [['enm_' + enmKind(e) + '_hurt_01', { vol: .8 }]] : []); },
+  hit: () => { const e = sfxEnt; if (!e) return 'cbt_kill_confirm_01'; const T = e.T || {};
+    const d = T.boss ? ['enm_boss_death_01', ['cbt_explosion_large_01', { vol: .7 }]] : e.elite ? ['enm_elite_death_01'] : T.split ? ['enm_slime_split_01'] : ['enm_' + enmKind(e) + '_death_01'];
+    return ['cbt_kill_confirm_01'].concat(d); },
+  awaken: 'enm_boss_intro_sting_01', enrage: 'enm_boss_phase_change_01',
+  chest: () => ['wld_chest_open_01', ['wld_loot_drop_01', { delay: .3 }]], locked: 'wld_chest_locked_01', key: 'wld_pickup_key_01', gkey: 'wld_pickup_key_01',
+  door: 'wld_door_wood_open_01', gate: 'wld_door_iron_open_01', secret: 'wld_secret_reveal_01', crumble: 'wld_secret_reveal_01',
+  lever: 'wld_switch_lever_01', plate: 'wld_switch_plate_01', click: 'wld_trap_spike_warn_01', whoosh: 'wld_torch_light_01',
+  gold: () => { const t = actx.currentTime; smpGoldN = t - smpGoldT < .5 ? Math.min(smpGoldN + 1, 12) : 0; smpGoldT = t; return [['wld_pickup_gold_01', { rate: Math.pow(2, smpGoldN / 12) }]]; },
+  block: 'cbt_block_01', barrier: 'cbt_status_shield_up_01', barrierbreak: 'cbt_status_shield_break_01', barrierhit: 'cbt_deflect_01',
+  learn: 'ui_skill_unlock_01', unique: 'wld_loot_rare_drop_01', walkerswing: 'enm_grunt_attack_01',
+  grind: () => [['wld_mechanism_loop_01', { loopFor: SLIDE_TIME }]], grindlong: () => [['wld_mechanism_loop_01', { loopFor: PUZZLE_SLIDE }]],
+};
+// called from sfx() after the mute gate. true = handled (sample or deliberate silence); false = use the procedural voice
+function sfxSample(type, o) {
+  if (!smpOn()) return false;
+  let m = o && o.cue !== undefined ? o.cue : SFX_CUE[type];
+  if (m === false || m == null) return false;
+  if (typeof m === 'function') m = m(o); if (m == null) return false;
+  const list = Array.isArray(m) ? m : [m], base = { vol: o && o.vol != null ? o.vol : 1, pan: o && o.pan || 0, wet: o && o.wet || 0 };
+  for (const it of list) { const [id, oo] = Array.isArray(it) ? it : [it, null]; smpPlay(id, Object.assign({}, base, oo || {}, oo && oo.vol != null ? { vol: base.vol * oo.vol } : {})); }
+  return true; // mapped: silence if the file is missing
+}
+// ---- per-frame: loops (fly / ambience / low-HP heartbeat), footsteps, projectiles, UI state changes ----
+const smpT = { st: null, map: false, pl: null, rooms: null, px: 0, py: 0, stepD: 0, lowWarned: false, cds: [0, 0, 0], seen: new WeakMap(), live: new Map(), pid: 0, bhT: -9, alertT: -9, atkT: -9, failT: -9 };
+function smpLoop(key, id, vol, pan, want) { want.set(key, { id, vol, pan }); }
+function smpReconcile(want) {
+  const now = actx.currentTime;
+  for (const [k, L] of SMP.loops) if (!want.has(k) || want.get(k).id !== L.id) { try { L.g.gain.cancelScheduledValues(now); L.g.gain.setTargetAtTime(0, now, .06); L.src.stop(now + .3); } catch (_) {} SMP.loops.delete(k); }
+  for (const [k, w] of want) {
+    let L = SMP.loops.get(k); const v = Math.max(0, w.vol * (SMP_MIX[w.id] || 1) * SMP_GAIN);
+    if (!L) { const b = SMP.buf[w.id] && SMP.buf[w.id][0];
+      if (!b) { if (!SMP.fail[w.id] && !SMP.pend[w.id] && SMP.man.cues[w.id]) { SMP.pend[w.id] = true; smpLoad(w.id, SMP.man.cues[w.id].files[0]); } continue; }
+      const src = actx.createBufferSource(); src.buffer = b; src.loop = true; const g = actx.createGain(); g.gain.value = 0; src.connect(g); let out = g, pn = null;
+      if (actx.createStereoPanner) { try { pn = actx.createStereoPanner(); g.connect(pn); out = pn; } catch (_) { pn = null; } }
+      out.connect(bus.sx); src.start(now, w.id.startsWith('amb_') ? Math.random() * b.duration : 0); L = { id: w.id, src, g, pn }; SMP.loops.set(k, L); SMP.played++; }
+    L.g.gain.setTargetAtTime(v, now, w.id.startsWith('amb_') ? .8 : .05); if (L.pn) L.pn.pan.setTargetAtTime(Math.max(-.85, Math.min(.85, w.pan || 0)), now, .05);
+  }
+}
+function smpStopAll() { if (!SMP.loops.size) return; try { smpReconcile(new Map()); } catch (_) {} }
+function smpTick(dt) {
+  if (!actx || !bus) return;
+  if (!smpOn() || !settings.sound || actx.state !== 'running') { smpStopAll(); smpT.st = state; return; }
+  const p = player, want = new Map(), S = smpT;
+  try {
+    // UI state changes
+    if (S.st !== state) { const a = S.st, b = state;
+      if (b === 'inv' && a === 'play') cue('ui_inventory_open_01'); else if (a === 'inv' && b === 'play') cue('ui_inventory_close_01');
+      else if (b === 'pause' && a === 'play') cue('ui_menu_open_01'); else if (a === 'pause' && b === 'play') cue('ui_menu_close_01');
+      else if (a === 'shop' && b === 'play') cue('ui_menu_close_01');
+      S.st = state; }
+    if (S.map !== mapOpen) { if (state === 'play') cue(mapOpen ? 'ui_map_open_01' : 'ui_map_close_01'); S.map = mapOpen; }
+    if (p && S.pl !== p) { if (S.pl && state === 'play' && p.lvl === 1 && !p.xp && !p.kills) cue('ui_newgame_01'); S.pl = p; S.px = p.x; S.py = p.y; S.cds = p.cds.slice(); }
+    if (p && S.rooms !== rooms) { if (S.rooms && state === 'play') cue('meta_floor_enter_01', { delay: .8 }); S.rooms = rooms; S.px = p.x; S.py = p.y; }
+    if (p && (state === 'play' || state === 'inv' || state === 'shop' || state === 'talk')) {
+      // ambience bed (sparse, under everything; through the SFX bus)
+      const B = music.bedObj || BEDS[0], boss = enemies.find(e => e.T.boss);
+      const bed = state === 'shop' ? 'amb_shop_loop_01' : boss && boss.state === 'idle' && dist(boss, p) < 320 ? 'amb_boss_arena_loop_01' : (B.id === 'drowned deep' || B.id === 'cistern' && (typeof basins !== 'undefined' && basins.length > 1)) ? 'amb_cave_wet_loop_01' : 'amb_crypt_stone_loop_01';
+      smpLoop('amb', bed, (music.mode === 'combat' ? .22 : .38) * (state === 'play' ? 1 : .6), 0, want);
+    }
+    if (p && state === 'play') {
+      // footsteps on stone (P0)
+      const mv = Math.hypot(p.x - S.px, p.y - S.py); S.px = p.x; S.py = p.y;
+      if (mv > 40) S.stepD = 0; else if (p.roll > 0) S.stepD = 0; else { S.stepD += mv; if (S.stepD > 15) { S.stepD = 0; cue('player_step_stone_01', { vol: rand(.8, 1) }); } }
+      // low HP: one-time warn + quiet heartbeat loop
+      const fr = p.hp / (p.st.maxHp || 1);
+      if (fr < .25 && p.hp > 0) { if (!S.lowWarned) { S.lowWarned = true; cue('meta_lowhealth_warn_01'); } smpLoop('lowhp', 'player_hurt_lowhp_01', 1, 0, want); } else if (fr > .4) S.lowWarned = false;
+      // skills off cooldown (long ones only)
+      for (let i = 0; i < 3; i++) { if (S.cds[i] > 0 && p.cds[i] <= 0 && SKILLS[i].cd >= 1.5) cue('ui_cooldown_ready_01', { vol: .8 }); S.cds[i] = p.cds[i]; }
+      // projectiles: fly loops, volleys, impacts
+      let fly = 0, arrowNew = false, bossNew = 0; const live = new Map();
+      for (const pr of projs) { let id = S.seen.get(pr); const fresh = id == null; if (fresh) { id = ++S.pid; S.seen.set(pr, id); }
+        live.set(id, pr); S.live.set(id, { x: pr.x, y: pr.y, kind: pr.kind, owner: pr.owner, label: pr.label });
+        if (fresh && pr.owner === 'e') { if (pr.kind === 'arrow' && pr.label !== 'a dart trap') arrowNew = true; else if (pr.kind === 'boss') bossNew++; }
+        const d = Math.hypot(pr.x - p.x, pr.y - p.y), k = Math.max(0, 1 - d / 300);
+        if (fly < SMP_FLY_LOOPS && k > 0) { if (pr.owner === 'p' && pr.kind === 'fire') { fly++; smpLoop('pr' + id, 'cbt_proj_fireball_fly_01', .55 * k, (pr.x - p.x) / 170, want); }
+          else if (pr.owner === 'e' && pr.kind === 'bolt') { fly++; smpLoop('pr' + id, 'cbt_proj_magic_bolt_fly_01', .35 * k, (pr.x - p.x) / 170, want); } } }
+      if (arrowNew) { const a = projs.find(q => q.owner === 'e' && q.kind === 'arrow'); if (a) { cueAt('cbt_proj_arrow_fly_01', a.x, a.y, 320); cueAt('enm_ranged_attack_01', a.x, a.y, 300, .6); } }
+      if (bossNew >= 3 && time - S.bhT > .3) { S.bhT = time; const e = enemies.find(q => q.T.boss); cue('cbt_proj_bullet_hell_01', { vol: .8, pan: e ? (e.x - p.x) / 170 : 0 }); }
+      let imp = 0; for (const [id, L] of S.live) if (!live.has(id)) { S.live.delete(id); if (imp < 2 && L.owner === 'e') { if (L.kind === 'arrow') { imp++; cueAt('cbt_proj_arrow_impact_01', L.x, L.y, 260); } else if (L.kind === 'bolt') { imp++; cueAt('cbt_proj_magic_bolt_impact_01', L.x, L.y, 260); } } }
+    } else { S.live.clear(); if (p) { S.px = p.x; S.py = p.y; } }
+    smpReconcile(want);
+  } catch (e) { SMP.err = String(e); }
+}
+// enemy notices you: bark by kind (rate-limited), skeleton rattle / ghost wail flavour
+function smpAggro(e) { if (!smpOn() || !e || e.T.boss || !player || time - smpT.alertT < .6) return; smpT.alertT = time;
+  const ty = e.type || '', T = e.T; const id = T.ghost ? 'enm_ghost_wail_01' : (T.th === 'bone' && Math.random() < .5) ? 'enm_skeleton_rattle_01' : 'enm_' + enmKind(e) + '_alert_01';
+  cueAt(id, e.x, e.y, 320); }
+function smpEnemyAttack(e) { if (!smpOn() || !e || e.T.boss || time - smpT.atkT < .35) return; smpT.atkT = time; cueAt('enm_grunt_attack_01', e.x, e.y, 260, .7); }
+// UI: menu buttons read back their new label (": ON" / ": OFF") after their own click handler has run
+document.addEventListener('click', ev => { const b = ev.target && ev.target.closest && ev.target.closest('#menu button, #dead button'); if (!b || !smpOn()) return;
+  if (b.id === 'mNew') return; // newGame plays ui_newgame
+  const t = b.textContent || ''; if (b.id === 'mSound') { if (settings.sound) cue('ui_toggle_01'); return; } // OFF stays silent: Sound Off means silent
+  cue(/: ON\b/.test(t) ? 'ui_toggle_01' : /: OFF\b/.test(t) ? 'ui_toggle_02' : 'ui_click_01'); });
 function buzz(ms) { try { if (navigator.vibrate && touchMode) navigator.vibrate(ms); } catch (e) {} }
 
 // ---------- procedural music ----------
@@ -799,7 +970,7 @@ function wearItem(it, n = 1) {
 function destroyItem(it) { // durability 0: the item is gone for good
   const p = player; for (const k of SLOTS) if (p.equip[k] === it) p.equip[k] = null;
   const ii = p.inv.indexOf(it); if (ii >= 0) p.inv[ii] = null;
-  sfx('shatter'); buzz(120); addTrauma(.3); addText(p.x, p.y - 20, `${it.name} shattered!`, '#ff4040', true);
+  sfx('shatter', { cue: false }); buzz(120); /* v0.6.1: item shatter keeps its own voice */ addTrauma(.3); addText(p.x, p.y - 20, `${it.name} shattered!`, '#ff4040', true);
   flashMsg(`${it.name} shattered!`, '#ff6060'); spawnShards(p.x, p.y + 3, it.rarity | 0); computeStats(); save();
 }
 function spawnShards(x, y, rar) {
@@ -1521,7 +1692,7 @@ function mobAI(e, dt, d, ax, ay, spd) {
     case 'drowned': if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt); if (e.cd <= 0) { e.cd = 1.3; hazard(e.x, e.y + 3, 10, 'puddle', 4.5); } break;
     case 'bomber':
       if (e.mode === 'fuse') { e.t -= dt; e.flash = Math.floor(e.t * 12) % 2 ? .05 : 0; if (e.t <= 0) { e.mode = 'boom'; blast(e.x, e.y, 30, e.dmg, T.label, { col: '#a0e040', tr: .4 }); hazard(e.x, e.y, 16, 'poison', 2.5, e.dmg * .15, T.label); removeEnemy(e); } }
-      else { moveDir(e, ax, ay, spd, dt); if (d < 22) { e.mode = 'fuse'; e.t = .9; tele({ x: e.x, y: e.y, r: 30, dur: .9, follow: e, col: '#a0e040' }); sfx('hurt'); } }
+      else { moveDir(e, ax, ay, spd, dt); if (d < 22) { e.mode = 'fuse'; e.t = .9; tele({ x: e.x, y: e.y, r: 30, dur: .9, follow: e, col: '#a0e040' }); sfx('hurt', { cue: 'cbt_tell_melee_01' }); } }
       break;
     case 'archer': keepRange(e, ax, ay, d, 70, 110, spd, dt);
       if (e.cd <= 0 && d < 170 && see) { e.cd = rand(2, 2.8); const a = angTo(e, p); for (let k = -1; k <= 1; k++) eShoot(e, a + k * .22, 120, { kind: 'arrow', r: 2, mul: .8 }); } break;
@@ -1672,7 +1843,7 @@ function updateEnemies(dt) {
       if (e.dead || state !== 'play') { if (state !== 'play') return; continue; }
       const contact = !e.T.noContact && !e.hidden && e.mode !== 'stun' && !(e.T.ai === 'crab' && e.mode === 'open');
       if (contact && d < e.r + p.r + 3 && e.atkCd <= 0) {
-        e.atkCd = e.T.boss ? 1 : 1.1; const mul = e.mode === 'charge' ? 1.3 : 1; hurtPlayer(e.dmg * mul, e); if (state !== 'play') return;
+        e.atkCd = e.T.boss ? 1 : 1.1; const mul = e.mode === 'charge' ? 1.3 : 1; smpEnemyAttack(e); hurtPlayer(e.dmg * mul, e); if (state !== 'play') return;
         if (e.T.leech) { const h = Math.round(e.dmg); e.hp = Math.min(e.maxHp, e.hp + h); addText(e.x, e.y - 10, '+' + h, '#80ff80'); }
         if (e.T.ai === 'rat') { e.mode = 'flee'; e.t = .8; }
       }
@@ -1695,7 +1866,7 @@ function updateEnemies(dt) {
     } }
 }
 function aggro(e) {
-  if (e.state !== 'idle') return; e.state = 'chase'; onAggroV04(e);
+  if (e.state !== 'idle') return; e.state = 'chase'; onAggroV04(e); smpAggro(e);
   if (e.T.ai === 'eel') { e.mode = 'under'; e.t = 2; e.hidden = true; }
   if (e.T.boss) { bossIntro = 2.8; introBoss = e; addTrauma(.35); flashMsg(e.name + ' AWAKENS', '#f44'); sfx('awaken'); bossVoice(e, 'intro'); e.patCd = 1.4; }
 }
@@ -1903,10 +2074,10 @@ function groundItemAt(cx, cy, pad) { // hit-test icon + name label in world spac
 }
 function pickupItem(g) {
   const p = player, s = p.inv.indexOf(null);
-  if (s < 0) { flashMsg('Backpack full', '#f88'); sfx('hurt'); return false; }
+  if (s < 0) { flashMsg('Backpack full', '#f88'); sfx('hurt', { cue: 'ui_error_01' }); return false; }
   const i = ground.indexOf(g); if (i < 0) return false;
   ground.splice(i, 1); g.item.isNew = true; p.inv[s] = g.item; const fresh = markFound(g.item); if (g.rusty || g.item.rusty) p.gotRusty = true;
-  flashMsg((fresh ? 'New unique! ' : 'Picked up ') + g.item.name, RCOL[g.item.rarity]); sfx(fresh ? 'lvl' : 'pick'); updateNewBadge(); return true;
+  flashMsg((fresh ? 'New unique! ' : 'Picked up ') + g.item.name, RCOL[g.item.rarity]); sfx(fresh ? 'lvl' : 'pick', { cue: fresh || g.item.rarity >= 2 ? 'wld_pickup_rare_01' : 'wld_pickup_item_01' }); updateNewBadge(); return true;
 }
 const PICK_REACH = 14;
 function requestPickup(g) { // walk to it (D2-style) or grab it if already within reach
@@ -2075,7 +2246,7 @@ function desktopClick(e) {
 function selectSkill(i) {
   const S = SKILLS[i]; if (!player) return;
   if (skillLocked(i)) { lockedSkillMsg(i); return; }
-  rskill = i; settings.rskill = i; saveSettings(); flashMsg('Right-click: ' + S.name, '#80c0ff'); sfx('pick');
+  rskill = i; settings.rskill = i; saveSettings(); flashMsg('Right-click: ' + S.name, '#80c0ff'); sfx('pick', { cue: 'ui_click_01' });
 }
 window.addEventListener('mousedown', e => {
   if (state !== 'play' || !onCanvas(e) || (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) || performance.now() - dm.lastTouch < 800) return;
@@ -2275,7 +2446,7 @@ $('mSound').addEventListener('click', () => { initAudio(); settings.sound = !set
 $('mMusic').addEventListener('click', () => { initAudio(); settings.music = !settings.music; syncAudioUI(); });
 $('mShake').addEventListener('click', () => { settings.shake = { full: 'low', low: 'off', off: 'full' }[settings.shake] || 'full'; syncAudioUI(); if (settings.shake !== 'off' && player) addTrauma(.4); });
 $('volMusic').addEventListener('input', e => { initAudio(); settings.musicVol = +e.target.value; syncAudioUI(); });
-$('volSfx').addEventListener('input', e => { initAudio(); settings.sfxVol = +e.target.value; syncAudioUI(); sfx('pick'); });
+$('volSfx').addEventListener('input', e => { initAudio(); settings.sfxVol = +e.target.value; syncAudioUI(); sfx('pick', { cue: 'ui_slider_tick_01' }); });
 $('sortBtn').addEventListener('click', e => { e.preventDefault(); repairMode = false; sortInventory(); });
 $('rpBtn').addEventListener('click', e => { e.preventDefault(); toggleRepairMode(); });
 function toggleRepairMode() {
@@ -2283,7 +2454,7 @@ function toggleRepairMode() {
   if (repairMode) { repairMode = false; renderInv(); return; }
   if (!(p.rpPot > 0)) { invNote = 'You have no Repair Potions. They turn up on the floor, in chests, and on champions and bosses.'; sfx('fail'); renderInv(); return; }
   if (!repairables().length) { invNote = 'Nothing needs repair.'; sfx('fail'); renderInv(); return; }
-  repairMode = true; sfx('pick'); renderInv();
+  repairMode = true; sfx('pick', { cue: 'ui_click_01' }); renderInv();
 }
 function repairPick(it) { // in repair mode: tap/click an item
   if (!it || !needsRepair(it)) { invNote = it ? 'That item is not damaged - pick a highlighted one.' : ''; sfx('fail'); renderInv(); return; }
@@ -2436,9 +2607,9 @@ function equipFrom(i) {
     const dt = $('dtext'); if (dt && state === 'inv') { let w = dt.querySelector('.reqwarn'); if (!w) { w = document.createElement('div'); w.className = 'cbad reqwarn'; dt.prepend(w); } w.textContent = t + ' (you are level ' + p.lvl + ')'; }
     return false; }
   const old = p.equip[it.slot]; it.isNew = false; p.equip[it.slot] = it; p.inv[i] = old || null; firstEquipCheck(it.slot, old); WARD_CACHE.size > 40 && WARD_CACHE.clear();
-  sel = { where: 'eq', slot: it.slot }; sfx('pick'); computeStats(); renderInv();
+  sel = { where: 'eq', slot: it.slot }; sfx('pick', { cue: it.slot === 'weapon' ? 'ui_equip_weapon_01' : it.slot === 'ring' || it.slot === 'amulet' ? 'ui_equip_trinket_01' : 'ui_equip_armor_01' }); computeStats(); renderInv();
 }
-function dropItem(it) { if (!it) return; dropAt(ground, player.x, player.y + 2, { item: it }); ground[ground.length - 1].lock = true; }
+function dropItem(it) { if (!it) return; if (state === 'inv') cue('ui_item_drop_ground_01'); dropAt(ground, player.x, player.y + 2, { item: it }); ground[ground.length - 1].lock = true; }
 // ---------- combat ----------
 function addText(x, y, t, col, big) { texts.push({ x, y, t: String(t), col, life: big ? 1.6 : .9, vy: big ? -12 : -24 }); }
 function burst(x, y, col, n = 8, sp = 60) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, s = rand(sp * .3, sp); parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.2, .5), col }); } }
@@ -2463,7 +2634,7 @@ function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src) {
   dmg = Math.max(1, Math.round(dmg));
   const kb = T.boss ? .1 : T.ai === 'golem' ? .3 : 1;
   e.hp -= dmg; e.flash = .12; e.kx += kx * kb; e.ky += ky * kb;
-  if (e.T.boss) bossVoice(e, 'hurt'); else if (!meleeSfx && time - ehitT > .07) { ehitT = time; sfxAt('ehit', e.x, e.y, 320); }
+  if (e.T.boss) bossVoice(e, 'hurt'); else if (!meleeSfx && time - ehitT > .07) { ehitT = time; sfxEnt = e; sfxAt('ehit', e.x, e.y, 320); sfxEnt = null; }
   aggro(e); if (crit) addTrauma(.12);
   addText(e.x, e.y - 10, dmg + (crit ? '!' : ''), crit ? '#ffe040' : col);
   burst(e.x, e.y, T.boss ? e.B.pal[0] : BLOOD[e.type] || '#e8e0c8', 5, 50);
@@ -2494,10 +2665,10 @@ function bossUnique(L) { // prefers unfound + depth-appropriate (pickUnique); wi
 }
 function killEnemy(e) {
   const T = e.T;
-  if (T.revive && !e.revived) { e.revived = true; e.hp = 1; e.downT = 2.5; e.mode = ''; addText(e.x, e.y - 14, 'IT STIRS...', '#c0c0ff'); burst(e.x, e.y, '#888', 10, 50); return; }
+  if (T.revive && !e.revived) { e.revived = true; e.hp = 1; e.downT = 2.5; e.mode = ''; addText(e.x, e.y - 14, 'IT STIRS...', '#c0c0ff'); cueAt('enm_skeleton_reassemble_01', e.x, e.y, 320); burst(e.x, e.y, '#888', 10, 50); return; }
   removeEnemy(e);
-  burst(e.x, e.y, '#888', 14, 80); sfx('hit');
-  if (T.ai === 'bomber' && e.mode !== 'boom') { const x = e.x, y = e.y, dmg = e.dmg; tele({ x, y, r: 30, dur: .45, col: '#a0e040', onDone: () => blast(x, y, 30, dmg, T.label, { col: '#a0e040', tr: .4 }) }); }
+  burst(e.x, e.y, '#888', 14, 80); sfxEnt = e; sfx('hit'); sfxEnt = null;
+  if (T.ai === 'bomber' && e.mode !== 'boom') { const x = e.x, y = e.y, dmg = e.dmg; cueAt('cbt_explosion_small_01', x, y, 420, 1, { delay: .45 }); tele({ x, y, r: 30, dur: .45, col: '#a0e040', onDone: () => blast(x, y, 30, dmg, T.label, { col: '#a0e040', tr: .4 }) }); }
   if (T.split) for (let k = 0; k < 2 && enemies.length < MAX_ENEMIES; k++) { const m = spawnEnemy(T.split, e.x + (k ? 5 : -5), e.y, false); m.state = 'chase'; m.kx = (k ? 80 : -80); }
   player.kills++; gainXp(e.xp); powersOnKill(e); if (T.boss) bossVoice(e, 'die'); else eventThought('postkill', .1, 40);
   const L = depth + (e.elite ? 1 : 0) + (T.boss ? 2 : 0);
@@ -2514,7 +2685,7 @@ function killEnemy(e) {
     teles = teles.filter(q => q.src !== e);
     if (B.oswin && !e.cycle) flashMsg('OSWIN HOLLOWMERE FALLS. VAELMOOR SLEEPS.', '#d8a040');
     else flashMsg(e.name + ' FALLS. THE WAY DOWN IS OPEN.', '#d8a040');
-    music.combatUntil = time + 2; sfx('lvl');
+    music.combatUntil = time + 2; sfx('lvl', { cue: [['wld_loot_rare_drop_01', { delay: 1.4 }]] });
     return;
   }
   regularDrops(e, depth);
@@ -2564,7 +2735,7 @@ function doAttack(fixed) {
   if (fixed) { /* keep facing */ }
   else if (ma) { p.fx = ma.x; p.fy = ma.y; }
   else if (t && (touchMode || !(mv.x || mv.y))) { const a = Math.atan2(t.y - p.y, t.x - p.x); p.fx = Math.cos(a); p.fy = Math.sin(a); }
-  p.swing = .22; p.atkCd = .45 / p.st.aspd; meleeSfx = true;
+  p.swing = .22; p.atkCd = .45 / p.st.aspd; meleeSfx = true; smpCrit = false; smpHitEnt = null;
   const ang = Math.atan2(p.fy, p.fx); let landed = false;
   for (const e of enemies.slice()) {
     const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy);
@@ -2572,7 +2743,7 @@ function doAttack(fixed) {
     const da = Math.abs(((Math.atan2(dy, dx) - ang + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
     if (da > 1.1 && d > 8 + e.r) continue;
     const { d: dmg, crit } = rollDmg(); leech(dmg);
-    damageEnemy(e, dmg, dx / (d || 1) * 60, dy / (d || 1) * 60, '#fff', crit); landed = true;
+    damageEnemy(e, dmg, dx / (d || 1) * 60, dy / (d || 1) * 60, '#fff', crit); landed = true; if (crit) smpCrit = true; if (!smpHitEnt) smpHitEnt = e;
   }
   meleeSfx = false; sfx(landed ? 'meat' : 'whiff');
   if (landed) wearWeapon();
@@ -2586,7 +2757,7 @@ function castSkill(i) {
   const p = player, S = SKILLS[i], hk = 's' + (i + 1);
   if (skillLocked(i)) { lockedSkillMsg(i); held[hk] = false; tapQ[hk] = 0; return; }
   if (p.cds[i] > 0) return;
-  if (p.mp < S.mana) { flashMsg('Not enough mana', '#88f'); held[hk] = false; tapQ[hk] = 0; return; }
+  if (p.mp < S.mana) { flashMsg('Not enough mana', '#88f'); if (time - smpT.failT > .6) { smpT.failT = time; cue('player_cast_fail_01'); } held[hk] = false; tapQ[hk] = 0; return; }
   p.mp -= S.mana; p.cds[i] = S.cd;
   const pw = p.st.fire + p.lvl * 2, amp = 1 + skillAmp(i) / 100;
   if (i === 0) {
@@ -2679,8 +2850,8 @@ function update(dt) {
       else if (g.key) { p.keys += g.key; addText(g.x, g.y - 6, '+KEY', '#ffe060'); sfx('key'); ground.splice(i, 1); flashMsg('You found a key! (' + p.keys + ')', '#ffe060'); }
       else if (pickupExtra(g)) ground.splice(i, 1);
       else if (g.gold) { p.gold += g.gold; addText(g.x, g.y - 6, '+' + g.gold + 'G', '#e8c840'); sfx('gold'); ground.splice(i, 1); }
-      else if (g.pot === 'rp') { p.rpPot = (p.rpPot || 0) + 1; addText(g.x, g.y - 6, '+REPAIR POT', '#ffa850'); sfx('pick'); ground.splice(i, 1); flashMsg('Repair Potion (' + p.rpPot + ') - use it from the bag', '#ffa850'); }
-      else if (g.pot) { if (g.pot === 'hp') p.hpPot++; else p.mpPot++; addText(g.x, g.y - 6, g.pot === 'hp' ? '+LIFE POT' : '+MANA POT', g.pot === 'hp' ? '#ff6060' : '#6080ff'); sfx('pick'); ground.splice(i, 1); }
+      else if (g.pot === 'rp') { p.rpPot = (p.rpPot || 0) + 1; addText(g.x, g.y - 6, '+REPAIR POT', '#ffa850'); sfx('pick', { cue: 'wld_pickup_potion_01' }); ground.splice(i, 1); flashMsg('Repair Potion (' + p.rpPot + ') - use it from the bag', '#ffa850'); }
+      else if (g.pot) { if (g.pot === 'hp') p.hpPot++; else p.mpPot++; addText(g.x, g.y - 6, g.pot === 'hp' ? '+LIFE POT' : '+MANA POT', g.pot === 'hp' ? '#ff6060' : '#6080ff'); sfx('pick', { cue: 'wld_pickup_potion_01' }); ground.splice(i, 1); }
       // gear is never auto-picked: click / tap it (see requestPickup)
     }
   }
@@ -2722,7 +2893,7 @@ function dropAllItems() {
   const p = player, list = p.inv.map((it, i) => ({ it, i })).filter(o => o.it); if (!list.length) return 0;
   list.forEach((o, k) => { const a = k / list.length * Math.PI * 2 + rand(-.2, .2), r = 14 + (k % 3) * 7, s = safeSpot(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r);
     o.it.isNew = false; ground.push({ x: s.x, y: s.y, bob: Math.random() * 6, lock: true, item: o.it }); p.inv[o.i] = null; });
-  sfx('pick'); sel = null; save(); return list.length;
+  sfx('pick', { cue: 'ui_item_drop_ground_01' }); sel = null; save(); return list.length;
 }
 function requestDropAll(skipConfirm) {
   if (!player.inv.some(Boolean)) { invNote = 'Your backpack is already empty.'; renderInv(); return; }
@@ -2960,7 +3131,7 @@ function useDoor(d) {
   const p = player;
   if (d.kind === 'gate') {
     if ((p.gateKeys || 0) > 0) { p.gateKeys--; openDoor(d); flashMsg('The Gate Key turns. The iron gate grinds open.' + (p.gateKeys ? ` (${p.gateKeys} left)` : ''), '#c0d0e0'); }
-    else { sfx('locked'); flashMsg('A locked iron gate. It needs a Gate Key (chest keys won\'t fit).', '#a0b0c0'); }
+    else { sfx('locked', { cue: 'wld_door_locked_01' }); flashMsg('A locked iron gate. It needs a Gate Key (chest keys won\'t fit).', '#a0b0c0'); }
     return;
   }
   if (d.kind === 'blood') {
@@ -3035,14 +3206,14 @@ function updateTraps(dt) {
     if (T.kind === 'fire') { if (d > 120) continue; if (T.cd > 0) continue; T.cd = 3.4;
       const ax = T.axis === 'h' ? 0 : 1, ay = T.axis === 'h' ? 1 : 0; // jet crosses the corridor
       for (let k = -1; k <= 1; k++) { const x = T.x + ax * k * 9, y = T.y + ay * k * 9; tele({ x, y, r: 8, dur: .75, col: '#ff8020', onDone: () => { blast(x, y, 9, trapDmg() * .7, 'a fire jet', { col: '#ff8020' }); } }); }
-      if (d < 90) sfx('whoosh'); continue; }
+      if (d < 90) sfx('whoosh', { cue: [['wld_trap_flame_01', { loopFor: .9 }]] }); continue; }
     if (!T.armed || T.cd > 0 || d > 8) continue;
     T.spotted = true;
-    if (T.kind === 'pit') { T.armed = false; sfx('click'); tele({ x: T.x, y: T.y, r: 11, dur: .55, col: '#c08040', onDone: () => { blast(T.x, T.y, 11, trapDmg() * 1.3, 'a pitfall', { col: '#6a5040', tr: .3 }); T.hole = true; } }); flashMsg('The floor gives way!', '#c08040'); }
+    if (T.kind === 'pit') { T.armed = false; sfx('click', { cue: ['wld_trap_spike_warn_01', ['wld_trap_pit_01', { delay: .45 }]] }); tele({ x: T.x, y: T.y, r: 11, dur: .55, col: '#c08040', onDone: () => { blast(T.x, T.y, 11, trapDmg() * 1.3, 'a pitfall', { col: '#6a5040', tr: .3 }); T.hole = true; } }); flashMsg('The floor gives way!', '#c08040'); }
     else if (T.kind === 'arrows') { T.cd = 4; sfx('click');
       const ax = T.axis === 'h' ? 0 : 1, ay = T.axis === 'h' ? 1 : 0, side = runLen(T.tx, T.ty, -ax, -ay) <= runLen(T.tx, T.ty, ax, ay) ? -1 : 1;
       const wx = T.x + ax * side * 16, wy = T.y + ay * side * 16; tele({ x: wx, y: wy, r: 6, dur: .4, col: '#e0d0a0', onDone: () => {
-        for (const o of [-5, 5]) projs.push({ x: wx + ay * o, y: wy + ax * o, vx: -ax * side * 200, vy: -ay * side * 200, r: 2, dmg: trapDmg(), owner: 'e', kind: 'arrow', life: 1.2, label: 'a dart trap' }); sfx('swing'); } }); }
+        for (const o of [-5, 5]) projs.push({ x: wx + ay * o, y: wy + ax * o, vx: -ax * side * 200, vy: -ay * side * 200, r: 2, dmg: trapDmg(), owner: 'e', kind: 'arrow', life: 1.2, label: 'a dart trap' }); sfx('swing', { cue: 'wld_trap_dart_01' }); } }); }
     else if (T.kind === 'collapse') { T.armed = false; sfx('rumble'); addTrauma(.25); flashMsg('The ceiling groans...', '#c8b8a0');
       for (let k = 0; k < 3; k++) { const x = T.x + rand(-12, 12), y = T.y + rand(-12, 12); tele({ x, y, r: 12, dur: .7 + k * .15, col: '#a09080', onDone: () => { blast(x, y, 12, trapDmg(), 'a collapsing ceiling', { col: '#8a7a6a', tr: .25 }); debris.push({ x: x - 2, y, w: 3, h: 2, col: '#5a5048', sh: true }); } }); } }
     else if (T.kind === 'boulder') { T.cd = 7; sfx('rumble'); addTrauma(.2); flashMsg('A deep rumble rolls down the corridor!', '#c8b8a0');
@@ -3099,7 +3270,7 @@ function doRest(h) {
   const p = player, k = Math.min(1, h / 6);
   p.hp = Math.min(p.st.maxHp, p.hp + p.st.maxHp * k); p.mp = Math.min(p.st.maxMp, p.mp + p.st.maxMp * k);
   p.fatigue = Math.min(100, p.fatigue + 100 * k); p.hunger = Math.max(0, p.hunger - h * 2.5); p.thirst = Math.max(0, p.thirst - h * 3.5);
-  restLog = { h, at: performance.now() }; flashMsg(`You sleep for ${h} hour${h > 1 ? 's' : ''}.` + (h >= 6 ? ' You wake fully rested.' : ''), '#a0b0ff'); sfx('drink');
+  restLog = { h, at: performance.now() }; flashMsg(`You sleep for ${h} hour${h > 1 ? 's' : ''}.` + (h >= 6 ? ' You wake fully rested.' : ''), '#a0b0ff'); sfx('drink', { cue: 'player_heal_01' });
 }
 let restLog = null;
 // ---- new ground pickups: rations, Gate Keys (not chest keys), map fragments, satchels / backpacks ----
@@ -3109,9 +3280,9 @@ function pickupExtra(g) {
   if (g.gkey) { p.gateKeys = (p.gateKeys || 0) + g.gkey; addText(g.x, g.y - 6, '+GATE KEY', '#c0d0e0'); sfx('gkey'); flashMsg(`Gate Key (${p.gateKeys}) - opens iron gates`, '#c0d0e0'); return true; }
   if (g.frag) { p.mapFrags = (p.mapFrags || 0) + 1; addText(g.x, g.y - 6, '+MAP FRAGMENT', '#e0d0a0'); sfx('pick'); flashMsg(`Map Fragment (${p.mapFrags}/${FRAG_NEED})` + (p.mapFrags >= FRAG_NEED ? ' - use them from the bag to reveal this floor' : ''), '#e0d0a0'); return true; }
   if (g.bag) { const room = BAG_MAX - invSize();
-    if (room <= 0) { p.gold += 200 * depth; addText(g.x, g.y - 6, '+' + 200 * depth + 'G', '#e8c840'); flashMsg('Your pack is as big as it gets - you sell the spare bag.', '#e8c840'); sfx('gold'); return true; }
+    if (room <= 0) { p.gold += 200 * depth; addText(g.x, g.y - 6, '+' + 200 * depth + 'G', '#e8c840'); flashMsg('Your pack is as big as it gets - you sell the spare bag.', '#e8c840'); sfx('gold', { cue: 'meta_shop_sell_01' }); return true; }
     const add = Math.min(room, g.bag); p.bagBonus = (p.bagBonus || 0) + add; for (let i = 0; i < add; i++) p.inv.push(null);
-    addText(g.x, g.y - 6, g.bag >= 10 ? '+BACKPACK' : '+SATCHEL', '#d8a040', true); sfx('lvl');
+    addText(g.x, g.y - 6, g.bag >= 10 ? '+BACKPACK' : '+SATCHEL', '#d8a040', true); sfx('lvl', { cue: 'wld_pickup_rare_01' });
     flashMsg(`${g.bag >= 10 ? 'Backpack' : 'Satchel'}! Bag space +${add} (${invSize()} slots)`, '#d8a040'); return true; }
   return false;
 }
@@ -3123,7 +3294,7 @@ function bossExtraDrops(e) {
 function useMapFrags() {
   const p = player; if ((p.mapFrags || 0) < FRAG_NEED) { invNote = `You need ${FRAG_NEED} Map Fragments (you have ${p.mapFrags || 0}).`; renderInv(); return; }
   if (floorRevealed) { invNote = 'This floor is already revealed.'; renderInv(); return; }
-  p.mapFrags -= FRAG_NEED; revealFloor(); sfx('lvl'); invNote = 'The fragments knit together: the whole floor - secrets and all - is revealed. (M)'; renderInv();
+  p.mapFrags -= FRAG_NEED; revealFloor(); sfx('lvl', { cue: 'meta_quest_complete_01' }); invNote = 'The fragments knit together: the whole floor - secrets and all - is revealed. (M)'; renderInv();
 }
 function revealFloor() { floorRevealed = true; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const k = y * MW + x; if (map[k] !== TILE.WALL || walkable(x + 1, y) || walkable(x - 1, y) || walkable(x, y + 1) || walkable(x, y - 1)) seen[k] = true; }
   for (const d of doors) { for (const t of d.tiles) seen[t.y * MW + t.x] = true; if (d.rect) for (let y = d.rect.y; y < d.rect.y + d.rect.h; y++) for (let x = d.rect.x; x < d.rect.x + d.rect.w; x++) seen[y * MW + x] = true; }
@@ -3133,16 +3304,16 @@ function shopPrice(k) { const d = depth; return { hp: 20 + d * 3, mp: 18 + d * 3
 function sellPrice(it) { return Math.max(3, Math.round((it.lvl || 1) * (3 + it.rarity * 5) * (it.rarity === 3 ? 4 : 1))); }
 function repairAllCost() { let c = 0; for (const it of player.inv.concat(SLOTS.map(k => player.equip[k]))) if (it && needsRepair(it)) c += Math.ceil((it.maxDur - it.dur) * (1 + it.rarity) * .6) + 5; return c; }
 let shopSel = -1, shopNote = '';
-function openShop() { shopSel = -1; shopNote = pick(['"Coin for comfort, comfort for coin."', '"Mind the drips. They bill extra."', '"Bones, bread, keys. I don\'t ask."', '"The Choir sings. I sell earplugs. Sold out."']); setState('shop'); renderShop(); sfx('gold'); }
+function openShop() { shopSel = -1; shopNote = pick(['"Coin for comfort, comfort for coin."', '"Mind the drips. They bill extra."', '"Bones, bread, keys. I don\'t ask."', '"The Choir sings. I sell earplugs. Sold out."']); setState('shop'); renderShop(); sfx('gold', { cue: 'wld_npc_merchant_greet_01' }); }
 function closeShop() { setState('play'); save(); }
 function buy(k) {
-  const p = player, c = shopPrice(k); if (p.gold < c) { shopNote = 'Not enough gold.'; sfx('fail'); renderShop(); return; }
+  const p = player, c = shopPrice(k); if (p.gold < c) { shopNote = 'Not enough gold.'; sfx('fail', { cue: 'meta_shop_cantafford_01' }); renderShop(); return; }
   if ((k === 'ration' || k === 'gkey') && !(shop.stock[k] > 0)) { shopNote = 'Sold out.'; sfx('fail'); renderShop(); return; }
   p.gold -= c; if (k === 'hp') p.hpPot++; else if (k === 'mp') p.mpPot++; else if (k === 'rp') p.rpPot = (p.rpPot || 0) + 1; else if (k === 'ration') { p.rations = (p.rations || 0) + 1; shop.stock.ration--; } else if (k === 'gkey') { p.gateKeys = (p.gateKeys || 0) + 1; shop.stock.gkey--; }
-  sfx('gold'); shopNote = 'Bought.'; renderShop();
+  sfx('gold', { cue: 'meta_shop_buy_01' }); shopNote = 'Bought.'; renderShop();
 }
-function sellSel() { const p = player, it = p.inv[shopSel]; if (!it) return; const g = sellPrice(it); p.inv[shopSel] = null; p.gold += g; shopSel = -1; sfx('gold'); shopNote = `Sold ${it.name} for ${g}g.`; renderShop(); }
-function repairAll() { const p = player, c = repairAllCost(); if (!c) { shopNote = 'Nothing needs mending.'; renderShop(); return; } if (p.gold < c) { shopNote = 'Not enough gold.'; sfx('fail'); renderShop(); return; }
+function sellSel() { const p = player, it = p.inv[shopSel]; if (!it) return; const g = sellPrice(it); p.inv[shopSel] = null; p.gold += g; shopSel = -1; sfx('gold', { cue: 'meta_shop_sell_01' }); shopNote = `Sold ${it.name} for ${g}g.`; renderShop(); }
+function repairAll() { const p = player, c = repairAllCost(); if (!c) { shopNote = 'Nothing needs mending.'; renderShop(); return; } if (p.gold < c) { shopNote = 'Not enough gold.'; sfx('fail', { cue: 'meta_shop_cantafford_01' }); renderShop(); return; }
   p.gold -= c; for (const it of p.inv.concat(SLOTS.map(k => p.equip[k]))) if (it && needsRepair(it)) it.dur = it.maxDur; computeStats(); sfx('repair'); shopNote = 'Everything mended.'; renderShop(); }
 function renderShop() {
   const p = player; $('shGold').textContent = p.gold + 'g'; $('shNote').textContent = shopNote;
@@ -3204,7 +3375,7 @@ function openTalk(e) {
   $('tkName').textContent = e.name || nm; $('tkTitle').textContent = B.t || ''; $('tkLine').textContent = BOSS_LINES[B.n] || 'You should not have come down here, little light.';
   $('tkResp').textContent = ''; const R = $('tkReplies'); R.innerHTML = '';
   for (const [q, a] of shuffled(TALK_REPLIES).slice(0, 3)) { const b = document.createElement('button'); b.className = 'shb'; b.textContent = q;
-    b.addEventListener('click', () => { $('tkResp').textContent = (e.name || nm) + ': ' + a; R.querySelectorAll('button').forEach(x => x.classList.add('dis')); b.classList.remove('dis'); b.classList.add('on'); sfx('pick'); }); R.appendChild(b); }
+    b.addEventListener('click', () => { $('tkResp').textContent = (e.name || nm) + ': ' + a; R.querySelectorAll('button').forEach(x => x.classList.add('dis')); b.classList.remove('dis'); b.classList.add('on'); sfx('pick', { cue: 'ui_click_01' }); }); R.appendChild(b); }
   const cv = $('tkPort'), c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#0c080a'; c.fillRect(0, 0, cv.width, cv.height);
   try { const img = enemyImg(e); if (img) { const s = Math.min(cv.width / img.width, cv.height / img.height) * .9; c.drawImage(img, (cv.width - img.width * s) / 2, (cv.height - img.height * s) / 2, img.width * s, img.height * s); } } catch (_) {}
   setState('talk'); sfx('rune');
@@ -3929,7 +4100,7 @@ function walkerAI(e, dt, d, ax, ay, spd) { const p = player;
   if (e.mode === 'rec') { e.t -= dt; if (e.t <= 0) e.mode = ''; return; }
   const lurch = .5 + .5 * Math.abs(Math.sin(e.anim * 2.4));
   if (d > e.r + p.r + 4) moveDir(e, ax, ay, spd * lurch, dt);
-  if (d < e.r + p.r + 8 && e.atkCd <= 0) { e.mode = 'wind'; e.t = WALKER_WIND; e.atkCd = 1.7; tele({ x: e.x, y: e.y, r: e.r + p.r + 10, dur: WALKER_WIND, follow: e, col: '#d0b060' }); } }
+  if (d < e.r + p.r + 8 && e.atkCd <= 0) { e.mode = 'wind'; e.t = WALKER_WIND; e.atkCd = 1.7; tele({ x: e.x, y: e.y, r: e.r + p.r + 10, dur: WALKER_WIND, follow: e, col: '#d0b060' }); cueAt('cbt_tell_melee_01', e.x, e.y, 300); } }
 // ---- §10 early loot gate (player level <= 2): fewer / plainer drops; rusty sword + survival basics untouched ----
 const LOOT_GATE = { lvl: 2, white: .35, gold: .7, chestItem: .5, magic: .35, champWhite: .5 };
 function lootGated() { return !!player && player.lvl <= LOOT_GATE.lvl; }
@@ -4280,7 +4451,7 @@ function renderProfiles() { const L = $('profList'), F = $('profForm'); L.innerH
     const bt = document.createElement('div'); bt.className = 'pbtns';
     const ok = document.createElement('button'); ok.className = 'mbtn small'; ok.id = 'profOk'; ok.textContent = ed.id ? 'SAVE LOOK' : 'CREATE';
     ok.addEventListener('click', () => { if (ed.id) { const q = profiles.list.find(q => q.id === ed.id); if (q) { q.look = cleanLook(ed.look); const n = cleanName(ed.name); if (n) q.name = n; saveProfiles(); WARD_CACHE.clear(); } }
-      else if (!createProfile(ed.name, ed.look)) { flashMsg('Six characters is the limit.', '#f88'); } profEdit = null; sfx('pick'); refreshProfileUI(); renderProfiles(); });
+      else if (!createProfile(ed.name, ed.look)) { flashMsg('Six characters is the limit.', '#f88'); } profEdit = null; sfx('pick', { cue: 'ui_click_01' }); refreshProfileUI(); renderProfiles(); });
     const cn = document.createElement('button'); cn.className = 'mbtn small'; cn.textContent = 'BACK'; cn.addEventListener('click', () => { profEdit = null; renderProfiles(); });
     bt.appendChild(ok); bt.appendChild(cn); col.appendChild(bt); wrap.appendChild(col); F.appendChild(wrap); redraw(); return; }
   for (const q of profiles.list) { const r = document.createElement('div'); r.className = 'prow' + (q.id === profiles.active ? ' on' : ''); r.dataset.id = q.id;
@@ -4289,7 +4460,7 @@ function renderProfiles() { const L = $('profList'), F = $('profForm'); L.innerH
     const mk = (t, cls, fn) => { const b = document.createElement('button'); b.className = 'shb ' + cls; b.textContent = t; b.addEventListener('click', fn); r.appendChild(b); return b; };
     mk('PLAY', 'pplay', () => { switchProfile(q.id); closeProfiles(); if (loadSave()) continueGame(); else newGame(); });
     mk('LOOK', 'plook', () => { profEdit = { id: q.id, name: q.name, look: Object.assign({}, q.look) }; renderProfiles(); });
-    mk(profDelAsk === q.id ? 'SURE?' : 'DEL', 'pdel', () => { if (profDelAsk !== q.id) { profDelAsk = q.id; renderProfiles(); return; } profDelAsk = null; deleteProfile(q.id); sfx('fail'); renderProfiles(); });
+    mk(profDelAsk === q.id ? 'SURE?' : 'DEL', 'pdel', () => { if (profDelAsk !== q.id) { profDelAsk = q.id; renderProfiles(); return; } profDelAsk = null; deleteProfile(q.id); sfx('fail', { cue: 'ui_back_01' }); renderProfiles(); });
     L.appendChild(r); }
   if (profiles.list.length < PROF_MAX) { const b = document.createElement('button'); b.className = 'mbtn small'; b.id = 'profNew'; b.textContent = '+ NEW CHARACTER';
     b.addEventListener('click', () => { profEdit = { name: '', look: { skin: irand(0, LOOKS.skin.length - 1), hair: irand(0, LOOKS.hair.length - 1), cloak: irand(0, LOOKS.cloak.length - 1) } }; renderProfiles(); setTimeout(() => { const i = $('profNameIn'); if (i && !touchMode) i.focus(); }, 0); }); F.appendChild(b); } }
@@ -4464,7 +4635,7 @@ function loop(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   const blocked = !$('rotate').classList.contains('hidden');
   if (state === 'play' && !blocked) update(dt); else { time += dt; if (state === 'sleep') updateSleep(dt); }
-  updateHover(); render(); updateTouchHUD(); updateMusic(); updateGroundTip();
+  updateHover(); render(); updateTouchHUD(); updateMusic(); smpTick(dt); updateGroundTip();
   requestAnimationFrame(loop);
 }
 document.addEventListener('visibilitychange', () => {
@@ -4519,7 +4690,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   bestiary, ETYPES, MOB_IDS, MOBS, BOSSES, spawnEnemy, spawnBoss, damageEnemy, bossForDepth, addTrauma, shakeOffset, mouse, get trauma() { return trauma; }, get teles() { return teles; }, get hazards() { return hazards; }, get projs() { return projs; }, settings,
   newGame, continueGame, itemLines, UNIQUES, eligibleUniques, pickUnique, openInv, closeInv, makeItem, renderInv, gainXp, startFloor, sortInventory, compareItems, itemPower,
   get ios() { return { ios: isIOS(), safari: isIOSSafari(), fs: fsAvailable(), standalone: isStandalone(), appW, appH }; },
-  get audio() { return { ctx: actx ? actx.state : null, unlocked: audioUnlocked, err: audioErr, music: music.mode, started: music.started, boss: music.boss, settings }; } };
+  get audio() { return { ctx: actx ? actx.state : null, unlocked: audioUnlocked, err: audioErr, music: music.mode, started: music.started, boss: music.boss, settings, samples: { state: SMP.state, fmt: SMP.fmt, cues: SMP.man ? Object.keys(SMP.man.cues).length : 0, loaded: Object.keys(SMP.buf).length, failed: Object.keys(SMP.fail), loops: [...SMP.loops.keys()], played: SMP.played, err: SMP.err } }; } };
 </script>
 </body>
 </html>
