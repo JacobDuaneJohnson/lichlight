@@ -4,6 +4,45 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-10-24
+
+_Shields, amulets, powers, set pieces and puzzles_
+
+### Added
+- **Shields**: a new gear slot with 8 bases from Wooden Buckler to Choir Pavise. Shields give Defense and a **chance to block** (capped at 40%). A block stops the whole hit with a clang, but damage over time is never blocked. Shields have durability and wear when you block or get hit.
+- **Amulets**: a new gear slot with 8 bases, each with its own built-in bonus. Amulets have durability too.
+- **Special powers on gear**: purple tooltip lines. A power can be a barrier that absorbs damage when your life drops low, when you're struck, or when you block. Others are thorns, mana or life on kill, a slowing aura, a fear pulse that makes enemies flee, a longer dodge window, or a bonus to Fireball, Whirlwind or Frost Nova damage.
+  - Rares sometimes roll a power.
+  - Every unique has a designed set of powers.
+- **20 new uniques by Eve**: 10 amulets and 10 shields, each with lore. Three amulets **sense secret walls** while you wear them: nearby cracks glow, ping and show on the map. Several of the original uniques also gained a signature power, and they get it on old saves too.
+- **Sleep fades to black**: the screen goes dark, one soft tick plays per hour slept, then it fades back in with you rested.
+- **Set pieces**: ritual circles with candles and an altar (sometimes with a little gold), standing pools you can drink from, green and blue fog, coffins, skull piles, cobwebbed corners, broken pillars, rubble, moss, hanging chains, barred windows and crypt niches.
+- **Cobwebs across corridors** (depth 2+):
+  - They slow you down and burn your torch 3× faster while you're inside them.
+  - A lit torch smoulders through a web in about half a second, a Fireball burns one instantly, and two sword hits tear one apart.
+  - Webs never fully block the way.
+- **Passage puzzles** (depth 3+): stone slabs that seal off part of a floor. You open one of three ways:
+  - pull three levers
+  - light three cold sconces in order (count the ember marks)
+  - push a stone block onto a plate
+  
+  Every part of the puzzle is always on your side of the slab.
+- **Sliding doors**: puzzle slabs grind open slowly, with dust and a rumble, then land with a thud.
+- **More door styles**: iron or rusted gates, plus wooden, bone-bound, barred and plain stone doors.
+- **Floor and wall variety**: each crypt theme has its own stone colours, with 10 floor and 8 wall patterns (cracks, drains, missing bricks, niches, damp streaks, moss).
+- **Bloom**: a soft glow on torches, braziers, candles and your spells. It's lighter on Low lighting.
+- **Boss voices**: every boss type has its own intro, attack, hurt, death and signature sounds, slightly re-pitched for each boss.
+- **Ambience that changes with depth**: the background drone shifts across five depth tiers, with different drips, distant booms and an occasional faint melody.
+- **Triple the thought bubbles** (Eve's lines). New moods cover darkness, running out of potions, after a kill, a boss nearby, cobwebs and puzzles. A line never repeats until at least six others have played.
+- **Touch layout editor** (pause → TOUCH CONTROLS): drag any button where you want it, swap sides to put the stick on the right, or reset to default. Your layout is saved.
+
+### Changed
+- Opening a secret passage now has a deeper, echoing sound from the space behind the wall.
+- The inventory has 7 equipment slots: weapon, shield, helm, armor, boots, ring and amulet.
+
+### Fixed
+- **A gate next to a water stream couldn't be opened**: USE kept choosing DRINK instead. Doors, gates, chests and the trader now take priority over drinking. Streams also no longer spawn next to doors, gates or vault and shop doorways.
+
 ## [0.4.6] - 2026-10-24
 
 _Sound pass: skill voices, world tells, sparse crypt ambience_
@@ -213,6 +252,7 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.5.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.5.0
 [0.4.6]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.6
 [0.4.5]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.5
 [0.4.4]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.4
