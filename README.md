@@ -1,8 +1,8 @@
 # Lichlight
 
-**[▶ Play Lichlight](https://jacobduanejohnson.github.io/lichlight/)**
+**[▶ Play Lichlight](https://gamedevjake.github.io/lichlight/)**
 
-Current version: **v0.5.0** · [What's new](CHANGELOG.md) · [All releases](https://github.com/JacobDuaneJohnson/lichlight/releases)
+Current version: **v0.5.0** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
 
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 
@@ -12,7 +12,7 @@ Fight your way down endless, randomly generated crypt floors in near-total darkn
 
 The game runs in your web browser. There's nothing to install.
 
-- **Phone (recommended):** open the [game link](https://jacobduanejohnson.github.io/lichlight/) in Safari (iPhone) or Chrome (Android) and turn your phone sideways. It plays in landscape.
+- **Phone (recommended):** open the [game link](https://gamedevjake.github.io/lichlight/) in Safari (iPhone) or Chrome (Android) and turn your phone sideways. It plays in landscape.
 - **iPhone fullscreen:** in Safari, tap **Share**, then **Add to Home Screen**, and launch Lichlight from the new icon. If you don't hear sound, tap the screen once.
 - **Android fullscreen:** tap the ⛶ button at the top of the screen, or use Chrome's menu and choose **Add to Home screen**.
 - **Computer:** open the link in any modern browser. Mouse controls work like Diablo 2.

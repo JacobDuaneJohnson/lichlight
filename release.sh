@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 VER="${1:-}"; NOTES="${2:-}"; TITLE="${3:-}"; DRY="${4:-}"
-REPO="JacobDuaneJohnson/lichlight"
+REPO="gamedevjake/lichlight"
 die() { echo "release.sh: $*" >&2; exit 1; }
 [[ "$VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "version must look like 1.2.3 (no leading v)"
 [[ -f "$NOTES" ]] || die "notes file not found: $NOTES"
@@ -35,7 +35,7 @@ s = open('CHANGELOG.md').read()
 entry = f"## [{ver}] - {date}\n\n_{title}_\n\n{body}\n\n"
 i = s.find('\n## [')
 s = s[:i + 1] + entry + s[i + 1:] if i >= 0 else s.rstrip() + '\n\n' + entry
-ref = f"[{ver}]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v{ver}\n"
+ref = f"[{ver}]: https://github.com/gamedevjake/lichlight/releases/tag/v{ver}\n"
 m = re.search(r'^\[\d+\.\d+\.\d+\]: ', s, re.M)
 s = s[:m.start()] + ref + s[m.start():] if m else s.rstrip() + '\n\n' + ref
 open('CHANGELOG.md', 'w').write(s)

@@ -41,5 +41,5 @@ Afterwards, copy `index.html` and `version.json` back to your working copy (for 
 
 Links:
 
-- Releases: https://github.com/JacobDuaneJohnson/lichlight/releases
-- Changelog: https://github.com/JacobDuaneJohnson/lichlight/blob/main/CHANGELOG.md
+- Releases: https://github.com/gamedevjake/lichlight/releases
+- Changelog: https://github.com/gamedevjake/lichlight/blob/main/CHANGELOG.md

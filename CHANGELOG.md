@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Lichlight, newest first. Each version is also published on the [GitHub Releases page](https://github.com/JacobDuaneJohnson/lichlight/releases).
+All notable changes to Lichlight, newest first. Each version is also published on the [GitHub Releases page](https://github.com/gamedevjake/lichlight/releases).
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
@@ -239,7 +239,7 @@ _README and how to play_
 
 _First public release_
 
-First public release, playable in your browser at https://jacobduanejohnson.github.io/lichlight/
+First public release, playable in your browser at https://gamedevjake.github.io/lichlight/
 
 ### Added
 - **Lichlight**, a retro pixel-art dungeon crawler. Beneath drowned Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir, and now the Bone King waits below.
@@ -252,17 +252,17 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
-[0.5.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.5.0
-[0.4.6]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.6
-[0.4.5]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.5
-[0.4.4]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.4
-[0.4.3]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.3
-[0.4.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.2
-[0.4.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.1
-[0.4.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.0
-[0.3.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.2
-[0.3.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.1
-[0.3.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.3.0
-[0.2.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.2.0
-[0.1.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.1.1
-[0.1.0]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.1.0
+[0.5.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.5.0
+[0.4.6]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.6
+[0.4.5]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.5
+[0.4.4]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.4
+[0.4.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.3
+[0.4.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.2
+[0.4.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.1
+[0.4.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.0
+[0.3.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.3.2
+[0.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.3.1
+[0.3.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.3.0
+[0.2.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.2.0
+[0.1.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.1.1
+[0.1.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.1.0
