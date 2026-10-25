@@ -252,7 +252,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.6.3'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.6.4'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -611,7 +611,7 @@ const SFX_CUE = {
   awaken: 'enm_boss_intro_sting_01', enrage: 'enm_boss_phase_change_01',
   chest: () => ['wld_chest_open_01', ['wld_loot_drop_01', { delay: .3 }]], locked: 'wld_chest_locked_01', key: 'wld_pickup_key_01', gkey: 'wld_pickup_key_01',
   door: 'wld_door_wood_open_01', gate: 'wld_door_iron_open_01', secret: 'wld_secret_reveal_01', crumble: 'wld_secret_reveal_01',
-  lever: 'wld_switch_lever_01', plate: 'wld_switch_plate_01', click: 'wld_trap_spike_warn_01', whoosh: 'wld_torch_light_01',
+  lever: 'wld_switch_lever_01', /* v0.6.4: rune/glyph puzzle steps pass cue 'wld_glyph_light_01' from puzzleStep (logical 'rune' alone = procedural, e.g. boss talk) */ plate: 'wld_switch_plate_01', click: 'wld_trap_spike_warn_01', whoosh: 'wld_torch_light_01',
   gold: () => { const t = actx.currentTime; smpGoldN = t - smpGoldT < .5 ? Math.min(smpGoldN + 1, 12) : 0; smpGoldT = t; return [['wld_pickup_gold_01', { rate: Math.pow(2, smpGoldN / 12) }]]; },
   block: 'cbt_block_01', barrier: 'cbt_status_shield_up_01', barrierbreak: 'cbt_status_shield_break_01', barrierhit: 'cbt_deflect_01',
   learn: 'ui_skill_unlock_01', unique: 'wld_loot_rare_drop_01', walkerswing: 'enm_grunt_attack_01',
@@ -3360,7 +3360,7 @@ function useDoor(d) {
 }
 function puzzleStep(o) {
   const d = o.door; if (d.open || o.on) return;
-  if (o.idx === d.seq[d.prog]) { o.on = true; d.prog++; sfx(o.kind === 'lever' ? 'lever' : 'rune'); burst(o.x, o.y - 6, o.kind === 'lever' ? LEVER_COL[o.idx][1] : '#80f0ff', 8, 30);
+  if (o.idx === d.seq[d.prog]) { o.on = true; d.prog++; if (o.kind === 'rune') sfx('rune', { cue: 'wld_glyph_light_01', vol: .8, pan: player ? (o.x - player.x) / 170 : 0 }); else sfx(o.kind === 'lever' ? 'lever' : 'rune'); burst(o.x, o.y - 6, o.kind === 'lever' ? LEVER_COL[o.idx][1] : '#80f0ff', 8, 30);
     if (d.prog >= 3) { openDoor(d); flashMsg('Somewhere, stone grinds against stone...', '#c8b8a0'); eventThought('puzzle', .5, 30); } }
   else { sfx('fail'); d.prog = 0; for (const q of puzzles) if (q.door === d) q.on = false; flashMsg(o.kind === 'lever' ? 'The levers clank back. Wrong order.' : 'The runes dim. Wrong order.', '#a08870'); }
 }

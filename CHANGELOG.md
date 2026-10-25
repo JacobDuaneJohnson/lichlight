@@ -4,6 +4,17 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.6.4] - 2026-10-25
+
+_Razz's music v2 and glyph light sounds_
+
+### Changed
+- **New music from Razz (v2)**: all 11 tracks are replaced: title, the three exploration themes (crypt, cave and fire), combat, shop, boss, and the floor-entry, room-clear, victory and game-over stingers. There are fewer bells. The new tracks are gloomier, rougher and grungier, with the same mysterious fantasy feel.
+- The boss track still switches to its heavier second half at 60 s when the boss enrages. Crossfades, music ducking, Music Off and the BATTLE MUSIC setting for combat music all work as before.
+
+### Added
+- **Glyph light sound**: each correct rune you touch on a rune-puzzle door now plays a soft swell. There are three variants (glass shimmer, low stone hum, and both together), and you won't hear the same one twice in a row. Wrong order still plays the error sound, and levers keep their own clank.
+
 ## [0.6.3] - 2026-10-25
 
 _Hotfix: examine, F-to-use, aggro, loot rooms, supply chests, unequip, champion glow, full saves_
@@ -350,6 +361,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.6.4]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.4
 [0.6.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.3
 [0.6.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.2
 [0.6.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.1
