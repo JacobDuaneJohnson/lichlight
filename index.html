@@ -252,7 +252,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.6.4'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.0'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -1383,6 +1383,8 @@ function breakSecretsAt(x, y, r, walls) {
 function chestLoot(d) { const rareP = Math.min(.6, .15 + d * .012); if (lootGated() && Math.random() > LOOT_GATE.magic) return makeItem(d + 1, 0); return makeItem(d + 1, Math.random() < rareP ? 2 : 1); } // never unique (v0.6.0: mostly plain while level <= 2)
 function openFreeChest(c) { // v0.6.3 B5: unlocked supply chest - gold / life / mana only
   const p = player; c.open = true; sfx('chest'); burst(c.x, c.y - 4, '#d8b070', 12, 50); addTrauma(.05);
+  if (freeChestEmpty(c)) { burst(c.x, c.y - 2, '#6a5a50', 8, 30); const m = critterBurst('chest', c.x, c.y + 4, ['spider', 'bug', 'centipede', 'fly']); // v0.7.0 §5: ~33% of keyless chests are empty
+    flashMsg(m ? 'Empty... something skitters out!' : 'Empty.', '#a89880'); save(); return true; }
   const g = Math.max(1, irand(4, 10) * depth * (lootGated() ? LOOT_GATE.gold : 1) | 0), r = Math.random();
   dropAt(ground, c.x - 8, c.y + 8, { gold: g });
   if (r < .7) dropAt(ground, c.x + 8, c.y + 8, { pot: Math.random() < .6 ? 'hp' : 'mp' });
@@ -1480,7 +1482,7 @@ function gatherLights(sx, sy) {
   for (const e of enemies) if (e.T.boss && !e.hidden && view(e.x, e.y, 70)) L.push({ x: e.x, y: e.y, r: 64, col: e.phase >= 2 ? 'red' : 'violet', a: .45 });
   for (const g of ground) if ((g.torch || g.key || (g.item && g.item.rarity >= 2)) && view(g.x, g.y, 20)) L.push({ x: g.x, y: g.y - 3, r: g.torch ? 16 : 12, col: g.torch ? 'fire' : g.key ? 'warm' : 'white', a: .5 });
   for (const c of chests) if (!c.open && view(c.x, c.y, 20)) L.push({ x: c.x, y: c.y - 4, r: 14, col: 'warm', a: .35 });
-  extraLights(L, view);
+  extraLights(L, view); entranceLights(L, view); critterLights(L, view);
   return L;
 }
 function inPoly(poly, x, y) { let c = false; const n = poly.length / 2; for (let i = 0, j = n - 1; i < n; j = i++) { const xi = poly[i * 2], yi = poly[i * 2 + 1], xj = poly[j * 2], yj = poly[j * 2 + 1];
@@ -2105,7 +2107,7 @@ function bestiary() { // test/contact-sheet helper
     bosses: BOSSES.map(B => ({ floor: B.floor, name: B.n, title: B.t, mech: B.m, img: big(B.img.r, 3) })) };
 }
 function startFloor(d, fresh) {
-  depth = d; genDungeon(depth); populate(); applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
+  depth = d; genDungeon(depth); populate(); setFloorEntrance(d); populateCritters(); climb = null; applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
   const r = rooms[0]; player.x = (r.cx + .5) * TS; player.y = (r.cy + .5) * TS;
   computeStats(); if (fresh) { player.hp = player.st.maxHp; player.mp = player.st.maxMp; }
   debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
@@ -2145,16 +2147,17 @@ const strTiles = s => typeof s === 'string' ? Array.from(s, Number) : s;
 function worldSnap() { if (!player || !map.length || !rooms.length) return null; const p = player;
   return { v: WORLD_V, depth, MW, MH, time: Math.round(time * 100) / 100, map: tileStr(map), seen: seen.map(b => b ? 1 : 0).join(''), mapVar: tileStr(mapVar),
     px: Math.round(p.x * 10) / 10, py: Math.round(p.y * 10) / 10, fx: p.fx, fy: p.fy,
-    s: { champKeysFloor, entId, floorTheme, floorRevealed: !!floorRevealed, vineBurnN },
-    g: wPack({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, motes, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool, debris }) }; }
+    s: { champKeysFloor, entId, floorTheme, floorRevealed: !!floorRevealed, vineBurnN, floorEnt, entPrev },
+    g: wPack({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, motes, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool, debris, critters }) }; }
 function worldRestore(w, sd) { // -> true when the saved floor was restored
   if (!w || w.v !== WORLD_V || w.depth !== sd || !w.g || !w.MW || !w.MH) return false;
   const G = wUnpack(w.g), m = strTiles(w.map), mv = strTiles(w.mapVar); if (!G || !Array.isArray(G.rooms) || !G.rooms.length || m.length !== w.MW * w.MH) return false;
   depth = w.depth; MW = w.MW; MH = w.MH; map = m; mapVar = mv.length === m.length ? mv : new Array(m.length).fill(0); seen = Array.from(w.seen || '', c => c === '1'); if (seen.length !== m.length) seen = new Array(m.length).fill(false);
   ({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool } = G);
-  motes = G.motes || []; debris = G.debris || []; for (const k of ['passages', 'enemies', 'ground', 'chests', 'secrets', 'braziers', 'glimmers', 'doors', 'puzzles', 'traps', 'props', 'decor', 'waters', 'basins', 'annexes', 'setp', 'webs', 'pblocks', 'vines', 'books', 'torches']) if (!Array.isArray(G[k])) throw new Error('world: ' + k);
+  motes = G.motes || []; debris = G.debris || []; critters = Array.isArray(G.critters) ? G.critters : []; climb = null; for (const k of ['passages', 'enemies', 'ground', 'chests', 'secrets', 'braziers', 'glimmers', 'doors', 'puzzles', 'traps', 'props', 'decor', 'waters', 'basins', 'annexes', 'setp', 'webs', 'pblocks', 'vines', 'books', 'torches']) if (!Array.isArray(G[k])) throw new Error('world: ' + k);
   v05Flags = v05Flags || {}; floorPool = floorPool || [];
-  ({ champKeysFloor, entId, floorTheme, floorRevealed, vineBurnN } = Object.assign({ champKeysFloor: 0, entId: 0, floorTheme: 'drowned', floorRevealed: false, vineBurnN: 0 }, w.s || {}));
+  ({ champKeysFloor, entId, floorTheme, floorRevealed, vineBurnN, floorEnt, entPrev } = Object.assign({ champKeysFloor: 0, entId: 0, floorTheme: 'drowned', floorRevealed: false, vineBurnN: 0, floorEnt: null, entPrev: null }, w.s || {}));
+  if (!floorEnt || !ENT_BY[floorEnt.id]) setFloorEntrance(depth); // v0.7.0: pre-0.7 saves get an entrance now
   projs = []; parts = []; texts = []; effects = []; teles = []; hazards = []; timers = []; vfx6 = []; introBoss = null; talkBoss = null;
   if (Number.isFinite(w.time)) time = w.time;
   setVineGrid(); mapVer++; polyCache.clear();
@@ -3008,6 +3011,7 @@ function startRoll(mv) {
 // ---------- update ----------
 function update(dt) {
   time += dt;
+  if (climb) { updateClimb(dt); return; } // v0.7.0: input frozen while climbing down
   const p = player;
   p.atkCd -= dt * (p.fatigue <= 0 ? .8 : 1); p.swing = Math.max(0, p.swing - dt); p.inv0 -= dt;
   for (let i = 0; i < 3; i++) p.cds[i] = Math.max(0, p.cds[i] - dt);
@@ -3035,7 +3039,7 @@ function update(dt) {
   const ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
   if (tileAt(ptx, pty) === TILE.STAIRS) {
     const bb = enemies.find(e => e.T.boss); if (bb) { if (msg.life <= 0) flashMsg(bb.name + ' bars the way!', '#f66'); aggro(bb); }
-    else { sfx('stairs'); startFloor(depth + 1); flashMsg('You descend deeper...', '#ccc'); if (UPD.pending && !UPD.shown) { pauseGame(); } return; }
+    else { startClimb(); return; } // v0.7.0: climb-down transition, then startFloor(depth + 1)
   }
   updateEnemies(dt); if (state !== 'play') return;
   if (enemies.some(e => e.state === 'chase' && dist(e, p) < 170) || projs.some(q => q.owner === 'e')) music.combatUntil = time + 4;
@@ -3072,7 +3076,8 @@ function update(dt) {
     }
   }
   if (parts.length > MAX_PARTS) parts.splice(0, parts.length - MAX_PARTS);
-  for (let i = parts.length - 1; i >= 0; i--) { const q = parts[i]; q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= .9; q.vy *= .9; if (q.life <= 0) parts.splice(i, 1); }
+  for (let i = parts.length - 1; i >= 0; i--) { const q = parts[i]; q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; if (q.ay) q.vy += q.ay * dt; if (!q.nd) { q.vx *= .9; q.vy *= .9; } if (q.life <= 0) parts.splice(i, 1); }
+  updateEntranceFx(dt); updateCritters(dt); // v0.7.0
   for (let i = texts.length - 1; i >= 0; i--) { const q = texts[i]; q.life -= dt; q.y += q.vy * dt; if (q.life <= 0) texts.splice(i, 1); }
   for (let i = effects.length - 1; i >= 0; i--) { const q = effects[i]; q.t += dt; if (q.kind === 'spin') { q.x = p.x; q.y = p.y; } if (q.t >= q.dur) effects.splice(i, 1); }
   msg.life -= dt; bannerT -= dt; bossIntro -= dt; trauma = Math.max(0, trauma - dt * 1.3);
@@ -3330,6 +3335,7 @@ function openDoor(d, quiet) {
   if (d.open) return; d.open = true;
   if (d.slide && !quiet) { d.slideK = 0; const slow = !!d.puzzle; d.slideT = slow ? PUZZLE_SLIDE : SLIDE_TIME; // v0.6.0: puzzle slabs grind slowly, with a longer grumble
     sfxAt(slow ? 'grindlong' : 'grind', (d.tiles[0].x + .5) * TS, (d.tiles[0].y + .5) * TS, 420, 1.1, .3); addTrauma(.12); doorOpenedV06(d); return; } // v0.5.0: slab slides for ~1.6s, then the tile opens
+  if (!quiet && d.tiles.length) { const t0 = d.tiles[0]; critterBurst('door', (t0.x + .5) * TS, (t0.y + .5) * TS, d.kind === 'blood' ? ['fly', 'fly', 'bug'] : ['spider', 'bug', 'centipede']); } // v0.7.0 §4
   for (const t of d.tiles) { map[t.y * MW + t.x] = TILE.FLOOR; seen[t.y * MW + t.x] = true; burst((t.x + .5) * TS, (t.y + .5) * TS, d.kind === 'blood' ? '#a01818' : '#8a8078', 12, 50); }
   mapVer++; polyCache.clear(); if (!quiet) { sfx(d.kind === 'gate' ? 'gate' : d.kind === 'blood' ? 'blood' : 'door'); addTrauma(.15); doorOpenedV06(d); }
 }
@@ -3448,7 +3454,7 @@ function breakPropsAt(x, y, r) {
   for (const o of props) { if (o.broken) continue; if (Math.hypot(o.x - x, o.y - (o.y - 4 > y ? o.y : o.y - 4)) > r + 6 && Math.hypot(o.x - x, o.y - 4 - y) > r + 6) continue;
     o.broken = true; const col = o.kind === 'barrel' ? '#7a5030' : o.kind === 'urn' ? '#8a6a50' : '#d8d0b8';
     burst(o.x, o.y - 4, col, 14, 55); burst(o.x, o.y - 4, '#4a4040', 6, 30); for (let k = 0; k < 4; k++) debris.push({ x: o.x + rand(-6, 6), y: o.y + rand(-3, 4), w: 1 + irand(0, 1), h: 1 + irand(0, 1), col, sh: true });
-    sfx(o.kind === 'urn' ? 'shatter' : 'break');
+    sfx(o.kind === 'urn' ? 'shatter' : 'break'); critterBurst('pot', o.x, o.y - 2, o.kind === 'barrel' ? ['bug', 'spider', 'fly'] : ['spider', 'bug', 'centipede']); // v0.7.0 §4
     if (o.wall) continue; const roll = Math.random(), drop = obj => dropAt(ground, o.x + rand(-3, 3), o.y + rand(-2, 3), obj);
     if (roll < .18) drop({ gold: irand(2, 6) * depth }); else if (roll < .23) drop({ pot: Math.random() < .6 ? 'hp' : 'mp' }); else if (roll < .29) drop({ ration: 1 }); else if (roll < .3) drop({ frag: 1 });
   }
@@ -4017,7 +4023,7 @@ function skinDoors() { for (const d of doors) { if (d.skin) continue;
 function updateSlides(dt) { for (const d of doors) if (d.open && d.slideK < 1) { d.slideK = Math.min(1, d.slideK + dt / (d.slideT || SLIDE_TIME));
   for (const t of d.tiles) if (Math.random() < .5) parts.push({ x: (t.x + rand(.1, .9)) * TS, y: (t.y + 1) * TS - 1, vx: rand(-14, 14), vy: rand(-14, -2), life: rand(.3, .6), col: pick(['#8a8078', '#6a6058', '#a09888']) });
   if (Math.random() < .3) addTrauma(.02);
-  if (d.slideK >= 1) { for (const t of d.tiles) { map[t.y * MW + t.x] = TILE.FLOOR; seen[t.y * MW + t.x] = true; burst((t.x + .5) * TS, (t.y + 1) * TS - 2, '#8a8078', 10, 40); } mapVer++; polyCache.clear(); sfxAt('thud', (d.tiles[0].x + .5) * TS, (d.tiles[0].y + .5) * TS, 400, 1); addTrauma(.12); } } }
+  if (d.slideK >= 1) { critterBurst('door', (d.tiles[0].x + .5) * TS, (d.tiles[0].y + .5) * TS, ['spider', 'bug', 'centipede']); for (const t of d.tiles) { map[t.y * MW + t.x] = TILE.FLOOR; seen[t.y * MW + t.x] = true; burst((t.x + .5) * TS, (t.y + 1) * TS - 2, '#8a8078', 10, 40); } mapVer++; polyCache.clear(); sfxAt('thud', (d.tiles[0].x + .5) * TS, (d.tiles[0].y + .5) * TS, 400, 1); addTrauma(.12); } } }
 function drawDoorSkin(d, X, Y) { const s = d.skin || (d.kind === 'gate' ? 'iron' : 'stone');
   if (d.kind === 'gate') { const bar = s === 'rusted' ? '#8a5a3a' : '#7a8088', bg = s === 'rusted' ? '#140c0a' : '#121014';
     ctx.fillStyle = bg; ctx.fillRect(X, Y, TS, TS); ctx.fillStyle = bar; for (let k = 1; k < TS; k += 3) ctx.fillRect(X + k, Y, 1, TS); ctx.fillRect(X, Y + 3, TS, 1); ctx.fillRect(X, Y + 11, TS, 1);
@@ -4703,11 +4709,11 @@ function render() {
     if (t === TILE.WALL) {
       if (tileAt(tx, ty + 1) !== TILE.WALL) ctx.drawImage(tx >= 0 && ty >= 0 && tx < MW && ty < MH ? texWall(tx, ty) : tileImgs.wallFace[v >= 2 ? v - 1 : 0], X, Y);
       else if (tx >= 0 && ty >= 0 && tx < MW && ty < MH) ctx.drawImage(tileImgs.wallTop, X, Y);
-    } else if (t === TILE.STAIRS) ctx.drawImage(tileImgs.stairs, X, Y);
+    } else if (t === TILE.STAIRS) drawEntranceTile(tx, ty, X, Y); // v0.7.0 varied entrance art (procedural stairs fallback)
     else { ctx.drawImage(texFloor(tx, ty), X, Y);
       if (tileAt(tx, ty - 1) === TILE.WALL) { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(X, Y, TS, 3); } }
   }
-  drawFloorDecor(); drawV05Floor(); drawV06Floor(); drawDebris(); drawSecrets(); drawSecretSense(); drawHazards(); drawChests(); drawProps(); drawDoors(); drawV05Upper(); drawV06World();
+  drawFloorDecor(); drawV05Floor(); drawV06Floor(); drawDebris(); drawCritters(false); drawSecrets(); drawSecretSense(); drawHazards(); drawChests(); drawProps(); drawDoors(); drawV05Upper(); drawV06World();
   for (const g of ground) {
     const by = Math.round(Math.sin(time * 3 + g.bob));
     if (g.item) { if (g.item.rarity >= 2) { ctx.fillStyle = g.item.rarity === 3 ? 'rgba(216,160,64,.3)' : 'rgba(240,240,96,.2)'; ctx.fillRect(Math.round(g.x) - 1, Math.round(g.y) - 22, 2, 18); }
@@ -4721,7 +4727,7 @@ function render() {
   const ents = enemies.slice(); ents.push(p); ents.sort((a, b) => a.y - b.y);
   for (const e of ents) {
     ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(Math.round(e.x - e.r), Math.round(e.y + e.r - 1), e.r * 2, 2);
-    if (e === p) { drawPlayer(); drawWard(); } else drawEnemy(e);
+    if (e === p) { if (climb) drawClimb(); else { drawPlayer(); drawWard(); } } else drawEnemy(e);
   }
   for (const f of effects) {
     const k = f.t / f.dur;
@@ -4738,7 +4744,7 @@ function render() {
   renderLighting(sx, sy);
   // emissive + labels drawn above the darkness
   ctx.save(); ctx.translate(-sx, -sy);
-  drawEmissive(sx, sy); drawBloom(); drawV06Emissive();
+  drawEmissive(sx, sy); drawBloom(); drawV06Emissive(); drawCritters(true);
   for (const g of ground) { if (!g.item) continue; const d = Math.hypot(g.x - p.x, g.y - p.y);
     if (labelShown(g)) { const nm = g.item.name.toUpperCase(), w = textW(nm);
       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 17), w + 3, 7); drawTextC(nm, g.x, g.y - 16, RCOL[g.item.rarity], false); } }
@@ -4852,6 +4858,101 @@ function updateTouchHUD() {
   $('bRoll').querySelector('.cd').style.height = (p.rollCd / ROLL_CD * 100) + '%';
 }
 
+// ---- v0.7.0 §2-3b: varied floor entrances (E1-E16), climb-down descent, portal swirl loops, entrance FX ----
+const ENTRANCES = [
+  { id: 'E1', key: 'stairs' }, { id: 'E2', key: 'elevator' }, { id: 'E3', key: 'ceiling_hole', fx: 'dust' }, { id: 'E4', key: 'barred_gate' },
+  { id: 'E5', key: 'demon_door', fx: 'embers' }, { id: 'E6', key: 'bloody_door', fx: 'drips' }, { id: 'E7', key: 'rusty_gate' }, { id: 'E8', key: 'scary_wood' },
+  { id: 'E9', key: 'portal', fx: 'portal' }, { id: 'E10', key: 'demonic_mirror', fx: 'shimmer' }, { id: 'E11', key: 'bone_door' }, { id: 'E12', key: 'ice_door', fx: 'frost' },
+  { id: 'E13', key: 'rune_door', fx: 'runes' }, { id: 'E14', key: 'moss_door' }, { id: 'E15', key: 'sealed_stone' }, { id: 'E16', key: 'cult_curtain', fx: 'incense' }];
+const ENT_BY = {}; for (const E of ENTRANCES) ENT_BY[E.id] = E;
+const PORTAL_COLS = ['purple', 'cyan', 'green', 'red', 'gold'];
+const PORTAL_HEX = { purple: ['#c080ff', '#9050e0', '#e8c8ff'], cyan: ['#60f0ff', '#30b8e0', '#c8ffff'], green: ['#70ff90', '#30c050', '#c8ffc8'], red: ['#ff6050', '#d02820', '#ffc0a0'], gold: ['#ffd860', '#e0a020', '#fff0b0'] };
+const PORTAL_LCOL = { purple: 'violet', cyan: 'ice', green: 'venom', red: 'red', gold: 'amber' };
+const ENT_THEME = { drowned: ['E2', 'E7', 'E12', 'E14', 'E9', 'E3'], choir: ['E10', 'E13', 'E16', 'E9', 'E4'], bone: ['E11', 'E5', 'E15', 'E1', 'E8'], vermin: ['E6', 'E8', 'E7', 'E14', 'E3'] };
+const PORTAL_MS = 110, CLIMB_T = .56; // portal loop ~9 fps per frame (110 ms) ; climb-down = 4 frames x 140 ms
+let floorEnt = null, entPrev = null, climb = null; const entFxStats = {}, climbStats = { n: 0 };
+function pickEntrance(d, prev, theme, salt) { // seeded by depth + floor layout, never the previous floor's id, theme-fit ids weighted x3
+  const R = mulberry(hashStr('ent|' + d + '|' + (prev || '') + '|' + (theme || '') + '|' + (salt || 0))), fit = ENT_THEME[theme] || [], bag = [];
+  for (const E of ENTRANCES) { if (E.id === prev) continue; const w = fit.includes(E.id) ? 3 : 1; for (let i = 0; i < w; i++) bag.push(E.id); }
+  const id = bag[Math.floor(R() * bag.length)], o = { id }; if (id === 'E9') o.col = PORTAL_COLS[Math.floor(R() * PORTAL_COLS.length)]; return o; }
+function entStairs() { const i = map.indexOf(TILE.STAIRS); return i < 0 ? null : { tx: i % MW, ty: (i / MW) | 0 }; }
+function setFloorEntrance(d) { const s = entStairs(); floorEnt = pickEntrance(d, entPrev, floorTheme, s ? s.tx * 131 + s.ty * 7 + MW : 0); entPrev = floorEnt.id; return floorEnt; }
+function portalFrame() { return Math.floor(time * 1000 / PORTAL_MS) % 4; }
+function entranceArt(E) { if (!E) return null; const D = ENT_BY[E.id]; if (!D) return null;
+  if (D.id === 'E9') { const c = PORTAL_COLS.includes(E.col) ? E.col : 'purple'; return ART['entrance_portal_' + c + '_0' + (portalFrame() + 1)] || ART['entrance_portal_' + c] || null; }
+  return ART['entrance_' + D.key] || null; }
+function drawEntranceTile(tx, ty, X, Y) { const a = entranceArt(floorEnt); if (!a) { ctx.drawImage(tileImgs.stairs, X, Y); return; }
+  ctx.drawImage(texFloor(tx, ty), X, Y); ctx.drawImage(a, X + ((TS - a.width) >> 1), Y + ((TS - a.height) >> 1)); }
+function entFxKind() { const D = floorEnt && ENT_BY[floorEnt.id]; return D && D.fx || null; }
+function entInView() { const s = entStairs(); if (!s) return null; const X = s.tx * TS, Y = s.ty * TS; if (X < cam.x - 24 || Y < cam.y - 24 || X > cam.x + VW + 8 || Y > cam.y + VH + 8) return null; return { X, Y }; }
+const ENT_RATE = { portal: 7, embers: 4, shimmer: 4, drips: 1.3, runes: 5, frost: 5, incense: 2.6, dust: 3 };
+function entPart(kind, o) { o.nd = 1; o.ek = kind; parts.push(o); entFxStats[kind] = (entFxStats[kind] || 0) + 1; }
+function emitEntranceFx(kind, X, Y) {
+  if (kind === 'portal') { const H = PORTAL_HEX[floorEnt.col] || PORTAL_HEX.purple; entPart(kind, { x: X + rand(4, 12), y: Y + rand(6, 14), vx: rand(-3, 3), vy: rand(-15, -6), life: rand(.6, 1.1), col: pick(H) }); }
+  else if (kind === 'embers') entPart(kind, { x: X + pick([5, 10, 8]) + rand(-1, 1), y: Y + rand(4, 9), vx: rand(-3, 3), vy: rand(-13, -5), life: rand(.5, .9), col: pick(['#ff3020', '#ff7030', '#ffb040']) });
+  else if (kind === 'shimmer') { entPart(kind, { x: X + rand(4, 12), y: Y + rand(3, 13), vx: 0, vy: rand(-3, 3), life: rand(.3, .6), col: pick(['#d060ff', '#ff60d0', '#f0c0ff']) });
+    if (Math.random() < .08) entPart(kind, { x: X + pick([6, 10]), y: Y + 6, vx: 0, vy: 0, life: .15, col: '#ffffff' }); }
+  else if (kind === 'drips') entPart(kind, { x: X + rand(3, 13), y: Y + rand(2, 6), vx: 0, vy: rand(6, 10), ay: 12, life: rand(.8, 1.2), col: pick(['#a01010', '#c02020', '#701010']) });
+  else if (kind === 'runes') { const a = rand(0, 6.28); entPart(kind, { x: X + 8 + Math.cos(a) * 5, y: Y + 7 + Math.sin(a) * 5, vx: rand(-2, 2), vy: rand(-4, 0), life: rand(.3, .6), col: pick(['#60f0ff', '#a0ffff', '#40c0ff']) }); }
+  else if (kind === 'frost') entPart(kind, { x: X + rand(2, 14), y: Y + rand(4, 15), vx: rand(-4, 4), vy: rand(-6, -1), life: rand(.8, 1.4), col: pick(['#ffffff', '#c0f0ff', '#80d8ff']) });
+  else if (kind === 'incense') entPart(kind, { x: X + rand(3, 13), y: Y + rand(8, 15), vx: rand(-2, 2), vy: rand(-5, -2), life: rand(1.2, 2), col: pick(['#8050c0', '#a070e0', '#603090']) });
+  else if (kind === 'dust') entPart(kind, { x: X + rand(5, 11), y: Y + rand(0, 4), vx: rand(-1, 1), vy: rand(5, 10), life: rand(1, 1.6), col: pick(['#d8d0c0', '#b0a890', '#e8e0d0']) }); }
+function updateEntranceFx(dt) { const kind = entFxKind(); if (!kind) return; const v = entInView(); if (!v) return; if (parts.length > MAX_PARTS * .8) return;
+  let n = ENT_RATE[kind] * dt; while (n > 0) { if (Math.random() < Math.min(1, n)) emitEntranceFx(kind, v.X, v.Y); n -= 1; } }
+function entranceLights(L, view) { const kind = entFxKind(), s = kind && entStairs(); if (!s) return; const x = (s.tx + .5) * TS, y = (s.ty + .5) * TS; if (!view(x, y, 40)) return;
+  const col = kind === 'portal' ? PORTAL_LCOL[floorEnt.col] || 'violet' : kind === 'embers' || kind === 'drips' ? 'red' : kind === 'shimmer' || kind === 'incense' ? 'violet' : kind === 'dust' ? 'white' : 'ice';
+  L.push({ x, y, r: kind === 'portal' ? 38 + Math.sin(time * 3) * 2 : 22, col, a: kind === 'portal' ? .55 : kind === 'drips' ? .15 : .3 }); }
+function climbSex() { const P = activeProfile() || {}; const s = player && player.look && player.look.sex || P.sex; if (s === 'f' || s === 'm') return s; return hashStr((P.id || '') + (player && player.pname || '')) % 2 ? 'f' : 'm'; }
+function startClimb() { const s = entStairs(), p = player; climb = { t: 0, dur: CLIMB_T, x0: p.x, y0: p.y, x: s ? (s.tx + .5) * TS : p.x, y: s ? (s.ty + .5) * TS : p.y, sex: climbSex(), d: depth };
+  climbStats.n++; sfx('stairs'); p.walk = null; p.swing = 0; p.roll = 0; if (typeof clickMark !== 'undefined') clickMark = null; }
+function climbFrame() { return climb ? Math.min(3, Math.floor(climb.t / climb.dur * 4)) : -1; }
+function updateClimb(dt) { const c = climb, p = player; c.t += dt; const k = Math.min(1, c.t / (c.dur * .4));
+  p.x = c.x0 + (c.x - c.x0) * k; p.y = c.y0 + (c.y - c.y0) * k; p.walkT = 0; p.inv0 = Math.max(p.inv0, .2);
+  if (parts.length > MAX_PARTS) parts.splice(0, parts.length - MAX_PARTS);
+  for (let i = parts.length - 1; i >= 0; i--) { const q = parts[i]; q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; if (q.ay) q.vy += q.ay * dt; if (!q.nd) { q.vx *= .9; q.vy *= .9; } if (q.life <= 0) parts.splice(i, 1); }
+  updateEntranceFx(dt); msg.life -= dt; bannerT -= dt;
+  cam.x += (c.x - VW / 2 - cam.x) * Math.min(1, dt * 8); cam.y += (c.y - VH / 2 - cam.y) * Math.min(1, dt * 8);
+  if (c.t >= c.dur) { climb = null; startFloor(depth + 1); flashMsg('You descend deeper...', '#ccc'); if (UPD.pending && !UPD.shown) pauseGame(); } }
+function drawClimb() { const c = climb, i = climbFrame(), a = ART['player_' + c.sex + '_climb_down_0' + (i + 1)], p = player, X = Math.round(p.x - 6), Y = Math.round(p.y - 9);
+  if (a) { ctx.drawImage(a, X + ((12 - a.width) >> 1), Y + (12 - a.height)); return; }
+  const WS = wardSprites(p), img = WS.a.r, cut = Math.round(12 * (i + 1) / 5); // fallback: the normal sprite sinks into the entrance
+  ctx.drawImage(img, 0, 0, img.width, img.height - cut, X, Y + cut, img.width, img.height - cut); }
+
+// ---- v0.7.0 §4 critters (ambient, harmless, flee the player) + §5 keyless chests sometimes empty ----
+const CRITTERS = { spider: { w: 8, h: 8, sp: 14 }, bug: { w: 8, h: 8, sp: 10 }, fly: { w: 6, h: 6, sp: 18, fly: 1 }, centipede: { w: 16, h: 6, sp: 9 }, glow_worm: { w: 10, h: 4, sp: 4, glow: 'venom' }, firefly: { w: 8, h: 8, sp: 12, fly: 1, glow: 'amber' }, snake: { w: 16, h: 8, sp: 11 } };
+const CRIT_THEME = { drowned: ['glow_worm', 'firefly', 'fly', 'bug', 'centipede'], choir: ['firefly', 'spider', 'bug', 'glow_worm'], bone: ['snake', 'spider', 'centipede', 'bug'], vermin: ['bug', 'centipede', 'fly', 'spider', 'snake'] };
+const MAX_CRITTERS = 24, CRIT_FPS = 10, FREE_EMPTY = .33, CRIT_EVENT = { door: .25, pot: .2, chest: .75 };
+let critters = []; const critStats = { ambient: 0, event: {} };
+function critterCount(d) { return Math.min(9, 3 + Math.floor(d / 3)); } // sparse: ~3-9 per floor, never a mob wave
+function spawnCritter(k, x, y, o) { if (critters.length >= MAX_CRITTERS || !CRITTERS[k]) return null; const c = Object.assign({ k, x, y, vx: 0, vy: 0, ph: Math.random() * 4, wt: rand(.5, 2), life: -1, fade: 0, fl: 0 }, o || {}); critters.push(c); return c; }
+function populateCritters() { critters = []; const pool = CRIT_THEME[floorTheme] || Object.keys(CRITTERS), n = critterCount(depth), cand = rooms.slice(1); if (!cand.length) return;
+  for (let i = 0; i < n * 3 && critters.length < n; i++) { const r = pick(cand), tx = irand(r.x, r.x + r.w - 1), ty = irand(r.y, r.y + r.h - 1); if (tileAt(tx, ty) !== TILE.FLOOR) continue;
+    if (spawnCritter(pick(pool), (tx + .5) * TS, (ty + .5) * TS)) critStats.ambient++; }
+  const s = entStairs(), E = floorEnt && floorEnt.id; if (s) { const near = k => { const a = rand(0, 6.28); spawnCritter(k, (s.tx + .5) * TS + Math.cos(a) * 18, (s.ty + .5) * TS + Math.sin(a) * 18); };
+    if (E === 'E6') { near('fly'); near('fly'); } else if (E === 'E11' || E === 'E14') near('snake'); } }
+function critterBurst(src, x, y, kinds) { const ch = CRIT_EVENT[src] == null ? .3 : CRIT_EVENT[src]; if (window.__critForce !== undefined ? !window.__critForce : Math.random() >= ch) return 0;
+  const n = irand(1, src === 'chest' ? 3 : 2); let m = 0;
+  for (let i = 0; i < n; i++) { const a = rand(0, 6.28), sp = rand(35, 60), c = spawnCritter(pick(kinds), x, y, { vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(4, 7), fl: rand(.8, 1.4), src }); if (c) m++; }
+  if (m) critStats.event[src] = (critStats.event[src] || 0) + m; return m; }
+function updateCritters(dt) { const p = player;
+  for (let i = critters.length - 1; i >= 0; i--) { const c = critters[i], C = CRITTERS[c.k]; c.ph += dt * CRIT_FPS;
+    if (c.life > 0) { c.life -= dt; if (c.life <= 0) { critters.splice(i, 1); continue; } }
+    const dx = c.x - p.x, dy = c.y - p.y, d = Math.hypot(dx, dy);
+    if (Math.abs(dx) > 340 || Math.abs(dy) > 240) continue; // asleep off-screen
+    if (d < 42) { const s = C.sp * 4; c.vx = dx / (d || 1) * s; c.vy = dy / (d || 1) * s; c.fl = .5; }
+    else if (c.fl > 0) c.fl -= dt;
+    else { c.wt -= dt; if (c.wt <= 0) { c.wt = rand(.6, 2.4); if (Math.random() < .4) { c.vx = 0; c.vy = 0; } else { const a = rand(0, 6.28); c.vx = Math.cos(a) * C.sp; c.vy = Math.sin(a) * C.sp; } } }
+    const nx = c.x + c.vx * dt, ny = c.y + c.vy * dt; if (!solidAt(nx, c.y)) c.x = nx; else c.vx = -c.vx; if (!solidAt(c.x, ny)) c.y = ny; else c.vy = -c.vy;
+    if (c.fl > 0) { c.vx *= .985; c.vy *= .985; } } }
+function critterImg(c) { return ART['critter_' + c.k + '_0' + (Math.floor(c.ph) % 4 + 1)] || ART['critter_' + c.k] || null; }
+function drawCritter(c) { const C = CRITTERS[c.k], a = critterImg(c), bob = C.fly ? Math.round(Math.sin(c.ph * .9) * 2) - 3 : 0, X = Math.round(c.x - C.w / 2), Y = Math.round(c.y - C.h / 2 + bob);
+  if (c.life > 0 && c.life < .6) ctx.globalAlpha = c.life / .6;
+  if (a) { if (c.vx < 0) { ctx.save(); ctx.translate(X + C.w, Y); ctx.scale(-1, 1); ctx.drawImage(a, 0, 0); ctx.restore(); } else ctx.drawImage(a, X, Y); }
+  else { ctx.fillStyle = C.glow ? '#d0ff80' : '#2a2020'; ctx.fillRect(Math.round(c.x) - 1, Math.round(c.y) - 1 + bob, 2, 2); }
+  ctx.globalAlpha = 1; }
+function drawCritters(glow) { const x0 = cam.x - 20, y0 = cam.y - 20; for (const c of critters) { if (c.x < x0 || c.y < y0 || c.x > x0 + VW + 40 || c.y > y0 + VH + 40) continue; if (!!CRITTERS[c.k].glow === glow) drawCritter(c); } }
+function critterLights(L, view) { for (const c of critters) { const G = CRITTERS[c.k].glow; if (G && view(c.x, c.y, 20)) L.push({ x: c.x, y: c.y, r: 13 + Math.sin(c.ph * .7) * 1.5, col: G, a: .32 }); } }
+function freeChestEmpty(c) { return c.empty === undefined ? (c.empty = Math.random() < FREE_EMPTY) : !!c.empty; }
 // ---------- main loop ----------
 let last = performance.now();
 function loop(now) {

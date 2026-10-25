@@ -4,6 +4,24 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-10-25
+
+_Varied entrances, climb-down, critters and empty chests_
+
+### Added
+- **A different way down on every floor**: the way to the next depth isn't always plain stairs now. Each floor picks one of 16 entrances: stairs, an elevator, a hole in the ceiling, a barred gate, a demon door, a bloody door, a rusty gate, a scary wooden door, a glowing portal (purple, cyan, green, red or gold), a demonic mirror, a bone door, an ice door, a rune door, a moss door, sealed stone, or a cult curtain. You never get the same one two floors in a row, and the floor's theme makes some more likely (bone doors in the Ossuary, mirrors and rune doors in the Pale Choir, and so on). Your save remembers the entrance, so **Continue** shows the same one. The map still marks the exit in yellow.
+- **Climb-down**: stepping onto the entrance no longer cuts straight to the next floor. Your character walks onto it and climbs down in four short frames (about half a second; there are male and female versions). Controls pause and the camera stays on the entrance until you reach the next depth. The descent sound is the same as before.
+- **Animated portals**: portal entrances loop a four-frame swirl at about 9 fps and give off a soft glow in their own colour.
+- **Entrance effects**: some entrances give off a few particles while they're on screen. Portals have rising motes in the portal's colour. The demon door has red embers from its eyes and mouth. The demonic mirror has a purple shimmer and the odd eye glint. The bloody door drips blood now and then. The rune door has cyan sparkles around its glyph ring, and the ice door gives off frost and vapour. The cult curtain sheds slow purple incense dust, and the ceiling hole has dust drifting down its light shaft. Stairs, the elevator, the gates, and the wood, bone, moss and sealed-stone doors are plain sprites. All the effects are kept light so the floor stays easy to read.
+- **Critters**: spiders, beetles, flies, centipedes, glow worms, fireflies and snakes now live in the dungeon. There are only a few on each floor (about 3 to 9, more on deeper floors), and each floor's theme picks the mix (glow worms and fireflies in the damp Sunken Streets, snakes and spiders in the Ossuary). Flies gather at bloody doors and snakes at bone and moss doors. Critters are harmless and run away when you get close. Glow worms and fireflies glow softly in the dark.
+- **Skitter-outs**: now and then, a few bugs scurry out when you open a door (about 1 in 4 doors), break a pot or barrel (about 1 in 5), or open an empty supply chest (about 3 in 4). They scatter and are gone after a few seconds.
+
+### Changed
+- **Some supply chests are empty**: about **1 in 3** keyless supply chests (33%) now has nothing inside. When that happens you'll see "Empty." or "Empty... something skitters out!". Locked chests that need a key still always hold loot.
+
+### Credits
+- Entrance, portal, climb-down and critter art by **Trinity**.
+
 ## [0.6.4] - 2026-10-25
 
 _Razz's music v2 and glyph light sounds_
@@ -361,6 +379,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.0
 [0.6.4]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.4
 [0.6.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.3
 [0.6.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.2
