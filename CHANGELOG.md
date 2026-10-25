@@ -4,6 +4,18 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.4.5] - 2026-10-24
+
+_Lighting pass: skill glows, livelier torches, glimmering pools_
+
+### Added
+- **Glimmering pools.** Now and then a floor holds a rare pool of faintly glowing teal water, with a silver rim and a slow sparkle. It's different from ordinary basins and running water. Most floors have none, and a floor never has more than one. Drink from it with **F** / **USE** (**DRINK GLIMMER**). It restores thirst and gives you **+25% XP for 5 minutes**. Drinking again resets the timer to 5:00. The bonus doesn't stack. Each pool has two drinks. While the bonus is active, a teal **XP+25% m:ss** timer shows on the HUD and in your character stats, and the bonus carries over between saves.
+- **Skill-colored light.** Every skill now lights the crypt in its own color. **Fireball** casts a rich amber-orange glow, brighter than ordinary fire, and leaves a short afterglow where it hits. **Whirlwind** throws a warm steel and dusty-gold halo around you while you spin. **Frost Nova** flashes ice cyan instead of the old purple-blue.
+
+### Changed
+- **Livelier torches.** Wall torches, braziers and your own torch flicker more noticeably, and each flame now has a small glow of its own. The flicker is smooth, so it doesn't strobe. A sputtering torch wavers much harder before it dies.
+- **Richer light colors.** Torchlight is a slightly warmer amber, and cold and magic light is a deeper blue. Brightness is about the same. The **LIGHTING: HIGH / LOW** option still works as before.
+
 ## [0.4.4] - 2026-10-24
 
 _Evening playtest: darker crypts, real secret passages_
@@ -184,6 +196,7 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.4.5]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.5
 [0.4.4]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.4
 [0.4.3]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.3
 [0.4.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.2

@@ -239,7 +239,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.4.4'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.4.5'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -814,16 +814,22 @@ let passages = [];
 let state = 'menu', depth = 1, player = null, enemies = [], projs = [], parts = [], texts = [], ground = [], effects = [];
 let cam = { x: 0, y: 0 }, msg = { t: '', life: 0, col: '#fff' }, time = 0, bannerT = 0;
 const SKILLS = [
-  { name: 'Fireball', mana: 4, cd: 0.45, lvl: 1 },
-  { name: 'Whirlwind', mana: 8, cd: 1.6, lvl: 2 },
-  { name: 'Frost Nova', mana: 14, cd: 4.5, lvl: 4 },
+  { name: 'Fireball', mana: 4, cd: 0.45, lvl: 1, light: 'amber', col: '#ffa030' },
+  { name: 'Whirlwind', mana: 8, cd: 1.6, lvl: 2, light: 'steel', col: '#e2c480' },
+  { name: 'Frost Nova', mana: 14, cd: 4.5, lvl: 4, light: 'ice', col: '#5ad8ff' },
 ];
+// v0.4.5: every skill casts a named-tint light (SKILLS[i].light = an LCOL key, .col = matching hex). New skills without one get it from their name.
+const TINT_HEX = { amber: '#ffa030', steel: '#e2c480', ice: '#5ad8ff', storm: '#d6c4ff', venom: '#8ce646', shadow: '#9650dc', warm: '#ffba70' };
+function skillTint(name) { const n = String(name || '').toLowerCase();
+  return /fire|ember|pyre|flame|burn|inferno/.test(n) ? 'amber' : /frost|ice|nova|cold|glacier|chill/.test(n) ? 'ice' : /storm|lightning|thunder|spark|shock/.test(n) ? 'storm'
+    : /poison|venom|plague|toxic|blight/.test(n) ? 'venom' : /shadow|void|dark|curse/.test(n) ? 'shadow' : /whirl|blade|steel|cleave|spin/.test(n) ? 'steel' : 'warm'; }
+SKILLS.forEach(S => { if (!S.light) S.light = skillTint(S.name); if (!S.col) S.col = TINT_HEX[S.light] || '#ffba70'; });
 const SLOTS = ['weapon', 'helm', 'armor', 'boots', 'ring'];
 const INV_SIZE = 20;
 function newPlayer() {
   return { x: 0, y: 0, r: 5, fx: 0, fy: 1, lvl: 1, xp: 0, hp: 60, mp: 25, gold: 0, hpPot: 3, mpPot: 2,
     inv: new Array(INV_SIZE).fill(null), equip: { weapon: makeItem(1, 0, 'Short Sword'), helm: null, armor: null, boots: null, ring: null },
-    atkCd: 0, swing: 0, inv0: 0, roll: 0, rollCd: 0, rollQ: 0, rx: 0, ry: 1, cds: [0, 0, 0], walkT: 0, kills: 0, found: [], keys: 0, rpPot: 1, wearN: 0, torches: 0, torchT: 0, torchWarn: false, gateKeys: 0, rations: 2, hunger: 100, thirst: 100, fatigue: 100, mapFrags: 0, bagBonus: 0, st: {} };
+    atkCd: 0, swing: 0, inv0: 0, roll: 0, rollCd: 0, rollQ: 0, rx: 0, ry: 1, cds: [0, 0, 0], walkT: 0, kills: 0, found: [], keys: 0, rpPot: 1, wearN: 0, torches: 0, torchT: 0, torchWarn: false, gateKeys: 0, rations: 2, hunger: 100, thirst: 100, fatigue: 100, mapFrags: 0, bagBonus: 0, xpBuffT: 0, st: {} };
 }
 function xpNeed(l) { return Math.floor(30 * Math.pow(l, 1.55)); }
 function computeStats() {
@@ -1006,7 +1012,9 @@ function drawChests() { for (const c of chests) ctx.drawImage(c.open ? CHEST.ope
 //  with tile-grid raycast occlusion. Torches burn out; magic 'light' mod adds a cold glow.
 // =====================================================================
 const TORCH_TIME = 85, TORCH_WARN = 15, TORCH_CAP = 5, BASE_LIGHT = 20, TORCH_LIGHT = 128;
-const LCOL = { warm: [255, 196, 130], fire: [255, 140, 50], cold: [120, 140, 255], violet: [180, 110, 255], red: [255, 70, 50], dim: [110, 96, 110], teal: [90, 230, 210], white: [230, 230, 255] };
+// v0.4.5: a notch more saturated (warmer ambers, richer colds) at the same brightness, plus skill / glimmer tints
+const LCOL = { warm: [255, 190, 116], fire: [255, 128, 34], cold: [100, 136, 255], violet: [176, 96, 255], red: [255, 58, 38], dim: [110, 96, 110], teal: [72, 232, 204], white: [230, 230, 255],
+  amber: [255, 150, 36], steel: [228, 196, 124], ice: [84, 218, 255], storm: [214, 196, 255], venom: [140, 230, 68], shadow: [150, 80, 222], glimmer: [150, 242, 230] };
 const LGRAD = {};
 for (const k in LCOL) { const [r, g, b] = LCOL[k], c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
   const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(.45, `rgba(${r},${g},${b},.85)`); gr.addColorStop(.78, `rgba(${r},${g},${b},.36)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
@@ -1021,10 +1029,15 @@ function visPoly(x, y, r, n) { // raycast on the tile grid; rays bite ~10px into
   return pts;
 }
 function cachedPoly(key, x, y, r, n) { const k = key + '|' + mapVer; let p = polyCache.get(k); if (!p) { if (polyCache.size > 300) polyCache.clear(); p = visPoly(x, y, r, n); polyCache.set(k, p); } return p; }
+// v0.4.5: smooth layered flicker (-1..1, no frame-to-frame jumps) so flames feel alive without strobing
+function flickN(t, s) { return Math.sin(t * 5.3 + s) * .5 + Math.sin(t * 8.9 + s * .7) * .3 + Math.sin(t * 13.7 + s * 1.9) * .2; }
+const FLICK = { r: .075, a: .1 }; // relative radius / alpha wobble for wall torches + braziers
+function torchGlow(seed, baseR, baseA) { const f = flickN(time, seed); return { r: baseR * (1 + FLICK.r * f), a: Math.min(1, baseA * (1 + FLICK.a * f)) }; }
 function torchFade() { const t = player.torchT; if (t <= 0) return 0; if (t > TORCH_WARN) return 1; const k = t / TORCH_WARN; return (.45 + .55 * k) * (Math.random() < .12 * (1 - k) + .02 ? .55 : 1); }
 function playerLights() { // [{r, col, a}] — exposed for tests
   const p = player, L = [{ r: BASE_LIGHT, col: 'dim', a: .55 }];
-  const tf = torchFade(); if (tf > 0) L.push({ r: TORCH_LIGHT * (.7 + .3 * tf) * (1 + Math.sin(time * 13) * .03 + Math.sin(time * 7.3) * .025), col: 'warm', a: .95 * tf });
+  const tf = torchFade(); if (tf > 0) { const sp = p.torchT <= TORCH_WARN ? 1 + 1.6 * (1 - p.torchT / TORCH_WARN) : 1, f = flickN(time * 1.15, 1.7) * sp; // sputtering: stronger wobble
+    L.push({ r: TORCH_LIGHT * (.7 + .3 * tf) * (1 + .055 * f), col: 'warm', a: Math.min(1, .95 * tf * (1 + .06 * f)) }); }
   const ml = (p.st && p.st.light) || 0; if (ml > 0) L.push({ r: 24 + ml * 2.6, col: 'cold', a: .8 });
   return L;
 }
@@ -1035,13 +1048,18 @@ function gatherLights(sx, sy) {
   const poly = visPoly(p.x, p.y - 2, pr, pr > 60 ? 140 : 48);
   for (const l of pl) L.push({ x: p.x, y: p.y - 2, r: l.r, col: l.col, a: l.a, poly });
   const statics = [];
-  for (let i = 0; i < torches.length; i++) { const t = torches[i]; if (t.out) continue; const lx = t.x, ly = t.y + 11; if (view(lx, ly, 80)) statics.push({ x: lx, y: ly, r: 74 + Math.sin(time * 5.3 + t.x) * 1.6 + Math.sin(time * 8.9 + t.x * .7) * 1.1, col: 'fire', a: .85, key: 't' + i }); }
-  for (let i = 0; i < braziers.length; i++) { const b = braziers[i]; if (view(b.x, b.y, 90)) statics.push({ x: b.x, y: b.y - 4, r: 84 + Math.sin(time * 4.7 + b.x) * 2 + Math.sin(time * 8.1 + b.x * .6) * 1.3, col: 'fire', a: .9, key: 'b' + i }); }
+  for (let i = 0; i < torches.length; i++) { const t = torches[i]; if (t.out) continue; const lx = t.x, ly = t.y + 11; if (view(lx, ly, 80)) { const g = torchGlow(t.x * .37 + t.y * .11, 74, .85); statics.push({ x: lx, y: ly, r: g.r, col: 'fire', a: g.a, key: 't' + i, sx: t.x, sy: t.y + 1, f: g.a / .85 }); } }
+  for (let i = 0; i < braziers.length; i++) { const b = braziers[i]; if (view(b.x, b.y, 90)) { const g = torchGlow(b.x * .29 + b.y * .17 + 3, 84, .9); statics.push({ x: b.x, y: b.y - 4, r: g.r, col: 'fire', a: g.a, key: 'b' + i, sx: b.x, sy: b.y - 10, f: g.a / .9 }); } }
   statics.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
-  for (const s of statics.slice(0, 10)) { s.poly = cachedPoly(s.key, s.x, s.y, 92, 72); L.push(s); }
+  for (const s of statics.slice(0, 10)) { s.poly = cachedPoly(s.key, s.x, s.y, 92, 72); L.push(s); L.push({ x: s.sx, y: s.sy, r: 18 * (.9 + .1 * s.f), col: 'amber', a: .42 * s.f, glow: 1 }); } // small hot glow on the flame itself
   let n = 0;
-  for (const q of projs) { if (++n > 28) break; if (!view(q.x, q.y, 40)) continue; L.push({ x: q.x, y: q.y, r: q.kind === 'fire' ? 46 : q.kind === 'boss' ? 26 : 20, col: q.kind === 'fire' ? 'fire' : q.kind === 'boss' ? 'red' : q.kind === 'orb' || q.kind === 'water' ? 'teal' : 'violet', a: .8 }); }
-  for (const f of effects) { if (f.kind === 'spin') continue; if (f.kind === 'beam') { L.push({ x: (f.x + f.x2) / 2, y: (f.y + f.y2) / 2, r: 60, col: 'violet', a: .5 * (1 - f.t / f.dur) }); continue; }
+  for (const q of projs) { if (++n > 28) break; if (!view(q.x, q.y, 40)) continue;
+    if (q.skill !== undefined && SKILLS[q.skill]) { const c = SKILLS[q.skill].light; L.push({ x: q.x, y: q.y, r: 62 + Math.sin(time * 21 + q.x) * 2, col: c, a: .95, skill: q.skill }); L.push({ x: q.x, y: q.y, r: 16, col: 'fire', a: .5, skill: q.skill }); continue; }
+    L.push({ x: q.x, y: q.y, r: q.kind === 'fire' ? 46 : q.kind === 'boss' ? 26 : 20, col: q.kind === 'fire' ? 'fire' : q.kind === 'boss' ? 'red' : q.kind === 'orb' || q.kind === 'water' ? 'teal' : 'violet', a: .8 }); }
+  for (const f of effects) { if (f.kind === 'spin') { const k = f.t / f.dur, c = SKILLS[1].light; L.push({ x: f.x, y: f.y - 2, r: 60, col: c, a: .8 * (1 - k * .55), skill: 1 });
+      for (let j = 0; j < 2; j++) { const a = k * 12 + j * 3.1416; L.push({ x: f.x + Math.cos(a) * f.r * .8, y: f.y + Math.sin(a) * f.r * .8, r: 20, col: c, a: .55, skill: 1 }); } continue; }
+    if (f.skill !== undefined && SKILLS[f.skill]) { L.push({ x: f.x, y: f.y, r: f.r * (f.kind === 'boom' ? 2.6 : 1.8) + 12, col: SKILLS[f.skill].light, a: .95 * (1 - f.t / f.dur), skill: f.skill }); continue; }
+    if (f.kind === 'beam') { L.push({ x: (f.x + f.x2) / 2, y: (f.y + f.y2) / 2, r: 60, col: 'violet', a: .5 * (1 - f.t / f.dur) }); continue; }
     L.push({ x: f.x, y: f.y, r: f.r * 1.8 + 10, col: f.kind === 'nova' ? 'cold' : 'fire', a: .9 * (1 - f.t / f.dur) }); }
   for (const T of teles) if (T.kind !== 'line' && T.r >= 20) L.push({ x: T.x, y: T.y, r: T.r * 1.3, col: 'red', a: .25 + .35 * T.t / T.dur });
   for (const e of enemies) if (e.T.boss && !e.hidden && view(e.x, e.y, 70)) L.push({ x: e.x, y: e.y, r: 64, col: e.phase >= 2 ? 'red' : 'violet', a: .45 });
@@ -1090,6 +1108,11 @@ function drawEmissive(sx, sy) { // things that glow on their own, drawn above th
     const img = enemyImg(e), ey = Math.round(e.y - img.height + e.r + 1 + Math.round(img.height * .3) - Math.round(e.z || 0)), ex = Math.round(e.x);
     const col = e.T.boss ? '#ffd040' : e.T.ghost || e.T.ai === 'wisp' ? '#a0e0ff' : '#ff3a2a', sp = Math.max(2, Math.round(img.width * .18));
     ctx.globalAlpha = .55 + .45 * (1 - d / 115); ctx.fillStyle = col; ctx.fillRect(ex - sp, ey, 1, 1); ctx.fillRect(ex + sp - 1, ey, 1, 1); ctx.globalAlpha = 1; }
+  // v0.4.5: glimmering pools twinkle above the darkness (slow, soft sparkle)
+  for (const g of glimmers) { if (!g.uses || g.x < sx - 10 || g.x > sx + VW + 10 || g.y < sy - 10 || g.y > sy + VH + 10) continue;
+    for (let k = 0; k < 4; k++) { const ph = (time * .55 + k * .29 + g.ph) % 1; if (ph > .3) continue; const a = Math.sin(ph / .3 * Math.PI), ox = ((k * 37 + Math.floor(time * .55 + k * .29 + g.ph) * 13) % 9) - 4, oy = ((k * 23 + Math.floor(time * .55 + k * .29 + g.ph) * 7) % 7) - 4;
+      ctx.globalAlpha = .75 * a; ctx.fillStyle = k % 2 ? '#e8ffff' : '#a0fff0'; ctx.fillRect(Math.round(g.x + ox), Math.round(g.y + oy), 1, 1); if (a > .8) { ctx.globalAlpha = .35 * a; ctx.fillRect(Math.round(g.x + ox) - 1, Math.round(g.y + oy), 3, 1); ctx.fillRect(Math.round(g.x + ox), Math.round(g.y + oy) - 1, 1, 3); } }
+    ctx.globalAlpha = 1; }
   // projectiles glow so ranged attacks stay readable in the dark
   for (const pr of projs) drawProj(pr, true);
   // dust motes drifting in the light
@@ -1627,7 +1650,7 @@ function startFloor(d, fresh) {
 function save() {
   try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId,
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
-      gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus } })); } catch (e) {}
+      gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0) } })); } catch (e) {}
 }
 function loadSave() { try { return JSON.parse(localStorage.getItem('cryptdelve')); } catch (e) { return null; } }
 function newGame() { player = newPlayer(); computeStats(); startFloor(1, true); setState('play'); }
@@ -1653,6 +1676,7 @@ function continueGame() {
   // v0.4 fields (old saves: safe defaults)
   player.gateKeys = Math.max(0, Math.floor(+s.p.gateKeys || 0)); player.rations = s.p.rations === undefined ? 2 : Math.max(0, Math.floor(+s.p.rations || 0)); player.mapFrags = Math.max(0, Math.floor(+s.p.mapFrags || 0));
   for (const k of ['hunger', 'thirst', 'fatigue']) player[k] = s.p[k] === undefined ? 100 : clamp(+s.p[k] || 0, 0, 100);
+  player.xpBuffT = clamp(+s.p.xpBuffT || 0, 0, XPBUFF_TIME); // v0.4.5 (old saves: no blessing)
   player.inv.concat(SLOTS.map(k => player.equip[k])).forEach(markFound);
   computeStats(); startFloor(s.depth, true); setState('play');
 }
@@ -2194,7 +2218,7 @@ function renderInv() {
       sel = it ? { where: 'inv', idx: i, t: Date.now() } : null; if (it) it.isNew = false; renderInv(); });
     slotTipHandlers(el, it, true); g.appendChild(el); });
   const st = p.st;
-  $('stats').textContent = `Level ${p.lvl}  Depth ${depth}\nLife ${Math.ceil(p.hp)}/${st.maxHp}\nMana ${Math.floor(p.mp)}/${st.maxMp}\nDamage ${st.min}-${st.max}\nDefense ${st.def}\nAtk speed ${Math.round(st.aspd * 100)}%\nCrit ${st.crit}%  Leech ${st.ls}%\nPotions ${p.hpPot} life / ${p.mpPot} mana\nRepair potions ${p.rpPot || 0}\nGate keys ${p.gateKeys || 0}  Rations ${p.rations || 0}\nFood ${Math.round(p.hunger)}%  Water ${Math.round(p.thirst)}%\nRest ${Math.round(p.fatigue)}%`;
+  $('stats').textContent = `Level ${p.lvl}  Depth ${depth}\nLife ${Math.ceil(p.hp)}/${st.maxHp}\nMana ${Math.floor(p.mp)}/${st.maxMp}\nDamage ${st.min}-${st.max}\nDefense ${st.def}\nAtk speed ${Math.round(st.aspd * 100)}%\nCrit ${st.crit}%  Leech ${st.ls}%\nPotions ${p.hpPot} life / ${p.mpPot} mana\nRepair potions ${p.rpPot || 0}\nGate keys ${p.gateKeys || 0}  Rations ${p.rations || 0}\nFood ${Math.round(p.hunger)}%  Water ${Math.round(p.thirst)}%\nRest ${Math.round(p.fatigue)}%` + (p.xpBuffT > 0 ? `\nGlimmer blessing: ${buffText()}` : '');
   $('ratN').textContent = p.rations || 0; $('fragN').textContent = (p.mapFrags || 0) + '/' + FRAG_NEED; $('gkN').textContent = 'GATE ' + (p.gateKeys || 0); $('dropAllBtn').disabled = !p.inv.some(Boolean);
   $('gold').textContent = p.gold + 'g';
   const dt = $('dtext'), db = $('dbtns'); dt.innerHTML = ''; db.innerHTML = '';
@@ -2338,7 +2362,7 @@ function killEnemy(e) {
   regularDrops(e, depth);
 }
 function gainXp(n) {
-  const p = player; p.xp += n;
+  const p = player; if (p.xpBuffT > 0 && n > 0) n = Math.round(n * (1 + XPBUFF)); p.xp += n;
   while (p.xp >= xpNeed(p.lvl)) {
     p.xp -= xpNeed(p.lvl); p.lvl++; computeStats(); p.hp = p.st.maxHp; p.mp = p.st.maxMp;
     addText(p.x, p.y - 16, 'LEVEL UP!', '#ffe040', true); sfx('lvl'); burst(p.x, p.y, '#ffe040', 24, 90);
@@ -2408,14 +2432,14 @@ function castSkill(i) {
     let ax = p.fx, ay = p.fy; const t = nearestEnemy(160), ma = mouseAim();
     if (ma) { ax = ma.x; ay = ma.y; p.fx = ax; p.fy = ay; }
     else if (t) { const a = Math.atan2(t.y - p.y, t.x - p.x); ax = Math.cos(a); ay = Math.sin(a); p.fx = ax; p.fy = ay; }
-    projs.push({ x: p.x + ax * 6, y: p.y + ay * 6, vx: ax * 170, vy: ay * 170, r: 3, dmg: 8 + pw * 1.4, owner: 'p', kind: 'fire', life: 1.4 });
+    projs.push({ x: p.x + ax * 6, y: p.y + ay * 6, vx: ax * 170, vy: ay * 170, r: 3, dmg: 8 + pw * 1.4, owner: 'p', kind: 'fire', life: 1.4, skill: 0 });
     sfx('fire');
   } else if (i === 1) {
-    effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32 });
+    effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32, skill: 1 });
     for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg(); const dd = dm * 1.4 + pw * .5; leech(dd); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit); } }
     sfx('swing'); addTrauma(.12); breakSecretsAt(p.x, p.y, 30, true); snuffTorchesNear(p.x, p.y, 34);
   } else {
-    effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70 });
+    effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70, skill: 2 });
     breakSecretsAt(p.x, p.y, 64, true); snuffTorchesNear(p.x, p.y, 70);
     for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, 6 + pw * 1.1, 0, 0, '#80d0ff'); } }
     sfx('nova');
@@ -2480,7 +2504,7 @@ function update(dt) {
     if (dead && pr.kind === 'web' && !hitP) hazard(pr.x - pr.vx * dt, pr.y - pr.vy * dt, 10, 'web', 4);
     if (dead) {
       projs.splice(i, 1);
-      if (pr.owner === 'p') { burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .25, r: 18 }); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true);
+      if (pr.owner === 'p') { burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true);
         for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) damageEnemy(e, pr.dmg * (d < e.r + 4 ? 1 : .6), (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040'); } }
       else burst(pr.x, pr.y, (PCOL[pr.kind] || PCOL.bolt)[0], 6, 40);
       if (state !== 'play') return;
@@ -2511,6 +2535,8 @@ function update(dt) {
 //  v0.4.0 — Feature Brief v1: wall-safe drops, Drop All, skill hotkeys, torches, doors & puzzles,
 //  traps, props, survival, crypt shop, boss parley, thought bubbles, ambient audio.
 // =====================================================================
+let glimmers = []; // v0.4.5: rare glimmering pools (thirst + XP blessing)
+const GLIM_CHANCE = .3, XPBUFF = .25, XPBUFF_TIME = 300;
 let doors = [], puzzles = [], traps = [], props = [], decor = [], waters = [], basins = [], shop = null, floorRevealed = false, annexes = [];
 const BAG_MAX = 40, FRAG_NEED = 4;
 function invSize() { return INV_SIZE + clamp(Math.floor(+(player && player.bagBonus) || 0), 0, BAG_MAX - INV_SIZE); }
@@ -2671,11 +2697,32 @@ function placeDecor() {
   for (const r of shuffled(rooms.slice(1))) { if (basins.length >= 2) break; if (r === last || Math.random() > .4) continue;
     const pts = puzzleSpots(r, 1, { x: -999, y: -999 }); if (pts && !props.some(o => Math.hypot(o.x - pts[0].x, o.y - pts[0].y) < 16)) basins.push({ x: pts[0].x, y: pts[0].y, uses: 3 }); }
   if (!waters.length && !basins.length) { const r = rooms[Math.min(1, rooms.length - 1)], pts = puzzleSpots(r, 1, { x: -999, y: -999 }); if (pts) basins.push({ x: pts[0].x, y: pts[0].y, uses: 3 }); }
+  placeGlimmer();
   // the odd ration lies forgotten on the floor
   if (Math.random() < .45) { const r = pick(rooms.slice(0, rooms.length - 1)); const s = freeSpot(r); dropAt(ground, s.x, s.y, { ration: 1 }); }
 }
-function clearFloorExtras() { doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; annexes = []; } // tests / arenas
-function placeV04Pre() { doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; floorRevealed = false; annexes = [];
+// v0.4.5: at most one glimmering pool per floor, in an ordinary room (never the start, boss/stairs room, vaults or shop), clear of doors, traps, water and props
+function placeGlimmer() {
+  const ch = window.__forceGlimmer !== undefined ? window.__forceGlimmer : GLIM_CHANCE; if (Math.random() >= ch || rooms.length < 3) return null;
+  const pool = rooms.slice(1, rooms.length - 1).filter(r => r.w >= 4 && r.h >= 4), stair = rooms[rooms.length - 1];
+  for (const r of shuffled(pool)) for (let k = 0; k < 30; k++) {
+    const tx = irand(r.x + 1, r.x + r.w - 2), ty = irand(r.y + 1, r.y + r.h - 2), x = (tx + .5) * TS, y = (ty + .5) * TS, near = (o, d) => Math.hypot(o.x - x, o.y - y) < d;
+    if (map[ty * MW + tx] !== TILE.FLOOR || nearDoor(tx, ty, 2) || (stair && inRect(tx, ty, stair))) continue;
+    if (waters.some(w => Math.abs(w.y - ty) <= 1) || basins.some(b => near(b, 24)) || props.some(o => near(o, 18)) || chests.some(c => near(c, 20)) || puzzles.some(o => near(o, 22)) || traps.some(T => near(T, 24)) || ground.some(g => near(g, 14))) continue;
+    if (annexes.some(A => inRect(tx, ty, A.rect))) continue;
+    const g = { x, y, uses: 2, ph: Math.random() * 6.28, room: rooms.indexOf(r) }; glimmers.push(g); return g; }
+  return null;
+}
+function drinkGlimmer(g) { const p = player; if (!g || g.uses <= 0) return false; g.uses--;
+  const refresh = p.xpBuffT > 0; p.thirst = Math.min(100, p.thirst + 45); p.xpBuffT = XPBUFF_TIME; sfx('gulp'); sfx('drink');
+  burst(p.x, p.y - 6, '#a0fff0', 10, 26); burst(g.x, g.y - 2, '#e8ffff', 8, 18);
+  flashMsg(refresh ? 'The glimmer renews. +25% XP for 5:00.' : 'Glimmering water... you feel keen. +25% XP for 5:00.', '#a0fff0'); return true; }
+function buffText() { const p = player; if (!p || !(p.xpBuffT > 0)) return ''; const t = Math.ceil(p.xpBuffT); return `XP+${Math.round(XPBUFF * 100)}% ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; }
+function drawBuffHUD(x, y) { const s = buffText(); if (!s) return; const p = player, low = p.xpBuffT < 20 && Math.floor(time * 3) % 2;
+  ctx.fillStyle = '#0a1818'; ctx.fillRect(x, y - 1, 7, 7); ctx.fillStyle = low ? '#407070' : '#a0fff0'; ctx.fillRect(x + 3, y, 1, 5); ctx.fillRect(x + 1, y + 2, 5, 1); ctx.fillStyle = '#fff'; ctx.fillRect(x + 3, y + 2, 1, 1);
+  drawText(s, x + 9, y, low ? '#5a9090' : '#a0fff0'); }
+function clearFloorExtras() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; annexes = []; } // tests / arenas
+function placeV04Pre() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; floorRevealed = false; annexes = [];
   placeShop(); placeVaults(); }
 // v0.4.4: secret passages - real hidden shortcuts linking rooms that are far apart on the chain.
 // A straight 1-wide tunnel through solid rock, sealed by a cracked wall at BOTH ends (break either side).
@@ -2771,6 +2818,7 @@ function interactables() {
     L.push({ x, y, r: 20, label: d.kind === 'gate' ? 'UNLOCK GATE' : d.kind === 'blood' ? 'OFFER BLOOD' : 'EXAMINE DOOR', use: () => useDoor(d), ref: d }); }
   for (const o of puzzles) if (o.kind !== 'plate' && !o.door.open && close(o.x, o.y, 14)) L.push({ x: o.x, y: o.y, r: 14, label: o.kind === 'lever' ? 'PULL LEVER' : 'TOUCH RUNE', use: () => puzzleStep(o), ref: o });
   for (const b of basins) if (b.uses > 0 && close(b.x, b.y, 14)) L.push({ x: b.x, y: b.y, r: 15, label: 'DRINK', use: () => { b.uses--; drinkWater(b.uses ? 40 : 35); }, ref: b });
+  for (const g of glimmers) if (g.uses > 0 && close(g.x, g.y, 14)) L.push({ x: g.x, y: g.y, r: 15, label: 'DRINK GLIMMER', use: () => drinkGlimmer(g), ref: g });
   for (const w of waters) { const x = clamp(p.x, w.x0 * TS + 4, (w.x1 + 1) * TS - 4), y = (w.y + .5) * TS; if (close(x, y, 14)) L.push({ x, y, r: 14, label: 'DRINK', use: () => drinkWater(50), ref: w }); }
   for (const b of braziers) if (!torchFull() && close(b.x, b.y, 18)) L.push({ x: b.x, y: b.y, r: 20, label: 'LIGHT TORCH', use: relightFrom, ref: b });
   for (const t of torches) { const x = t.x, y = t.y + 14; if (!close(x, y, 16)) continue;
@@ -3082,8 +3130,15 @@ function drawFloorDecor() {
   for (const o of puzzles) { const X = Math.round(o.x), Y = Math.round(o.y);
     if (o.kind === 'plate') { ctx.fillStyle = o.on ? '#3a342c' : '#6a6050'; ctx.fillRect(X - 5, Y - 4, 10, 8); ctx.fillStyle = o.on ? '#2a241c' : '#8a8070'; ctx.fillRect(X - 5, Y - 4, 10, 1); }
     else if (o.kind === 'rune') { ctx.fillStyle = '#2a2830'; ctx.fillRect(X - 5, Y - 6, 10, 10); const g = RUNES[o.door.glyphs[o.idx]]; ctx.fillStyle = o.on ? '#80f0ff' : '#5a6a80'; for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (g[r] & (4 >> c)) ctx.fillRect(X - 3 + c * 2, Y - 5 + r * 2, 2, 2); } }
+  drawGlimmers();
   for (const b of basins) { const X = Math.round(b.x), Y = Math.round(b.y); ctx.fillStyle = '#4a4650'; ctx.fillRect(X - 6, Y - 6, 12, 9); ctx.fillStyle = '#6a6670'; ctx.fillRect(X - 6, Y - 6, 12, 1); ctx.fillStyle = b.uses ? '#2a5878' : '#1a1a20'; ctx.fillRect(X - 4, Y - 5, 8, 4);
     if (b.uses) { ctx.fillStyle = 'rgba(180,220,255,.6)'; ctx.fillRect(X - 3 + Math.floor((time * 2) % 6), Y - 4, 1, 1); } ctx.fillStyle = '#3a3640'; ctx.fillRect(X - 2, Y + 3, 4, 3); }
+}
+function drawGlimmers() {
+  for (const g of glimmers) { const X = Math.round(g.x), Y = Math.round(g.y), live = g.uses > 0;
+    ctx.fillStyle = '#6a7078'; ctx.fillRect(X - 7, Y - 4, 14, 8); ctx.fillRect(X - 5, Y - 6, 10, 12); ctx.fillStyle = '#a8b0b8'; ctx.fillRect(X - 5, Y - 6, 10, 1); ctx.fillRect(X - 7, Y - 4, 1, 1); ctx.fillRect(X + 6, Y - 4, 1, 1);
+    ctx.fillStyle = live ? '#16706c' : '#1a2426'; ctx.fillRect(X - 6, Y - 3, 12, 6); ctx.fillRect(X - 4, Y - 5, 8, 10);
+    if (live) { ctx.fillStyle = 'rgba(170,255,240,.45)'; ctx.fillRect(X - 4 + Math.round((Math.sin(time * 1.3 + g.ph) + 1) * 3), Y - 1, 3, 1); ctx.fillStyle = 'rgba(220,240,255,.35)'; ctx.fillRect(X - 3 + Math.round((Math.cos(time * .9 + g.ph) + 1) * 2.5), Y + 2, 2, 1); } }
 }
 function drawProps() {
   for (const o of props) { const X = Math.round(o.x), Y = Math.round(o.y);
@@ -3129,6 +3184,7 @@ function drawMapExtras(ox, oy, s) {
   for (const d of doors) for (const t of d.tiles) if (seen[t.y * MW + t.x]) dot(t.x, t.y, d.open ? '#605850' : d.kind === 'blood' ? '#e02020' : d.kind === 'gate' ? '#a0b0c0' : '#c0b0a0');
   for (const w of waters) if (seen[w.y * MW + w.x0] || seen[w.y * MW + w.x1]) for (let x = w.x0; x <= w.x1; x++) dot(x, w.y, '#3070b0');
   for (const b of basins) { const tx = Math.floor(b.x / TS), ty = Math.floor(b.y / TS); if (seen[ty * MW + tx]) dot(tx, ty, '#60b0ff'); }
+  for (const g of glimmers) { const tx = Math.floor(g.x / TS), ty = Math.floor(g.y / TS); if (seen[ty * MW + tx]) dot(tx, ty, g.uses ? '#a0fff0' : '#406060'); }
   if (shop && seen[Math.floor(shop.y / TS) * MW + Math.floor(shop.x / TS)]) dot(Math.floor(shop.x / TS), Math.floor(shop.y / TS), '#40e080', 2);
   if (floorRevealed) { for (const s2 of secrets) if (!s2.broken) dot(s2.tx, s2.ty, Math.floor(time * 3) % 2 ? '#ff40ff' : '#a020a0'); for (const T of traps) if (!T.hole) dot(T.tx, T.ty, '#ff8040'); }
 }
@@ -3138,6 +3194,7 @@ function drawSurvivalHUD(x, y, w) { const p = player; if (p.hunger === undefined
 function extraLights(L, view) {
   for (const w of waters) { const cx = (w.x0 + w.x1 + 1) / 2 * TS, cy = (w.y + .5) * TS; if (view(cx, cy, 60)) L.push({ x: cx, y: cy, r: 40 + Math.sin(time * 2 + w.y) * 2, col: 'cold', a: .22 }); }
   for (const b of basins) if (b.uses && view(b.x, b.y, 30)) L.push({ x: b.x, y: b.y, r: 18, col: 'cold', a: .25 });
+  for (const g of glimmers) if (g.uses && view(g.x, g.y, 50)) { L.push({ x: g.x, y: g.y, r: 34 + Math.sin(time * 1.6 + g.ph) * 3, col: 'glimmer', a: .5 + Math.sin(time * 2.3 + g.ph) * .1, glim: 1 }); L.push({ x: g.x, y: g.y - 1, r: 12, col: 'white', a: .22 + .12 * Math.max(0, Math.sin(time * 3.1 + g.ph)), glim: 1 }); }
   if (shop && view(shop.x, shop.y, 80)) L.push({ x: shop.x + 7, y: shop.y - 4, r: 54 + Math.sin(time * 5) * 1.5, col: 'warm', a: .7 });
   for (const o of puzzles) if (o.kind === 'rune' && view(o.x, o.y, 20)) L.push({ x: o.x, y: o.y, r: o.on ? 18 : 10, col: 'cold', a: o.on ? .6 : .25 });
 }
@@ -3147,6 +3204,7 @@ function v04Update(dt) {
   if (checkBossTalk()) return true;
   updateTraps(dt); if (state !== 'play') return true;
   updateSurvival(dt); updateThoughts(dt); ambientTick(dt);
+  if (p.xpBuffT > 0) { p.xpBuffT = Math.max(0, p.xpBuffT - dt); if (!p.xpBuffT) flashMsg('The glimmer fades from your blood.', '#80a8a8'); }
   if (p.useT) { const o = p.useT; if (Math.hypot(o.x - p.x, o.y - p.y) < o.r) { p.useT = null; p.walk = null; o.use(); } else if (!p.walk) p.useT = null; }
   if (touchMode) { const o = nearestInteract(), b = $('bUse'); b.classList.toggle('hidden', !o); if (o) $('bUseL').textContent = o.label.split(' ')[0]; }
   return false;
@@ -3208,9 +3266,9 @@ function render() {
   for (const f of effects) {
     const k = f.t / f.dur;
     if (f.kind === 'beam') { ctx.globalAlpha = 1 - k; ctx.strokeStyle = f.col; ctx.lineWidth = f.w || 1; ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x2, f.y2); ctx.stroke(); ctx.globalAlpha = 1; continue; }
-    if (f.kind === 'spin') { for (let i = 0; i < 10; i++) { const a = k * 12 + i * .628; ctx.fillStyle = i % 2 ? '#ffffff' : '#c8c8d8'; ctx.fillRect(Math.round(f.x + Math.cos(a) * f.r * .8) - 1, Math.round(f.y + Math.sin(a) * f.r * .8) - 1, 3, 3); } }
+    if (f.kind === 'spin') { for (let i = 0; i < 10; i++) { const a = k * 12 + i * .628; ctx.fillStyle = i % 2 ? '#fff4d8' : '#d8c088'; ctx.fillRect(Math.round(f.x + Math.cos(a) * f.r * .8) - 1, Math.round(f.y + Math.sin(a) * f.r * .8) - 1, 3, 3); } }
     else { const r = f.r * (f.kind === 'boom' ? .5 + k * .5 : k);
-      const nn = f.r > 30 ? 40 : 24; for (let i = 0; i < nn; i++) { const a = i / nn * 6.28; ctx.fillStyle = f.kind === 'nova' ? (i % 2 ? '#d0f0ff' : '#60c0ff') : f.col ? (i % 2 ? '#fff' : f.col) : (i % 2 ? '#ffe060' : '#ff9020');
+      const nn = f.r > 30 ? 40 : 24; for (let i = 0; i < nn; i++) { const a = i / nn * 6.28; ctx.fillStyle = f.kind === 'nova' ? (i % 2 ? '#d8faff' : '#40d8ff') : f.col ? (i % 2 ? '#fff' : f.col) : (i % 2 ? '#ffe060' : '#ff9020');
         ctx.fillRect(Math.round(f.x + Math.cos(a) * r) - 1, Math.round(f.y + Math.sin(a) * r) - 1, 2, 2); } }
   }
   for (const q of parts) { ctx.fillStyle = q.col; ctx.fillRect(Math.round(q.x), Math.round(q.y), 1, 1); }
@@ -3287,7 +3345,7 @@ function drawHUD() {
       if (p.torchT <= 0) drawText('NO LIGHT', bx + 34, ty, Math.floor(time * 2) % 2 ? '#a08870' : '#605040'); }
     ctx.drawImage(ICONS.rp, 1, 36); drawText('X' + (p.rpPot || 0), 12, 39, p.rpPot ? '#ffa850' : '#777');
     { const gx = 12 + textW('X' + (p.rpPot || 0)) + 6, gl = 'GATE X' + (p.gateKeys || 0); drawText(gl, gx, 39, p.gateKeys ? '#c0d0e0' : '#777'); drawText('FOOD X' + (p.rations || 0), gx + textW(gl) + 6, 39, p.rations ? '#d0b070' : '#777'); }
-    drawSurvivalHUD(4, 47, 14);
+    drawSurvivalHUD(4, 47, 14); drawBuffHUD(4, 55);
     ctx.fillStyle = '#000'; ctx.fillRect(0, VH - 2, VW, 2); ctx.fillStyle = '#c8a040'; ctx.fillRect(0, VH - 2, Math.round(VW * p.xp / xpNeed(p.lvl)), 2);
   } else drawText(`LV ${p.lvl}  DEPTH ${depth}`, 4, 4, '#d8c8a0');
   // minimap (top right)
@@ -3303,7 +3361,7 @@ function drawHUD() {
   ctx.fillStyle = Math.floor(time * 4) % 2 ? '#fff' : '#4f4'; ctx.fillRect(mx + (ptx - ox) * mmS, my + (pty - oy) * mmS, mmS, mmS);
   }
   drawDurWarn();
-  if (!touchMode) { drawD2Panel(); drawSurvivalHUD(4, VH - 41, 16); { const gl = 'GATE KEYS ' + (p.gateKeys || 0); drawText(gl, 96, VH - 41, p.gateKeys ? '#c0d0e0' : '#777'); drawText('FOOD ' + (p.rations || 0), 96 + textW(gl) + 6, VH - 41, p.rations ? '#d0b070' : '#777'); } } if (mapOpen) drawBigMap();
+  if (!touchMode) { drawD2Panel(); drawSurvivalHUD(4, VH - 41, 16); drawBuffHUD(4, VH - 50); { const gl = 'GATE KEYS ' + (p.gateKeys || 0); drawText(gl, 96, VH - 41, p.gateKeys ? '#c0d0e0' : '#777'); drawText('FOOD ' + (p.rations || 0), 96 + textW(gl) + 6, VH - 41, p.rations ? '#d0b070' : '#777'); } } if (mapOpen) drawBigMap();
   const bo = activeBoss(); let my2 = touchMode ? 56 : 40, hy = bossBarY();
   if (hoverEnemy && hoverEnemy !== bo && !touchMode) { hy = drawHoverBar(hoverEnemy, hy); my2 = Math.max(my2, hy + 2); }
   if (bo) my2 = Math.max(40, drawBossBar(bo, hy) + 2);
@@ -3388,6 +3446,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   astar, planWalk, selectSkill, enemyAtCursor, dm, get rskill() { return rskill; }, get mapOpen() { return mapOpen; }, get hoverEnemy() { return hoverEnemy; }, get walk() { return player && player.walk; },
   groundItemAt, requestPickup, pickupItem, get tipItem() { return tipItem; },
   newCount, markSeen, updateNewBadge,
+  SKILLS, LCOL, skillTint, torchGlow, flickN, FLICK, get glimmers() { return glimmers; }, placeGlimmer, drinkGlimmer, buffText, XPBUFF, XPBUFF_TIME, GLIM_CHANCE, lightingQ, lightScale, gatherLights, interactables,
   playerLights, lightRadius, lightAt, giveTorch, lightTorch, visPoly, get frameLights() { return frameLights; }, get braziers() { return braziers; }, TORCH_TIME, TORCH_CAP, lcan,
   get chests() { return chests; }, get secrets() { return secrets; }, openChest, breakSecret, breakSecretsAt, placeTreasure,
   bestiary, ETYPES, MOB_IDS, MOBS, BOSSES, spawnEnemy, spawnBoss, damageEnemy, bossForDepth, addTrauma, shakeOffset, mouse, get trauma() { return trauma; }, get teles() { return teles; }, get hazards() { return hazards; }, get projs() { return projs; }, settings,
