@@ -252,7 +252,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.6.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.6.3'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -1320,7 +1320,8 @@ const MOBS = {
 };
 // ---------- locked chests, hidden keys behind cracked floor tiles / bricks ----------
 const CHEST_ROWS = [".kkkkkkkkkk.", "kwWWWWWWWWwk", "kWwwwwwwwwWk", "knnnnnnnnnnk", "kWwwwyywwwWk", "knnnnyFnnnnk", "kWwwwwwwwwWk", "knnnnnnnnnnk", "kWwwwwwwwwWk", ".kkkkkkkkkk."];
-const CHEST = { shut: makeSprite(CHEST_ROWS, PAL2),
+const CHEST_FREE_ROWS = CHEST_ROWS.map((r, i) => i === 4 ? 'kWwwwwwwwwWk' : i === 5 ? 'knnnnnnnnnnk' : r); // v0.6.3 B5: no lock plate
+const CHEST = { shut: makeSprite(CHEST_ROWS, PAL2), free: makeSprite(CHEST_FREE_ROWS, PAL2),
   open: makeSprite([".kkkkkkkkkk.", "kWwwwwwwwwWk", "knnnnnnnnnnk", "kkkkkkkkkkkk", "kNFyNNNNyFNk", "knnnnnnnnnnk", "kWwwwwwwwwWk", "knnnnnnnnnnk", "kWwwwwwwwwWk", ".kkkkkkkkkk."], PAL2) };
 // a mimic wears the same chest, but its lock has no shine and a tongue tip pokes out (and it twitches now and then)
 const MIMIC_ROWS = CHEST_ROWS.map((r, i) => i === 4 ? "kWwwwykwwwWk" : i === 5 ? "knnnnkknnnnk" : i === 9 ? ".kkkkkrkkkk." : r);
@@ -1358,6 +1359,10 @@ function placeTreasure() {
     if (s) { s.loot = l; s.broken = false; s.v = irand(0, 2); secrets.push(s); }
     for (let i = walls.length - 1; i >= 0; i--) if (walls[i].bad) walls.splice(i, 1);
   }
+  // v0.6.3 B5: 1-2 unlocked supply chests (gold / life / mana) in other rooms; keyed chests keep the gear
+  const nFree = window.__forceFreeChests != null ? window.__forceFreeChests : Math.min(cand.length, irand(1, 2));
+  const taken = new Set(chests.map(c => rooms.find(r => inRect(c.tx, c.ty, r))));
+  for (const r of shuffled(cand.filter(r => !taken.has(r))).concat(shuffled(cand)).slice(0, nFree)) { const t = roomTile(r); if (t) chests.push({ x: (t.x + .5) * TS, y: (t.y + .5) * TS, tx: t.x, ty: t.y, open: false, msgT: 0, free: true }); }
 }
 function breakSecret(s) {
   if (s.broken) return; s.broken = true;
@@ -1376,8 +1381,17 @@ function breakSecretsAt(x, y, r, walls) {
     const cx = (s.tx + .5) * TS, cy = (s.ty + .5) * TS; if (Math.abs(cx - x) < r + 8 && Math.abs(cy - y) < r + 8 && Math.hypot(cx - x, cy - y) < r + 8) breakSecret(s); }
 }
 function chestLoot(d) { const rareP = Math.min(.6, .15 + d * .012); if (lootGated() && Math.random() > LOOT_GATE.magic) return makeItem(d + 1, 0); return makeItem(d + 1, Math.random() < rareP ? 2 : 1); } // never unique (v0.6.0: mostly plain while level <= 2)
+function openFreeChest(c) { // v0.6.3 B5: unlocked supply chest - gold / life / mana only
+  const p = player; c.open = true; sfx('chest'); burst(c.x, c.y - 4, '#d8b070', 12, 50); addTrauma(.05);
+  const g = Math.max(1, irand(4, 10) * depth * (lootGated() ? LOOT_GATE.gold : 1) | 0), r = Math.random();
+  dropAt(ground, c.x - 8, c.y + 8, { gold: g });
+  if (r < .7) dropAt(ground, c.x + 8, c.y + 8, { pot: Math.random() < .6 ? 'hp' : 'mp' });
+  if (r < .2) dropAt(ground, c.x, c.y + 14, { pot: Math.random() < .5 ? 'hp' : 'mp' });
+  for (const q of ground.slice(-3)) if (Math.hypot(q.x - p.x, q.y - p.y) < 12) q.lock = true;
+  flashMsg('Supplies!', '#d8c080'); save(); return true; }
 function openChest(c) {
   const p = player; if (c.open) return;
+  if (c.free) return openFreeChest(c);
   if (p.keys <= 0) { if (c.msgT < time) { sfx('locked'); flashMsg('Locked. Find a key - look for cracked stone.', '#c8a040'); c.msgT = time + 2.5; } return false; }
   p.keys--; c.open = true; sfx('chest'); burst(c.x, c.y - 4, '#ffe060', 18, 70); addTrauma(.08);
   if (!lootGated() || Math.random() < LOOT_GATE.chestItem) dropAt(ground, c.x, c.y + 10, { item: chestLoot(depth) }); else dropAt(ground, c.x, c.y + 10, Math.random() < .5 ? { ration: 1 } : { torch: 1 }); // v0.6.0 early loot gate
@@ -1407,7 +1421,7 @@ function drawSecrets() { // hairline cracks: subtle but visible
     } else { ctx.fillStyle = '#4a3c4c'; ctx.fillRect(X + 2, Y + TS - 3, 3, 2); ctx.fillRect(X + 10, Y + TS - 2, 4, 1); }
   }
 }
-function drawChests() { for (const c of chests) ctx.drawImage(c.open ? CHEST.open : CHEST.shut, Math.round(c.x - 6), Math.round(c.y - 8)); }
+function drawChests() { for (const c of chests) ctx.drawImage(c.open ? CHEST.open : c.free ? CHEST.free : CHEST.shut, Math.round(c.x - 6), Math.round(c.y - 8)); }
 // =====================================================================
 //  Lighting: low-res colour lightmap (additive), multiplied over the scene,
 //  with tile-grid raycast occlusion. Torches burn out; magic 'light' mod adds a cold glow.
@@ -1720,8 +1734,29 @@ function populate() {
   });
   placeV04Pre(); placeTreasure(); placeLights();
   if (boss) { const r = rooms[rooms.length - 1]; spawnBoss((r.cx + .5) * TS, (r.cy - 1 + .5) * TS); }
-  placeV04Post();
+  placeV04Post(); ensureSealedLoot();
 }
+// v0.6.3 B4: a room opened by puzzle, spell book door, gate key or sliding slab is never empty
+const LOOT_KEYS = ['item', 'gold', 'pot', 'key', 'gkey', 'frag', 'ration', 'torch'];
+function sealedRegion(d) { // tiles behind a closed door (annex rect, or the cut-off side of a passage slab)
+  if (d.rect) { const out = []; for (let y = d.rect.y; y < d.rect.y + d.rect.h; y++) for (let x = d.rect.x; x < d.rect.x + d.rect.w; x++) if (map[y * MW + x] !== TILE.WALL) out.push(y * MW + x); return out; }
+  const doorT = new Set(); for (const D of doors) if (!D.open) for (const t of D.tiles) doorT.add(t.y * MW + t.x);
+  const s = rooms[0], vis = new Uint8Array(MW * MH), q = [s.cy * MW + s.cx]; vis[q[0]] = 1;
+  const flood = (q, vis) => { while (q.length) { const c = q.pop(), x = c % MW, y = (c / MW) | 0; for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + i, Y = y + j; if (X < 0 || Y < 0 || X >= MW || Y >= MH) continue; const k = Y * MW + X; if (vis[k] || map[k] === TILE.WALL || doorT.has(k)) continue; vis[k] = 1; q.push(k); } } };
+  flood(q, vis); const out = [], v2 = new Uint8Array(MW * MH);
+  for (const t of d.tiles) for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = (t.y + j) * MW + t.x + i; if (map[k] === TILE.WALL || doorT.has(k) || vis[k] || v2[k]) continue; v2[k] = 1; const q2 = [k]; flood(q2, v2); }
+  for (let k = 0; k < v2.length; k++) if (v2[k]) out.push(k); return out; }
+function regionHasLoot(R) { const S = new Set(R), at = (x, y) => S.has(Math.floor(y / TS) * MW + Math.floor(x / TS));
+  return ground.some(g => at(g.x, g.y) && LOOT_KEYS.some(k => g[k])) || chests.some(c => !c.open && S.has(c.ty * MW + c.tx)) || books.some(b => !b.read && at(b.x, b.y)) || glimmers.some(g => g.uses > 0 && at(g.x, g.y)); }
+function ensureSealedLoot() { let n = 0;
+  for (const d of doors) { if (d.open || d.kind === 'blood') continue; const R = sealedRegion(d); if (!R.length) continue;
+    const bookRoom = d.book !== undefined; if (!bookRoom && regionHasLoot(R)) continue;
+    const doorK = new Set(d.tiles.map(t => t.y * MW + t.x)), dt = d.tiles[0];
+    let best = R[0], bd = -1; for (const k of R) { const x = k % MW, y = (k / MW) | 0; if (map[k] !== TILE.FLOOR || doorK.has(k)) continue; const dd = Math.min(Math.hypot(x - dt.x, y - dt.y), 6) + (d.rect ? -Math.hypot(x + .5 - (d.rect.x + d.rect.w / 2), y + .5 - (d.rect.y + d.rect.h / 2)) : 0); if (dd > bd) { bd = dd; best = k; } }
+    const cx = (best % MW + .5) * TS, cy = (((best / MW) | 0) + .5) * TS, put = (o, dx, dy) => ground.push(Object.assign({ x: cx + dx, y: cy + dy, bob: Math.random() * 6, lock: false, sealed: true }, o));
+    if (bookRoom) { const b = books.find(b => b.door === d); const bx = b ? b.x : cx, by = b ? b.y : cy; ground.push({ x: bx - 9, y: by + 3, bob: 1, lock: false, sealed: true, gold: irand(15, 30) * depth }); ground.push({ x: bx + 9, y: by + 3, bob: 2, lock: false, sealed: true, pot: Math.random() < .5 ? 'hp' : 'mp' }); n++; continue; }
+    put({ gold: irand(20, 40) * depth }, -8, 2); put({ pot: Math.random() < .5 ? 'hp' : 'mp' }, 8, 2); if (Math.random() < .6) put({ item: chestLoot(depth) }, 0, -4); n++; }
+  return n; }
 // ---------- shared combat systems: telegraphs, timers, hazards, blasts ----------
 let teles = [], hazards = [], timers = [], trauma = 0, bossIntro = 0, introBoss = null;
 const SHAKE_MULT = { off: 0, low: .45, full: 1 };
@@ -1927,7 +1962,7 @@ function updateEnemies(dt) {
     if (e.kx || e.ky) { moveEnt(e, e.kx * dt, e.ky * dt); const f = Math.pow(.001, dt); e.kx *= f; e.ky *= f; if (Math.abs(e.kx) + Math.abs(e.ky) < 2) e.kx = e.ky = 0; }
     if (e.disg) { if (d < 26) wakeMimic(e); continue; }
     if (e.state === 'idle') {
-      if (d < e.T.aggro && los(e, p)) aggro(e); // v0.4.4: every mob (ghosts too) needs line of sight
+      if (d < aggroRange(e) && los(e, p)) aggro(e); // v0.4.4: every mob (ghosts too) needs line of sight; v0.6.3 B3: notice range floor
       e.wt -= dt; if (e.wt <= 0) { e.wt = rand(1, 3); const a = Math.random() * 6.28, m = Math.random() < .5 ? 0 : 1; e.wx = Math.cos(a) * m; e.wy = Math.sin(a) * m; }
       if (!e.T.boss) moveDir(e, e.wx, e.wy, spd * .35, dt); if (e.wx) e.face = e.wx > 0 ? 1 : -1;
     } else {
@@ -1967,8 +2002,11 @@ function updateEnemies(dt) {
       else if (h.kind === 'poison') { h.tick -= dt; if (h.tick <= 0) { h.tick = .5; hurtPlayer(Math.max(1, h.dmg), { x: h.x, y: h.y, label: h.label, dot: true }); if (state !== 'play') return; } }
     } }
 }
-function aggro(e) {
+const AGGRO_MIN = 150; // v0.6.3 B3: short-sighted mobs (90-120px) used to stand idle while you were plainly in view
+function aggroRange(e) { return e.T.boss ? e.T.aggro : Math.max(e.T.aggro || 0, AGGRO_MIN); }
+function aggro(e, noAlert) {
   if (e.state !== 'idle') return; e.state = 'chase'; onAggroV04(e); smpAggro(e);
+  if (!noAlert && !e.T.boss) for (const o of enemies) if (o !== e && o.state === 'idle' && !o.T.boss && !o.disg && !o.dead && dist(o, e) < 90 && los(o, e)) aggro(o, true); // v0.6.3 B3: a waking mob rouses its room
   if (e.T.ai === 'eel') { e.mode = 'under'; e.t = 2; e.hidden = true; }
   if (e.T.boss) { bossIntro = 2.8; introBoss = e; addTrauma(.35); flashMsg(e.name + ' AWAKENS', '#f44'); sfx('awaken'); bossVoice(e, 'intro'); e.patCd = 1.4; }
 }
@@ -2029,16 +2067,26 @@ function drawEnemy(e) {
   if (T.ghost) alpha = .65;
   if (T.ai === 'shade') alpha = e.flash > 0 || dist(e, player) < 30 || Math.sin(time * 7 + e.id) > .85 ? .8 : .14;
   if (e.downT) { ctx.save(); ctx.globalAlpha = .55; ctx.translate(Math.round(e.x), Math.round(e.y + 2)); ctx.rotate(Math.PI / 2); ctx.drawImage(S.r, -img.width / 2, -img.height / 2); ctx.restore(); return; }
-  if (e.elite) { ctx.fillStyle = `rgba(90,124,255,${.25 + Math.sin(time * 6) * .1})`; ctx.fillRect(X - 2, Y - 2, img.width + 4, img.height + 4); }
+  if (e.elite) drawChampGlow(e, img, X, Y); // v0.6.3 B8: soft glow under the sprite (outline drawn after it)
   if (T.boss && (e.phase >= 2 || e.glow > 0)) { ctx.fillStyle = `rgba(255,${e.phase >= 3 ? 220 : 40},40,${.15 + Math.sin(time * 8) * .08})`; ctx.fillRect(X - 3, Y - 3, img.width + 6, img.height + 6); }
   else if (e.glow > 0) { ctx.fillStyle = 'rgba(160,64,255,.3)'; ctx.fillRect(X - 2, Y - 2, img.width + 4, img.height + 4); }
   if (alpha < 1) ctx.globalAlpha = alpha;
+  if (e.elite) drawChampOutline(img, X, Y);
   ctx.drawImage(img, X, Y);
   if (e.slow > 0 && e.flash <= 0) { const ic = T.boss ? null : (e.face > 0 ? S.iceR : S.iceL); if (ic) ctx.drawImage(ic, X, Y); }
   ctx.globalAlpha = 1;
   if (T.ai === 'guard') { const fx = Math.round(e.x + Math.cos(e.fa) * 7), fy = Math.round(e.y - 3 + Math.sin(e.fa) * 5); ctx.fillStyle = '#8888a0'; ctx.fillRect(fx - 1, fy - 3, 3, 6); ctx.fillStyle = '#e8c840'; ctx.fillRect(fx, fy - 1, 1, 2); }
   if (e.mode === 'stun') { for (let i = 0; i < 3; i++) { const an = time * 6 + i * 2.1; ctx.fillStyle = '#ffe040'; ctx.fillRect(Math.round(e.x + Math.cos(an) * 6), Math.round(Y - 2 + Math.sin(an) * 2), 1, 1); } }
 }
+const CHAMP_SIL = new WeakMap();
+function champSil(img) { let c = CHAMP_SIL.get(img); if (c) return c; c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d');
+  x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#8fb0ff'; x.fillRect(0, 0, c.width, c.height); CHAMP_SIL.set(img, c); return c; }
+function drawChampGlow(e, img, X, Y) { const k = .5 + .5 * Math.sin(time * 4 + e.id), cx = X + img.width / 2, cy = Y + img.height * .6, R = Math.max(img.width, img.height) * .85 + k * 2;
+  const g = ctx.createRadialGradient(cx, cy, 1, cx, cy, R); g.addColorStop(0, `rgba(110,140,255,${.3 + k * .15})`); g.addColorStop(.6, `rgba(90,124,255,${.12 + k * .08})`); g.addColorStop(1, 'rgba(90,124,255,0)');
+  const ga = ctx.globalAlpha; ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(cx, cy, R, R * .8, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = ga; }
+function drawChampOutline(img, X, Y) { const k = .5 + .5 * Math.sin(time * 4), s = champSil(img), ga = ctx.globalAlpha; ctx.globalAlpha = ga * (.45 + k * .5); // 1px silhouette ring that breathes
+  ctx.drawImage(s, X - 1, Y); ctx.drawImage(s, X + 1, Y); ctx.drawImage(s, X, Y - 1); ctx.drawImage(s, X, Y + 1); ctx.globalAlpha = ga; champOutlineN++; }
+let champOutlineN = 0;
 function activeBoss() { for (const e of enemies) if (e.T.boss && e.state === 'chase') return e; return null; }
 function bossBarY() { return touchMode ? Math.ceil(46 * (window.devicePixelRatio || 1) / SCALE) : 6; }
 function drawBossBar(b, y0) {
@@ -2064,13 +2112,63 @@ function startFloor(d, fresh) {
   save();
 }
 function save() {
-  try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId,
+  if (!player || player.hp <= 0) return; // v0.6.3: never resurrect a finished run
+  try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId, world: worldSnap(),
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
       gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0),
-      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty } })); } catch (e) {}
+      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10 } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
 }
+// ---- v0.6.3 B10: full save state. The whole live floor (layout, explored tiles, doors, puzzles, chests, secrets, loot, enemies, props...)
+// plus your position is packed into the save; Continue drops you back on the same spot. Older saves (no world) start the floor fresh as before.
+const WORLD_V = 1; let lastSaveT = 0, saveErr = null, worldSkips = [];
+function worldRefs() { if (worldRefs.m) return worldRefs.m; const m = new Map(), reg = (o, r) => { if (o && typeof o === 'object' && !m.has(o)) m.set(o, r); };
+  for (const k in ETYPES) { reg(ETYPES[k], { $E: k }); for (const q in ETYPES[k]) reg(ETYPES[k][q], { $EP: [k, q] }); }
+  BOSSES.forEach((B, i) => { reg(B, { $B: i }); for (const q in B) reg(B[q], { $BP: [i, q] }); }); SKILLS.forEach((S, i) => reg(S, { $S: i })); return (worldRefs.m = m); }
+function wPack(root) { const ids = new Map(), refs = worldRefs(); let n = 0; worldSkips = [];
+  const enc = v => { if (typeof v === 'function' || typeof v === 'symbol' || v === undefined) return undefined; if (typeof v === 'number') return Number.isFinite(v) ? v : { $n: String(v) };
+    if (v === null || typeof v !== 'object') return v; if (v === player) return { $P: 1 }; const r = refs.get(v); if (r) return r; if (ids.has(v)) return { $r: ids.get(v) };
+    if (ArrayBuffer.isView(v)) return { $ta: v.constructor.name, d: Array.from(v) };
+    const pr = Object.getPrototypeOf(v), isA = Array.isArray(v); if (!isA && pr !== Object.prototype && pr !== null) { worldSkips.push(pr && pr.constructor && pr.constructor.name); return undefined; }
+    const id = n++; ids.set(v, id); if (isA) return { $i: id, a: v.map(x => { const e = enc(x); return e === undefined ? null : e; }) };
+    const o = { $i: id, o: {} }, ne = []; for (const k of Object.getOwnPropertyNames(v)) { const ds = Object.getOwnPropertyDescriptor(v, k); if (!('value' in ds)) continue; const e = enc(ds.value); if (e === undefined) continue; o.o[k] = e; if (!ds.enumerable) ne.push(k); }
+    if (ne.length) o.ne = ne; return o; };
+  return enc(root); }
+function wUnpack(x) { const ids = [];
+  const dec = v => { if (v === null || typeof v !== 'object') return v; if ('$r' in v) return ids[v.$r]; if ('$P' in v) return player; if ('$n' in v) return Number(v.$n);
+    if ('$E' in v) return ETYPES[v.$E]; if ('$EP' in v) return ETYPES[v.$EP[0]][v.$EP[1]]; if ('$B' in v) return BOSSES[v.$B]; if ('$BP' in v) return BOSSES[v.$BP[0]][v.$BP[1]]; if ('$S' in v) return SKILLS[v.$S];
+    if ('$ta' in v) { const C = window[v.$ta]; return C ? new C(v.d) : v.d; }
+    if (v.a) { const a = []; ids[v.$i] = a; v.a.forEach((e, i) => { a[i] = dec(e); }); return a; }
+    const o = {}; ids[v.$i] = o; for (const k in v.o) { const val = dec(v.o[k]); if (v.ne && v.ne.includes(k)) Object.defineProperty(o, k, { value: val, enumerable: false, writable: true, configurable: true }); else o[k] = val; } return o; };
+  return dec(x); }
+const tileStr = a => a.every(t => t >= 0 && t <= 9 && (t | 0) === t) ? a.join('') : a;
+const strTiles = s => typeof s === 'string' ? Array.from(s, Number) : s;
+function worldSnap() { if (!player || !map.length || !rooms.length) return null; const p = player;
+  return { v: WORLD_V, depth, MW, MH, time: Math.round(time * 100) / 100, map: tileStr(map), seen: seen.map(b => b ? 1 : 0).join(''), mapVar: tileStr(mapVar),
+    px: Math.round(p.x * 10) / 10, py: Math.round(p.y * 10) / 10, fx: p.fx, fy: p.fy,
+    s: { champKeysFloor, entId, floorTheme, floorRevealed: !!floorRevealed, vineBurnN },
+    g: wPack({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, motes, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool, debris }) }; }
+function worldRestore(w, sd) { // -> true when the saved floor was restored
+  if (!w || w.v !== WORLD_V || w.depth !== sd || !w.g || !w.MW || !w.MH) return false;
+  const G = wUnpack(w.g), m = strTiles(w.map), mv = strTiles(w.mapVar); if (!G || !Array.isArray(G.rooms) || !G.rooms.length || m.length !== w.MW * w.MH) return false;
+  depth = w.depth; MW = w.MW; MH = w.MH; map = m; mapVar = mv.length === m.length ? mv : new Array(m.length).fill(0); seen = Array.from(w.seen || '', c => c === '1'); if (seen.length !== m.length) seen = new Array(m.length).fill(false);
+  ({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool } = G);
+  motes = G.motes || []; debris = G.debris || []; for (const k of ['passages', 'enemies', 'ground', 'chests', 'secrets', 'braziers', 'glimmers', 'doors', 'puzzles', 'traps', 'props', 'decor', 'waters', 'basins', 'annexes', 'setp', 'webs', 'pblocks', 'vines', 'books', 'torches']) if (!Array.isArray(G[k])) throw new Error('world: ' + k);
+  v05Flags = v05Flags || {}; floorPool = floorPool || [];
+  ({ champKeysFloor, entId, floorTheme, floorRevealed, vineBurnN } = Object.assign({ champKeysFloor: 0, entId: 0, floorTheme: 'drowned', floorRevealed: false, vineBurnN: 0 }, w.s || {}));
+  projs = []; parts = []; texts = []; effects = []; teles = []; hazards = []; timers = []; vfx6 = []; introBoss = null; talkBoss = null;
+  if (Number.isFinite(w.time)) time = w.time;
+  setVineGrid(); mapVer++; polyCache.clear();
+  const p = player; applyBed(depth); sleep = null; p.barrier = 0; p.pcd = {}; v05Last.torch = p.torchT; v05Last.hpPot = p.hpPot;
+  p.x = w.px; p.y = w.py; if (Number.isFinite(w.fx)) { p.fx = w.fx; p.fy = w.fy; }
+  if (!Number.isFinite(p.x) || !Number.isFinite(p.y) || solidAt(p.x, p.y)) { const r = rooms[0]; p.x = (r.cx + .5) * TS; p.y = (r.cy + .5) * TS; }
+  computeStats(); debrisFix(); cam.x = p.x - VW / 2; cam.y = p.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; p.slowT = 0; p.walk = null; p.pickT = null; p.useT = null; clickMark = null;
+  return true; }
+function debrisFix() { if (!Array.isArray(debris)) debris = []; }
+setInterval(() => { if (state === 'play' && player && time - lastSaveT > 12) save(); }, 4000); // v0.6.3 B10: autosave the live floor while playing
+window.addEventListener('pagehide', () => { if (player && state !== 'menu' && state !== 'dead') save(); });
 function loadSave() { try { return JSON.parse(localStorage.getItem('cryptdelve')); } catch (e) { return null; } }
 function newGame() { player = newPlayer(); computeStats(); startFloor(1, true); setState('play'); }
+let worldResumed = false;
 function continueGame() {
   const s = loadSave(); if (!s) return newGame();
   cue('meta_load_01'); // P2
@@ -2100,7 +2198,11 @@ function continueGame() {
   player.xpBuffT = clamp(+s.p.xpBuffT || 0, 0, XPBUFF_TIME); // v0.4.5 (old saves: no blessing)
   player.inv.concat(SLOTS.map(k => player.equip[k])).forEach(markFound);
   v06Load(s); // v0.6.0: learned skills / wardrobe / first-equip memory (old saves: safe defaults)
-  computeStats(); startFloor(s.depth, true); setState('play');
+  computeStats(); let restored = false; // v0.6.3 B10: resume the saved floor + spot; fall back to a fresh floor for old / damaged saves
+  if (s.world) { try { restored = worldRestore(s.world, s.depth); } catch (e) { restored = false; saveErr = 'restore: ' + (e && e.message || e); } }
+  if (restored) { const st = player.st; player.hp = clamp(Number.isFinite(+s.p.hp) && +s.p.hp > 0 ? +s.p.hp : st.maxHp, 1, st.maxHp); player.mp = clamp(Number.isFinite(+s.p.mp) ? +s.p.mp : st.maxMp, 0, st.maxMp); save(); }
+  else startFloor(s.depth, true);
+  worldResumed = restored; setState('play');
 }
 // ---------- input: keyboard ----------
 const keys = {};
@@ -2180,7 +2282,7 @@ function pickupItem(g) {
   const p = player, s = p.inv.indexOf(null);
   if (s < 0) { flashMsg('Backpack full', '#f88'); sfx('hurt', { cue: 'ui_error_01' }); return false; }
   const i = ground.indexOf(g); if (i < 0) return false;
-  ground.splice(i, 1); g.item.isNew = true; p.inv[s] = g.item; const fresh = markFound(g.item); if (g.rusty || g.item.rusty) p.gotRusty = true;
+  ground.splice(i, 1); g.item.isNew = true; p.inv[s] = g.item; const fresh = markFound(g.item); if (g.rusty || g.item.rusty) { p.gotRusty = true; if (!p.equip.weapon) p.autoRusty = true; }
   flashMsg((fresh ? 'New unique! ' : 'Picked up ') + g.item.name, RCOL[g.item.rarity]); sfx(fresh ? 'lvl' : 'pick', { cue: fresh || g.item.rarity >= 2 ? 'wld_pickup_rare_01' : 'wld_pickup_item_01' }); updateNewBadge(); return true;
 }
 const PICK_REACH = 14;
@@ -2299,9 +2401,9 @@ function updateClickWalk(dt, mv, sp) { // returns true while the click-walk owns
   const p = player, w = p.walk; if (!w || touchMode) return false;
   if (mv.x || mv.y) { p.walk = null; return false; }
   // hold left button on ground: keep walking toward the cursor
-  if (w.kind === 'ground' && dm.left && mouse.active) { const c = cursorWorld(); w.x = c.x; w.y = c.y; if ((w.rep -= dt) <= 0) { w.rep = .15; w.path = planWalk(w.x, w.y, true) || [{ x: w.x, y: w.y }]; } }
+  if (w.kind === 'ground' && dm.left && mouse.active) { const c = cursorWorld(); if (floorClickOK(c.x, c.y)) { w.x = c.x; w.y = c.y; } if ((w.rep -= dt) <= 0) { w.rep = .15; w.path = planWalk(w.x, w.y, true) || w.path; } } // v0.6.3 B6: dragging over walls keeps the last floor target
   if (w.kind === 'enemy') { const e = w.ref;
-    if (e.dead || e.hp <= 0 || !enemies.includes(e) || e.hidden) { p.walk = null; if (dm.left && !dm.ctrl) startWalk('ground', null, cursorWorld().x, cursorWorld().y); return false; }
+    if (e.dead || e.hp <= 0 || !enemies.includes(e) || e.hidden) { p.walk = null; if (dm.left && !dm.ctrl) groundWalk(cursorWorld().x, cursorWorld().y); return false; }
     const d = dist(e, p);
     if (d <= MELEE_REACH + e.r && los(p, e)) { faceTo(e.x, e.y); if (p.atkCd <= 0) { doAttack(true); if (!dm.left) { p.walk = null; } } return true; }
     if ((w.rep -= dt) <= 0) { w.rep = .2; w.x = e.x; w.y = e.y; w.path = planWalk(e.x, e.y, false) || [{ x: e.x, y: e.y }]; }
@@ -2342,11 +2444,16 @@ function desktopClick(e) {
       if (Math.hypot(ax - p.x, ay - p.y) < (isT ? 26 : 18)) { p.walk = null; swing(); }
       else { const q = stand || { x: tt.x, y: tt.y + 10 }; startWalk('ground', null, q.x, q.y); p.useT = { x: q.x, y: q.y, r: isT ? 10 : 12, use: swing }; }
       return; } }
-  { const c0 = cursorWorld(), io = interactAt(c0.x, c0.y); if (io) { if (Math.hypot(io.x - p.x, io.y - p.y) < io.r) { p.walk = null; io.use(); } else { startWalk('ground', null, io.x, io.y + (io.ref && torches.includes(io.ref) ? 0 : 6)); p.useT = io; } return; } }
-  const ch = chestAtCursor(); if (ch) { startWalk('chest', ch, ch.x, ch.y); return; }
+  // v0.6.3 B2: Examine / Use (doors, levers, chests, drink, read, trade...) is F only on PC - a click never triggers it
   const se = secretAtCursor(); if (se) { const t = walkTargetPoint({ kind: 'secret', ref: se }); startWalk('secret', se, t.x, t.y); return; }
-  const c = cursorWorld(); startWalk('ground', null, c.x, c.y); clickMark = { x: c.x, y: c.y, t: 0 };
+  const c = cursorWorld(); groundWalk(c.x, c.y, true);
 }
+function floorClickOK(x, y) { // v0.6.3 B6: a move click must land on walkable floor the player has seen (not walls, void, vines, blocks)
+  const tx = Math.floor(x / TS), ty = Math.floor(y / TS); if (tx < 0 || ty < 0 || tx >= MW || ty >= MH) return false;
+  return walkable(tx, ty) && !(pblocks.length && blockSolidAt(tx, ty)) && !!seen[ty * MW + tx]; }
+function groundWalk(x, y, mark) { const p = player; if (!floorClickOK(x, y)) return false;
+  const path = planWalk(x, y, true); if (!path) return false;
+  p.walk = { kind: 'ground', ref: null, x, y, path, rep: .2, stuck: 0, done: false }; p.pickT = null; if (mark) clickMark = { x, y, t: 0 }; return true; }
 function selectSkill(i) {
   const S = SKILLS[i]; if (!player) return;
   if (skillLocked(i)) { lockedSkillMsg(i); return; }
@@ -2374,7 +2481,7 @@ function setCursor(k) { if (curKind !== k) { curKind = k; canvas.style.cursor = 
 function updateHover() { // desktop: hovered monster (top bar) + cursor kind
   if (touchMode || state !== 'play' || !mouse.active) { hoverEnemy = null; return; }
   hoverEnemy = enemyAtCursor(); if (hoverEnemy && hoverEnemy.disg) hoverEnemy = null;
-  setCursor(hoverEnemy || torchAtCursor() || propAtCursor() ? 'attack' : (groundItemAt(mouse.cx, mouse.cy, 2) || chestAtCursor()) ? 'take' : 'hand');
+  setCursor(hoverEnemy || torchAtCursor() || propAtCursor() ? 'attack' : groundItemAt(mouse.cx, mouse.cy, 2) ? 'take' : 'hand');
 }
 function drawClickMark() { if (!clickMark) return; const k = clickMark.t / .5; if (k >= 1) { clickMark = null; return; } const r = Math.round(2 + k * 5), X = Math.round(clickMark.x), Y = Math.round(clickMark.y);
   ctx.globalAlpha = 1 - k; ctx.fillStyle = '#e8c840'; for (const [a, b] of [[-r, 0], [r, 0], [0, -r], [0, r]]) ctx.fillRect(X + a, Y + Math.round(b * .6), 1, 1); ctx.fillRect(X, Y, 1, 1); ctx.globalAlpha = 1; }
@@ -2392,7 +2499,7 @@ function drawBigMap() {
     if (t === TILE.WALL) { if (!(walkable(x, y + 1) || walkable(x, y - 1) || walkable(x + 1, y) || walkable(x - 1, y))) continue; ctx.fillStyle = 'rgba(120,96,80,.85)'; }
     else ctx.fillStyle = t === TILE.STAIRS ? '#ffe040' : 'rgba(150,130,170,.45)';
     ctx.fillRect(Math.floor(ox + x * s), Math.floor(oy + y * s), Math.ceil(s), Math.ceil(s)); }
-  for (const c of chests) if (seen[c.ty * MW + c.tx]) { ctx.fillStyle = c.open ? '#6a5020' : '#e8c840'; ctx.fillRect(Math.round(ox + c.tx * s), Math.round(oy + c.ty * s), Math.ceil(s), Math.ceil(s)); }
+  for (const c of chests) if (seen[c.ty * MW + c.tx]) { ctx.fillStyle = c.open ? '#6a5020' : c.free ? '#b08850' : '#e8c840'; ctx.fillRect(Math.round(ox + c.tx * s), Math.round(oy + c.ty * s), Math.ceil(s), Math.ceil(s)); }
   for (const b of braziers) { const tx = Math.floor(b.x / TS), ty = Math.floor(b.y / TS); if (seen[ty * MW + tx]) { ctx.fillStyle = '#ff8030'; ctx.fillRect(Math.round(ox + tx * s), Math.round(oy + ty * s), Math.ceil(s), Math.ceil(s)); } }
   const bo = enemies.find(e => e.T.boss && seen[Math.floor(e.y / TS) * MW + Math.floor(e.x / TS)]); if (bo) { ctx.fillStyle = '#ff3030'; ctx.fillRect(Math.round(ox + bo.x / TS * s) - 1, Math.round(oy + bo.y / TS * s) - 1, 3, 3); }
   drawMapExtras(ox, oy, s); drawMapV06(ox, oy, s); ctx.globalAlpha = ga;
@@ -2611,7 +2718,7 @@ function updateTouchUI() {
     ? 'Left thumb: drag anywhere to move<br>Right thumb: attack (hold), ROLL to dodge, skills, potions, bag; USE appears by doors, water, torches and traders &middot; &#x2317; map<br>Walk onto the stairs to go deeper. Gold, potions and keys are picked up automatically; tap gear to pick it up, press-and-hold to inspect.'
     : 'LEFT-CLICK walk / attack / pick up / open / use (hold to keep going) &middot; hold CTRL to stand in place (CTRL+CLICK attacks without moving) &middot; RIGHT-CLICK cast selected skill (F1-F3 to select) &middot; 1 2 3 cast skills at the cursor &middot; F use / drink / light &middot; R eat &middot; Z rest &middot; SPACE dodge roll toward cursor (K also) &middot; WASD also moves &middot; J attacks in place &middot; Q / E potions &middot; I inventory &middot; M / TAB map &middot; hold ALT item labels &middot; ESC pause<br>Walk onto the stairs to go deeper. Gold, potions and keys are picked up automatically; click gear to walk over and pick it up, hover to inspect.';
 }
-function pauseGame() { setState('pause'); $('mResume').classList.remove('hidden'); $('mCont').classList.add('hidden'); }
+function pauseGame() { save(); setState('pause'); $('mResume').classList.remove('hidden'); $('mCont').classList.add('hidden'); }
 let confirmNew = false;
 $('mNew').addEventListener('click', () => {
   if (state === 'pause' && !confirmNew) { confirmNew = true; $('mNew').textContent = 'TAP AGAIN TO ABANDON RUN'; return; }
@@ -2672,8 +2779,7 @@ function renderInv() {
       else { addBtn(db, 'REQUIRES LEVEL ' + reqOf(it), () => equipFrom(sel.idx), 'dis equip'); db.lastChild.setAttribute('aria-disabled', 'true'); }
       addBtn(db, 'DROP', () => { dropItem(p.inv[sel.idx]); p.inv[sel.idx] = null; sel = null; renderInv(); });
     } else {
-      addBtn(db, 'UNEQUIP', () => { const i = p.inv.indexOf(null); if (i < 0) { flashMsg('Backpack full'); return; }
-        p.inv[i] = p.equip[sel.slot]; p.equip[sel.slot] = null; sel = { where: 'inv', idx: i }; renderInv(); });
+      addBtn(db, 'UNEQUIP', () => unequipSlot(sel.slot), 'unequip');
       addBtn(db, 'DROP', () => { dropItem(p.equip[sel.slot]); p.equip[sel.slot] = null; sel = null; renderInv(); });
     }
   } else {
@@ -2706,6 +2812,10 @@ function sortInventory() {
   p.inv = items.concat(new Array(Math.max(0, invSize() - items.length)).fill(null));
   sel = null; sfx('sort'); if (state === 'inv') renderInv();
 }
+function unequipSlot(slot) { // v0.6.3 B7: back to the backpack (weapon -> bare fists); stats + wardrobe refresh at once
+  const p = player, it = p.equip[slot]; if (!it) return false; const i = p.inv.indexOf(null);
+  if (i < 0) { invNote = 'Backpack full - drop something first.'; sfx('fail'); renderInv(); return false; }
+  p.inv[i] = it; p.equip[slot] = null; p.autoRusty = false; sel = { where: 'inv', idx: i }; cue('ui_click_01'); computeStats(); renderInv(); save(); return true; }
 function equipFrom(i) {
   const p = player, it = p.inv[i]; if (!it) return;
   if (!canWear(it)) { const t = `Requires level ${reqOf(it)}`; flashMsg(t, '#f66'); sfx('fail'); buzz(40);
@@ -2925,7 +3035,7 @@ function update(dt) {
   const ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
   if (tileAt(ptx, pty) === TILE.STAIRS) {
     const bb = enemies.find(e => e.T.boss); if (bb) { if (msg.life <= 0) flashMsg(bb.name + ' bars the way!', '#f66'); aggro(bb); }
-    else { sfx('stairs'); startFloor(depth + 1); flashMsg('You descend deeper...', '#ccc'); if (Math.random() < .2) sayThought(player, pickThought(THOUGHTS.floor)); if (UPD.pending && !UPD.shown) { pauseGame(); } return; }
+    else { sfx('stairs'); startFloor(depth + 1); flashMsg('You descend deeper...', '#ccc'); if (UPD.pending && !UPD.shown) { pauseGame(); } return; }
   }
   updateEnemies(dt); if (state !== 'play') return;
   if (enemies.some(e => e.state === 'chase' && dist(e, p) < 170) || projs.some(q => q.owner === 'e')) music.combatUntil = time + 4;
@@ -3246,7 +3356,7 @@ function useDoor(d) {
     p.hp -= cost; addText(p.x, p.y - 12, '-' + cost, '#ff3030'); burst(p.x, p.y - 4, '#c01010', 16, 50); openDoor(d);
     flashMsg('You bleed upon the bones. The door drinks... and opens.', '#ff5050'); return true;
   }
-  examineSay(doorExamine(d)); // v0.6.0: examine text is a thought, not a banner
+  examineObj(d, () => doorExamine(d)); // v0.6.3 B1 (v0.6.0: examine text is a thought, not a banner
 }
 function puzzleStep(o) {
   const d = o.door; if (d.open || o.on) return;
@@ -3274,7 +3384,7 @@ function interactables() {
   for (const t of torches) { const x = t.x, y = t.y + 14; if (!close(x, y, 16)) continue;
     if (!t.out && !torchFull()) L.push({ x, y, r: 16, label: 'LIGHT TORCH', use: relightFrom, ref: t });
     else if (t.out && p.torchT > 0) L.push({ x, y, r: 16, label: 'RELIGHT SCONCE', use: () => { t.out = false; mapVer++; sfx('whoosh'); burst(t.x, t.y, '#ffb040', 8, 25); flashMsg('The sconce flares back to life.', '#ffb040'); }, ref: t }); }
-  for (const c of chests) if (!c.open && close(c.x, c.y, 16)) L.push({ x: c.x, y: c.y, r: 18, label: p.keys > 0 ? 'OPEN CHEST' : 'LOCKED CHEST', use: () => openChest(c), ref: c });
+  for (const c of chests) if (!c.open && close(c.x, c.y, 16)) L.push({ x: c.x, y: c.y, r: 18, label: c.free || p.keys > 0 ? 'OPEN CHEST' : 'LOCKED CHEST', use: () => openChest(c), ref: c });
   if (shop && close(shop.x, shop.y, 20)) L.push({ x: shop.x, y: shop.y + 4, r: 22, label: 'TRADE', use: openShop, ref: shop });
   v06Interact(L, close);
   return L;
@@ -3516,18 +3626,21 @@ const thoughtRecent = [];
 function pickThought(pool) { const fresh = pool.filter(t => !thoughtRecent.includes(t)); return pick(fresh.length ? fresh : pool.filter(t => t !== thoughtRecent[thoughtRecent.length - 1])); }
 // event thoughts (dark / lowpots / postkill / nearboss / cobweb / puzzle): rare, each pool has its own cooldown; never over another bubble
 const thoughtCd = {};
-function eventThought(k, chance = 1, cd = 45) { const p = player; if (!p || !THOUGHTS[k] || thought.life > 0 || (thoughtCd[k] || 0) > time || Math.random() > chance) return false;
+function eventThought(k, chance = 1, cd = 45) { return false; } // v0.6.3 B9: no event / ambient bubbles - thoughts only on Examine
+function eventThought062(k, chance = 1, cd = 45) { const p = player; if (!p || !THOUGHTS[k] || thought.life > 0 || (thoughtCd[k] || 0) > time || Math.random() > chance) return false;
   thoughtCd[k] = time + cd; sayThought(p, pickThought(THOUGHTS[k])); thought.next = Math.max(thought.next, rand(25, 45)); return true; }
 function updateThoughts(dt) {
   const p = player; thought.life -= dt; thought.next -= dt; thought.mobNext -= dt;
   if (thought.life > 0) return; thought.ent = null;
+  return; // v0.6.3 B9: no idle / mood chatter (bubbles only on Examine)
   if (thought.next > 0) return;
   let pool = THOUGHTS.idle;
   if (p.hp < p.st.maxHp * .3) pool = THOUGHTS.hurt; else if (p.hunger < 25) pool = THOUGHTS.hungry; else if (p.thirst < 25) pool = THOUGHTS.thirsty; else if (p.fatigue < 25) pool = THOUGHTS.tired;
   if (p.torchT <= 0 && Math.random() < .6) pool = THOUGHTS.dark; else if (pool === THOUGHTS.idle && !(p.hpPot > 0) && Math.random() < .35) pool = THOUGHTS.lowpots;
   sayThought(p, pickThought(pool)); thought.next = rand(70, 150);
 }
-function mobThought(e) { if (thought.mobNext > 0 || thought.life > 0 || e.T.boss || Math.random() > .015) return; sayThought(e, pickThought(MOB_THOUGHTS), MOB_BUBBLE); thought.mobNext = 40; }
+function mobThought(e) { return; } // v0.6.3 B9: mobs never pop bubbles
+function mobThought062(e) { if (thought.mobNext > 0 || thought.life > 0 || e.T.boss || Math.random() > .015) return; sayThought(e, pickThought(MOB_THOUGHTS), MOB_BUBBLE); thought.mobNext = 40; }
 function drawThought() { // v0.6.0: multi-line, anchored to the same rounded pixel as the sprite (no 1px shimmer / ghosting while moving)
   const e = thought.ent; if (!e || thought.life <= 0 || (e !== player && !enemies.includes(e))) { bubbleDraw = null; return; }
   const lines = wrapBubble(thought.text), w = Math.max(...lines.map(textW)), h = lines.length * 7 + 2, ex = Math.round(e.x), ey = Math.round(e.y), bw = w + 6;
@@ -4224,6 +4337,10 @@ const PLAYER_BUBBLE = 4.95, MOB_BUBBLE = 2.4, BUBBLE_W = 36;
 function wrapBubble(t) { const out = []; for (const para of String(t).split('\n')) { let line = '';
     for (const w of para.split(' ')) { if (line && (line + ' ' + w).length > BUBBLE_W) { out.push(line); line = w; } else line = line ? line + ' ' + w : w; }
     if (line) out.push(line); } return out.slice(0, 3); }
+const EXAM_REPEAT = 'NOTHING ELSE TO SEE.';
+function examineObj(o, textFn) { // v0.6.3 B1: full copy the first time only; later examines -> one short line (never a new bubble on top of itself)
+  if (o && o.examined) { if (thought.life > .6 && thought.ent === player && thought.text === EXAM_REPEAT) return; examineSay(EXAM_REPEAT); return; }
+  if (o) o.examined = true; examineSay(textFn()); }
 function examineSay(text) { const p = player; if (!p) return; sayThought(p, text, PLAYER_BUBBLE); thought.next = Math.max(thought.next, 20); thought.mobNext = Math.max(thought.mobNext, 8); sfx('examine'); }
 let bubbleDraw = null;
 const DOOR_EXAM = { p_levers: 'THREE MARKS. THREE LEVERS\nSOMEWHERE BEHIND ME.', p_braziers: 'EMBER MARKS: ONE, TWO, THREE.\nLIGHT THE SCONCES IN ORDER.', p_block: 'A WORN PLATE NEARBY WANTS\nA HEAVY STONE BLOCK.',
@@ -4463,11 +4580,11 @@ function v06Interact(L, close) { const p = player;
   for (const v of vines) if (!(v.burning > 0)) for (const t of v.tiles) { const x = (t.x + .5) * TS, y = (t.y + .5) * TS; if (!close(x, y, 24)) continue;
     L.push({ x, y, r: 24, label: p.torchT > 0 ? 'BURN VINES' : p.equip.weapon ? 'CUT VINES' : 'TEAR VINES', use: () => vineUse(v), ref: v, tier: 1 }); }
   for (const b of books) if (!b.read && bookOpen(b) && close(b.x, b.y, 16)) L.push({ x: b.x, y: b.y, r: 17, label: 'READ BOOK', use: () => readBook(b), ref: b, tier: 2 });
-  for (const o of setp) if (EXAM_KINDS[o.kind]) { const x = o.x, y = o.kind === 'niche' ? o.y + 12 : o.y; if (!close(x, y, 16)) continue; L.push({ x, y, r: 17, label: 'EXAMINE', use: () => examineSay(examineText(o)), ref: o, tier: -1 }); } }
+  for (const o of setp) if (EXAM_KINDS[o.kind]) { const x = o.x, y = o.kind === 'niche' ? o.y + 12 : o.y; if (!close(x, y, 16)) continue; L.push({ x, y, r: 17, label: 'EXAMINE', use: () => examineObj(o, () => examineText(o)), ref: o, tier: -1 }); } }
 function v06Update(dt) { const p = player; updateVines(dt);
   for (let i = vfx6.length - 1; i >= 0; i--) { const f = vfx6[i]; f.t += dt; if (f.t >= f.dur) vfx6.splice(i, 1); }
-  if (!p.equip.weapon) { const i = p.inv.findIndex(it => it && it.rusty); if (i >= 0 && canWear(p.inv[i])) { p.gotRusty = true; const st = state; equipFrom(i); if (state !== st) setState(st); sel = null;
-      flashMsg('You take up the Rusty Sword. Better than knuckles.', '#d8c8a0'); if (thought.life <= 0) sayThought(p, 'RUSTY. WOBBLY. MINE.'); } }
+  if (p.autoRusty) { p.autoRusty = false; const i = p.inv.findIndex(it => it && it.rusty); if (!p.equip.weapon && i >= 0 && canWear(p.inv[i])) { /* v0.6.3 B7: once, on pickup (it used to re-equip itself after UNEQUIP) */ p.gotRusty = true; const st = state; equipFrom(i); if (state !== st) setState(st); sel = null;
+      flashMsg('You take up the Rusty Sword. Better than knuckles.', '#d8c8a0'); } }
   if (mapOpen) for (const d of doors) if (d.blinkUntil > time && d.blinkUntil - time < .5) d.blinkUntil = time + .5; }
 function v06Lights(L, view) { const hi = lightingQ() !== 'low'; let ns = 0;
   for (const o of setp) if (o.kind === 'shroom' && o.glow && ns < (hi ? 8 : 3) && view(o.x, o.y, 20)) { ns++; L.push({ x: o.x, y: o.y - 2, r: 16 + Math.sin(time * 1.3 + o.ph) * 2, col: o.v === 2 ? 'violet' : 'teal', a: .22 }); }

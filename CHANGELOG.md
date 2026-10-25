@@ -4,6 +4,27 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.6.3] - 2026-10-25
+
+_Hotfix: examine, F-to-use, aggro, loot rooms, supply chests, unequip, champion glow, full saves_
+
+### Fixed
+- **Examine spam (B1):** each statue, coffin, ritual site, bowl, niche or sealed door shows its full examine text once. After that you get a short **"NOTHING ELSE TO SEE."** Examined spots are remembered in the save.
+- **F to Examine / Use on PC (B2):** a mouse click no longer opens, examines, pulls, drinks, reads or trades. Press **F** for that. Clicks still walk, attack, pick up items and work in menus. The touch USE button is unchanged.
+- **Enemies that ignored you (B3):** mobs with short sight (slimes, oozes, rats, drowned, walkers...) now notice you within about 150px when they have line of sight. They no longer wait for you to hit first. A mob that wakes also wakes its neighbours. Ambushers are unchanged on purpose: mimics stay disguised until you're close, eels stay under water, and guards hold their post.
+- **Empty locked rooms (B4):** every room behind a puzzle, Spell Book door, gate key or sliding slab now holds loot. If generation left it bare, it gets gold, a potion and sometimes gear. Spell Book niches also get a small stash.
+- **Click-to-move (B6):** move clicks count only on walkable floor you've already explored. Clicks on walls, void, vines or blocks are ignored, and dragging across a wall keeps your last floor target.
+- **UNEQUIP (B7):** the button works again (PC and touch). The Rusty Sword used to put itself straight back in your hand. Now it auto-equips only once, when you pick it up.
+- **Full save state (B10):** saving now stores the whole floor and where you stand. That covers depth, position, layout, explored map, open doors, puzzle progress, opened chests, broken secrets, loot on the ground, enemies, life and mana. **Continue** puts you back on the same spot. The game saves on pause, when the tab hides or closes, and every ~12 s while you play. Old saves still continue on a fresh floor. Death still ends the run.
+
+### Added
+- **No-key supply chests (B5):** 1-2 per floor. They're plain wooden chests with no lock plate (tan on the map). They open with F, or you can smash them, and hold only gold, life or mana. Locked chests keep the better loot.
+
+### Changed
+- **Champion look (B8):** the solid blue box is gone. Champions now have a soft blue glow under them and a pulsing outline. The CHAMPION name stays.
+- **Thought bubbles (B9):** no more random, idle, mood or monster bubbles. Bubbles appear only when you Examine something or read a Spell Book.
+- Audio is the same as v0.6.2: all SFX, the music beds and stingers, ducking and the AMBIENCE slider.
+
 ## [0.6.2] - 2026-10-25
 
 _Razz's music, ambience slider and polish sounds_
@@ -329,6 +350,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.6.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.3
 [0.6.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.2
 [0.6.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.1
 [0.6.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.0
