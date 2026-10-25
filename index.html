@@ -142,6 +142,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #touch.editing .btn{outline:2px dashed rgba(255,230,160,.8);outline-offset:2px}#touch.editing #bUse.hidden{display:flex}#touch.editing #joyzone{background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.25)}
 #tlEdit{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:30;text-align:center;pointer-events:auto;background:rgba(10,8,12,.85);border:1px solid #6a5a40;padding:6px 10px;border-radius:8px}
 #tlEdit.hidden{display:none}#tlEdit .tlhint{color:#e8dcc0;font-size:11px;margin-bottom:4px}#tlEdit .tlbtns{display:flex;gap:6px}
+.mrow{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0 8px}@media (max-height:460px){.plbl{display:none}.profrow{font-size:11px;gap:5px}.profrow canvas{width:20px;height:20px}}
+.profrow{display:flex;align-items:center;gap:8px;margin:2px 4px;font:bold 13px "Courier New",monospace;color:#d8c8a8}.profrow canvas,.prow canvas,#profPrev{image-rendering:pixelated;background:#120c0a;border:1px solid #5a4632}.profrow.hidden{display:none}
+.profbox{min-width:min(92vw,420px)}.profbox h2{display:flex;justify-content:space-between;align-items:center}.prow{display:flex;align-items:center;gap:8px;padding:4px;border:1px solid #3a2c20;margin:3px 0}.prow.on{border-color:#c8a040;background:rgba(200,160,64,.08)}.pnm{flex:1;font-weight:bold;min-width:6em}.pnm small{font-weight:normal;color:#a89878;white-space:nowrap}.prow .shb,#profX{width:auto;flex:0 0 auto;min-width:0;padding:4px 10px;margin:0}
+.pform{display:flex;gap:12px;align-items:flex-start;margin-top:6px}#profPrev{width:78px;height:78px}#profNameIn{font:bold 16px "Courier New",monospace;background:#120c0a;color:#ecdfc4;border:2px solid #8a6a48;padding:4px 6px;width:12em;text-transform:uppercase}.pswr{display:flex;align-items:center;gap:4px;margin:5px 0}.pswr span{width:52px;font-size:12px}.psw{width:24px;height:24px;border:2px solid #000;border-radius:3px;padding:0}.psw.on{border-color:#ffe080;box-shadow:0 0 0 1px #000}.pbtns{display:flex;gap:6px;margin-top:6px}
 .overlay.hidden,#shop.hidden,#rest.hidden,#talk.hidden,#skills.hidden{display:none}
 #skills{z-index:25}
 /* v0.4.2: bigger, more readable inventory text */
@@ -186,9 +190,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div id="menu" class="overlay">
   <h1 class="title">LICHLIGHT</h1>
   <div class="subt">Beneath drowned Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir.<br>Now the Bone King waits below.</div>
-  <button class="mbtn" id="mNew">NEW GAME</button>
+  <div class="mrow"><button class="mbtn" id="mNew">NEW GAME</button>
   <button class="mbtn hidden" id="mCont">CONTINUE</button>
   <button class="mbtn hidden" id="mResume">RESUME</button>
+  <div class="profrow" id="profRow"><canvas id="profMini" width="26" height="26"></canvas><span><span class="plbl">CHARACTER: </span><b id="profName">WANDERER</b></span><button class="mbtn small" id="profBtn">CHARACTERS</button></div></div>
   <div class="aopts" id="audioOpts">
     <button class="mbtn small" id="mSound">SOUND: ON</button>
     <button class="mbtn small" id="mMusic">MUSIC: ON</button>
@@ -198,6 +203,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small hidden" id="mTouch">TOUCH CONTROLS</button>
     <button class="mbtn small hidden" id="mRest">REST</button>
     <button class="mbtn small" id="mShake">SHAKE: FULL</button>
+    <button class="mbtn small" id="mDim">UI DIM: OFF</button>
     <label>MUSIC <input type="range" id="volMusic" min="0" max="100" step="5"></label>
     <label>SFX <input type="range" id="volSfx" min="0" max="100" step="5"></label>
   </div>
@@ -205,6 +211,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="verbar"><a id="whatsNew" href="https://github.com/gamedevjake/lichlight/releases" target="_blank" rel="noopener">WHAT'S NEW</a><span id="verTxt"></span></div>
   <div class="a2hs hidden" id="a2hs"><span>For true fullscreen: tap <b>Share</b> <span class="shr">&#x2191;&#x20DE;</span>, then <b>Add to Home Screen</b>.</span><button id="a2hsX" aria-label="Dismiss">&times;</button></div>
 </div>
+<div id="profiles" class="overlay hidden" style="z-index:30"><div class="v4box profbox"><h2>CHARACTERS <button class="shb" id="profX" aria-label="Close">&times;</button></h2><div class="v4sub">Each character keeps its own run. Your old save lives on as the first one.</div><div id="profList"></div><div id="profForm"></div></div></div>
 <div id="updModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="updT"><div class="updBox">
   <h2 id="updT">UPDATE AVAILABLE</h2>
   <p id="updMsg">A newer version of Lichlight is ready.</p>
@@ -244,7 +251,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.5.0'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.6.0'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -408,7 +415,7 @@ for (let f = 0; f < 3; f++) tileImgs.torch.push(makeSprite([
   f === 0 ? "..F.." : f === 1 ? ".F..." : "...F.", f === 0 ? ".FfF." : ".fFf.", ".ffr.", "..r..", ".kwk.", "..w..", "..w.."]));
 
 // ---------- audio: settings, buses, sfx ----------
-const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, shake: 'full', battleMusic: false, hotkeys: [0, 1, 2] },
+const settings = Object.assign({ sound: true, music: true, musicVol: 60, sfxVol: 80, shake: 'full', battleMusic: false, hotkeys: [0, 1, 2], uiDim: 'off' },
   (() => { try { return JSON.parse(localStorage.getItem('cryptdelve-settings')) || {}; } catch (e) { return {}; } })());
 function saveSettings() { try { localStorage.setItem('cryptdelve-settings', JSON.stringify(settings)); } catch (e) {} }
 let actx = null, bus = null, noiseBuf = null, audioErr = null;
@@ -621,6 +628,7 @@ const RARITY = ['Normal', 'Magic', 'Rare', 'Unique'];
 const RCOL = ['#dddddd', '#7a9cff', '#f0f060', '#d8a040'];
 const BASES = [
   { slot: 'weapon', icon: 'sword', name: 'Short Sword', min: 2, max: 5, lvl: 1, spd: 1.0 },
+  { slot: 'weapon', icon: 'sword', name: 'Rusty Sword', min: 1, max: 4, lvl: 1, spd: 1.0, noDrop: true }, // v0.6.0: the guaranteed first blade (never a random drop)
   { slot: 'weapon', icon: 'axe', name: 'Hand Axe', min: 3, max: 7, lvl: 1, spd: 0.9 },
   { slot: 'weapon', icon: 'sword', name: 'Broad Sword', min: 5, max: 10, lvl: 3, spd: 1.0 },
   { slot: 'weapon', icon: 'staff', name: 'Gnarled Staff', min: 3, max: 6, lvl: 2, spd: 1.0, fire: 4 },
@@ -814,7 +822,7 @@ function repairWith(it) { // consume one Repair Potion on a chosen item
   flashMsg(`${it.name} repaired (${p.rpPot} Repair Potion${p.rpPot === 1 ? '' : 's'} left)`, '#ffa850'); computeStats(); save(); return true;
 }
 function makeItem0(L, forceRarity, baseName) {
-  const base = baseName ? BASES.find(b => b.name === baseName) : pick(BASES.filter(b => b.lvl <= L + 1));
+  const base = baseName ? BASES.find(b => b.name === baseName) : pick(BASES.filter(b => b.lvl <= L + 1 && !b.noDrop));
   let rar = forceRarity;
   if (rar === undefined) { const r = Math.random(); rar = r < .03 + L * .003 ? 3 : r < .15 ? 2 : r < .5 ? 1 : 0; }
   const it = { id: itemId++, slot: base.slot, icon: base.icon, base: base.name, rarity: rar, lvl: L, mods: {}, name: base.name };
@@ -883,12 +891,14 @@ function itemLines(it) {
   return L;
 }
 const iconURLs = {};
-function itemIconURL(it) { if (!iconURLs[it.icon]) iconURLs[it.icon] = ICONS[it.icon].toDataURL(); return iconURLs[it.icon]; }
+function itemIconURL(it) { const ic = itemIcon(it); if (ic === ICONS[it.icon]) { if (!iconURLs[it.icon]) iconURLs[it.icon] = ic.toDataURL(); return iconURLs[it.icon]; }
+  const k = iconKey(it) + (artReady ? '|a' : ''); let u = ICON_URL6.get(k); if (!u) { u = ic.toDataURL(); ICON_URL6.set(k, u); } return u; } // v0.6.0: magic / rare / unique art
 
 // ---------- dungeon generation ----------
 let MW = 64, MH = 48, map = [], seen = [], rooms = [], torches = [], mapVar = [];
 function tileAt(tx, ty) { return (tx < 0 || ty < 0 || tx >= MW || ty >= MH) ? TILE.WALL : map[ty * MW + tx]; }
-function solidAt(px, py) { const tx = Math.floor(px / TS), ty = Math.floor(py / TS); return tileAt(tx, ty) === TILE.WALL || (pblocks.length > 0 && blockSolidAt(tx, ty)); }
+let vineGrid = new Uint8Array(0), vineN = 0; // v0.6.0 vines block like walls until cut / burned
+function solidAt(px, py) { const tx = Math.floor(px / TS), ty = Math.floor(py / TS); return tileAt(tx, ty) === TILE.WALL || (pblocks.length > 0 && blockSolidAt(tx, ty)) || (vineN > 0 && vineGrid[ty * MW + tx] === 1); }
 function genDungeon(depth) {
   MW = 80 + Math.min(depth * 2, 32); MH = 56 + Math.min(depth, 20); // v0.4: ~1.7x the rooms of v0.3
   map = new Array(MW * MH).fill(TILE.WALL); seen = new Array(MW * MH).fill(false);
@@ -942,9 +952,12 @@ const SLOTS = ['weapon', 'shield', 'helm', 'armor', 'boots', 'ring', 'amulet']; 
 const INV_SIZE = 20;
 function newPlayer() {
   return { x: 0, y: 0, r: 5, fx: 0, fy: 1, lvl: 1, xp: 0, hp: 60, mp: 25, gold: 0, hpPot: 3, mpPot: 2,
-    inv: new Array(INV_SIZE).fill(null), equip: { weapon: makeItem(1, 0, 'Short Sword'), shield: null, helm: null, armor: null, boots: null, ring: null, amulet: null },
-    atkCd: 0, swing: 0, inv0: 0, roll: 0, rollCd: 0, rollQ: 0, rx: 0, ry: 1, cds: [0, 0, 0], walkT: 0, kills: 0, found: [], keys: 0, rpPot: 1, wearN: 0, torches: 0, torchT: 0, torchWarn: false, gateKeys: 0, rations: 2, hunger: 100, thirst: 100, fatigue: 100, mapFrags: 0, bagBonus: 0, xpBuffT: 0, st: {} };
+    inv: new Array(INV_SIZE).fill(null), equip: { weapon: null, shield: null, helm: null, armor: null, boots: null, ring: null, amulet: null },
+    atkCd: 0, swing: 0, inv0: 0, roll: 0, rollCd: 0, rollQ: 0, rx: 0, ry: 1, cds: [0, 0, 0], walkT: 0, kills: 0, found: [], keys: 0, rpPot: 1, wearN: 0, torches: 0, torchT: 0, torchWarn: false, gateKeys: 0, rations: 2, hunger: 100, thirst: 100, fatigue: 100, mapFrags: 0, bagBonus: 0, xpBuffT: 0, st: {},
+    learned: [false, false, false], slotsFilled: {}, look: cleanLook(activeProfile().look), pname: activeProfile().name, gotRusty: false }; // v0.6.0: fists first, skills from Spell Books
 }
+const _newPlayer06 = newPlayer;
+newPlayer = function () { const P = _newPlayer06(); if (window.__legacyStart) { P.learned = [true, true, true]; P.equip.weapon = makeItem(1, 0, 'Short Sword'); P.gotRusty = true; } return P; }; // test hook: pre-0.6 suites start armed + skilled
 function xpNeed(l) { return Math.floor(30 * Math.pow(l, 1.55)); }
 function computeStats() {
   const p = player, m = { dmg: 0, def: 0, hp: 0, mp: 0, ias: 0, ls: 0, crit: 0, fire: 0, ms: 0, regen: 0, light: 0 };
@@ -1089,13 +1102,13 @@ function breakSecretsAt(x, y, r, walls) {
   for (const s of secrets) { if (s.broken || (s.kind === 'wall' && !walls)) continue;
     const cx = (s.tx + .5) * TS, cy = (s.ty + .5) * TS; if (Math.abs(cx - x) < r + 8 && Math.abs(cy - y) < r + 8 && Math.hypot(cx - x, cy - y) < r + 8) breakSecret(s); }
 }
-function chestLoot(d) { const rareP = Math.min(.6, .15 + d * .012); return makeItem(d + 1, Math.random() < rareP ? 2 : 1); } // never unique
+function chestLoot(d) { const rareP = Math.min(.6, .15 + d * .012); if (lootGated() && Math.random() > LOOT_GATE.magic) return makeItem(d + 1, 0); return makeItem(d + 1, Math.random() < rareP ? 2 : 1); } // never unique (v0.6.0: mostly plain while level <= 2)
 function openChest(c) {
   const p = player; if (c.open) return;
   if (p.keys <= 0) { if (c.msgT < time) { sfx('locked'); flashMsg('Locked. Find a key - look for cracked stone.', '#c8a040'); c.msgT = time + 2.5; } return false; }
   p.keys--; c.open = true; sfx('chest'); burst(c.x, c.y - 4, '#ffe060', 18, 70); addTrauma(.08);
-  dropAt(ground, c.x, c.y + 10, { item: chestLoot(depth) });
-  dropAt(ground, c.x - 10, c.y + 6, { gold: irand(10, 25) * depth });
+  if (!lootGated() || Math.random() < LOOT_GATE.chestItem) dropAt(ground, c.x, c.y + 10, { item: chestLoot(depth) }); else dropAt(ground, c.x, c.y + 10, Math.random() < .5 ? { ration: 1 } : { torch: 1 }); // v0.6.0 early loot gate
+  dropAt(ground, c.x - 10, c.y + 6, { gold: irand(10, 25) * depth * (lootGated() ? LOOT_GATE.gold : 1) | 0 || 1 });
   if (Math.random() < .35) dropAt(ground, c.x + 10, c.y + 6, { pot: Math.random() < .65 ? 'hp' : 'mp' });
   if (Math.random() < .3) dropAt(ground, c.x, c.y + 18, { torch: 1 });
   if (Math.random() < REP_DROP.chest) dropAt(ground, c.x - 12, c.y + 16, { pot: 'rp' });
@@ -1293,6 +1306,17 @@ function placeLights() {
   if (player && player.torches === 0 && player.torchT < 30) { const r = rooms[0]; dropAt(ground, (r.cx + 1.5) * TS, (r.cy + .5) * TS, { torch: 1 }); }
 }
 MOB_ROWS.mimic = MIMIC_ROWS;
+// v0.6.0 slow walkers (extra: outside the 30-entry bestiary; joined to floor pools by addWalkers)
+{ const sub = (rows, m) => rows.map(r => r.replace(/./g, c => m[c] || c));
+  MOB_ROWS.zombie = sub(MOB_ROWS.drowned, { a: 'v', A: 'V', z: 'u', Z: 'U', G: 'V' });
+  MOB_ROWS.skelw = sub(MOB_ROWS.drowned, { a: 'h', A: 'H', z: 'H', Z: 'k', G: 'H' });
+  MOB_ROWS.spiderw = sub(MOB_ROWS.spider, { P: 'U', p: 'u' });
+  MOB_ROWS.goblin = sub(MOB_ROWS.ghoul, { v: 'g', V: 'u' });
+  Object.assign(MOBS, {
+    zombie:  { n: 'Rotting Zombie', min: 4, th: 'drowned', ai: 'walker', an: 'walk', hp: [30, 8], dm: [8, 1.8], xp: [12, 2], sd: 17, r: 5, ag: 100, noContact: true, walker: true, noRandom: true, extra: true, b: 'Slow; winds up a heavy swing.' },
+    skelw:   { n: 'Lumbering Skeleton', min: 7, th: 'bone', ai: 'walker', an: 'walk', hp: [34, 9], dm: [9, 2], xp: [14, 2.5], sd: 19, r: 5, ag: 110, noContact: true, walker: true, noRandom: true, extra: true, b: 'Slow; winds up a heavy swing.' },
+    spiderw: { n: 'Brood Spider', min: 10, th: 'vermin', ai: 'walker', an: 'walk', hp: [30, 8], dm: [9, 2.1], xp: [14, 2.5], sd: 21, r: 5, ag: 110, noContact: true, walker: true, noRandom: true, extra: true, b: 'Slow; rears up, then bites.' },
+    goblin:  { n: 'Goblin Brute', min: 13, th: 'bone', ai: 'walker', an: 'walk', hp: [40, 10], dm: [10, 2.3], xp: [18, 3], sd: 23, r: 5, ag: 120, noContact: true, walker: true, noRandom: true, extra: true, b: 'Slow; telegraphed club swing.' } }); }
 const MOB_IDS = Object.keys(MOBS).filter(id => !MOBS[id].extra); // the 30
 const THEMES = { drowned: 'THE SUNKEN STREETS', choir: 'HALLS OF THE PALE CHOIR', bone: 'THE OSSUARY', vermin: 'THE ROTTING WARRENS' };
 const ETYPES = {};
@@ -1364,7 +1388,7 @@ function bossForDepth(d) { if (d < 5 || d % 5) return null; const k = d / 5 - 1;
 
 function spawnEnemy(type, x, y, elite, opt) {
   const T = ETYPES[type], d = depth; opt = opt || {};
-  let hp = Math.round(T.hp[0] + T.hp[1] * (d - 1)), dmg = T.dmg[0] + T.dmg[1] * (d - 1);
+  let hp = Math.round(T.hp[0] + T.hp[1] * (d - 1)), dmg = (T.dmg[0] + T.dmg[1] * (d - 1)) * dmgBump(d); // v0.6.0 modest early bump
   if (elite) { hp = Math.round(hp * 2.2); dmg *= 1.4; }
   const e = { id: ++entId, type, T, x, y, r: T.r, hp, maxHp: hp, dmg, spd: T.spd * (elite ? 1.15 : 1), elite, state: 'idle',
     wx: 0, wy: 0, wt: 0, atkCd: rand(.5, 1.2), flash: 0, slow: 0, kx: 0, ky: 0, face: 1, cd: rand(1, 2.5), anim: Math.random() * 10, t: 0, mode: '', fa: 0, enr: 1,
@@ -1381,7 +1405,7 @@ function spawnBoss(x, y) {
   const name = B.n + (cycle ? ' +' + cycle : '');
   const T = { boss: true, B, label: name, S: B.img, r: B.r, spd: B.spd, aggro: 150, an: 'boss' };
   const hp = Math.round((240 + 60 * (d - 1)) * B.hp * cm);
-  const e = { id: ++entId, type: 'boss', T, B, x, y, r: B.r, hp, maxHp: hp, dmg: (8 + 2.2 * (d - 1)) * Math.pow(1.25, cycle), spd: B.spd, elite: false, state: 'idle',
+  const e = { id: ++entId, type: 'boss', T, B, x, y, r: B.r, hp, maxHp: hp, dmg: (8 + 2.2 * (d - 1)) * Math.pow(1.25, cycle) * dmgBump(d, true), spd: B.spd, elite: false, state: 'idle',
     wx: 0, wy: 0, wt: 0, atkCd: 1, flash: 0, slow: 0, kx: 0, ky: 0, face: 1, cd: 0, anim: 0, t: 0, mode: '', busy: 0, patCd: 1.2, phase: 1, enr: 1, z: 0,
     pool: B.p1.slice(), last: '', spiralT: 0, xp: Math.round((150 + 40 * d) * cm), name, cycle };
   enemies.push(e); return e;
@@ -1398,6 +1422,7 @@ function makeFloorPool(d) {
   shuffled(avail.filter(id => ETYPES[id].th === floorTheme)).slice(0, 3).forEach(id => pool.add(id));
   const size = Math.min(avail.length, d < 3 ? 3 : 5 + (d > 20 ? 1 : 0));
   for (const id of shuffled(avail)) { if (pool.size >= size) break; pool.add(id); }
+  addWalkers(pool, d); // v0.6.0
   return [...pool];
 }
 function freeSpot(r) { for (let k = 0; k < 20; k++) { const x = (irand(r.x, r.x + r.w - 1) + .5) * TS, y = (irand(r.y, r.y + r.h - 1) + .5) * TS; if (!solidAt(x, y)) return { x, y }; } return { x: (r.cx + .5) * TS, y: (r.cy + .5) * TS }; }
@@ -1482,6 +1507,7 @@ function mobAI(e, dt, d, ax, ay, spd) {
   const see = d < 220 && los(e, p);
   switch (T.ai) {
     case 'chase': if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt); break;
+    case 'walker': walkerAI(e, dt, d, ax, ay, spd); break; // v0.6.0
     case 'bat': { const w = Math.sin(e.anim * 6) * .9; moveDir(e, ax - ay * w, ay + ax * w, spd, dt); break; }
     case 'rat': if (e.mode === 'flee') { e.t -= dt; moveDir(e, -ax + ay * .5, -ay - ax * .5, spd * 1.1, dt); if (e.t <= 0) e.mode = ''; } else if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt); break;
     case 'kite': keepRange(e, ax, ay, d, 50, 90, spd, dt);
@@ -1761,13 +1787,14 @@ function startFloor(d, fresh) {
   depth = d; genDungeon(depth); populate(); applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
   const r = rooms[0]; player.x = (r.cx + .5) * TS; player.y = (r.cy + .5) * TS;
   computeStats(); if (fresh) { player.hp = player.st.maxHp; player.mp = player.st.maxMp; }
-  debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = 2.5; trauma = 0; bossIntro = 0; player.slowT = 0; player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
+  debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
   save();
 }
 function save() {
   try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId,
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
-      gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0) } })); } catch (e) {}
+      gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0),
+      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty } })); } catch (e) {}
 }
 function loadSave() { try { return JSON.parse(localStorage.getItem('cryptdelve')); } catch (e) { return null; } }
 function newGame() { player = newPlayer(); computeStats(); startFloor(1, true); setState('play'); }
@@ -1798,6 +1825,7 @@ function continueGame() {
   for (const k of ['hunger', 'thirst', 'fatigue']) player[k] = s.p[k] === undefined ? 100 : clamp(+s.p[k] || 0, 0, 100);
   player.xpBuffT = clamp(+s.p.xpBuffT || 0, 0, XPBUFF_TIME); // v0.4.5 (old saves: no blessing)
   player.inv.concat(SLOTS.map(k => player.equip[k])).forEach(markFound);
+  v06Load(s); // v0.6.0: learned skills / wardrobe / first-equip memory (old saves: safe defaults)
   computeStats(); startFloor(s.depth, true); setState('play');
 }
 // ---------- input: keyboard ----------
@@ -1809,6 +1837,7 @@ const KEYMAP = { 'j': 'attack' }; // 1/2/3 cast skills (rebindable); F1-F3 selec
 function normKey(e) { return e.key.length === 1 ? e.key.toLowerCase() : e.key; }
 window.addEventListener('keydown', e => {
   if (UPD.shown) { if (e.key === 'Escape') updateLater(); else if (e.key === 'Enter') { e.preventDefault(); updateNow(); } return; }
+  if (profOpen) { if (e.key === 'Escape') closeProfiles(); return; } // v0.6.0 character screen
   const k = normKey(e);
   if (state === 'sleep') { e.preventDefault(); return; } // v0.5.0: no input while the screen is dark
   if (state === 'tlayout') { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); closeTouchEditor(); } return; }
@@ -1876,7 +1905,7 @@ function pickupItem(g) {
   const p = player, s = p.inv.indexOf(null);
   if (s < 0) { flashMsg('Backpack full', '#f88'); sfx('hurt'); return false; }
   const i = ground.indexOf(g); if (i < 0) return false;
-  ground.splice(i, 1); g.item.isNew = true; p.inv[s] = g.item; const fresh = markFound(g.item);
+  ground.splice(i, 1); g.item.isNew = true; p.inv[s] = g.item; const fresh = markFound(g.item); if (g.rusty || g.item.rusty) p.gotRusty = true;
   flashMsg((fresh ? 'New unique! ' : 'Picked up ') + g.item.name, RCOL[g.item.rarity]); sfx(fresh ? 'lvl' : 'pick'); updateNewBadge(); return true;
 }
 const PICK_REACH = 14;
@@ -1942,7 +1971,7 @@ let slotLP = 0; // slots are rebuilt on tap, so release is caught at window leve
 // =====================================================================
 const dm = { left: false, right: false, ctrl: false, lastTouch: 0, rep: 0 };
 let rskill = clamp(+settings.rskill || 0, 0, 2), clickMark = null, hoverEnemy = null, mapOpen = false, curKind = '';
-const walkable = (x, y) => tileAt(x, y) !== TILE.WALL;
+const walkable = (x, y) => tileAt(x, y) !== TILE.WALL && !(vineN > 0 && vineGrid[y * MW + x] === 1);
 function astar(sx, sy, gx, gy, maxN = 4000) { // 8-way A* on the tile grid (no corner cutting). Returns [[tx,ty],...] excluding start, or null
   if (!walkable(gx, gy)) return null; if (sx === gx && sy === gy) return [];
   const N = MW * MH, g = new Float32Array(N).fill(1e9), from = new Int32Array(N).fill(-1), closed = new Uint8Array(N), heap = [];
@@ -2045,7 +2074,7 @@ function desktopClick(e) {
 }
 function selectSkill(i) {
   const S = SKILLS[i]; if (!player) return;
-  if (player.lvl < S.lvl) { flashMsg(`${S.name} unlocks at level ${S.lvl}`, '#aaa'); return; }
+  if (skillLocked(i)) { lockedSkillMsg(i); return; }
   rskill = i; settings.rskill = i; saveSettings(); flashMsg('Right-click: ' + S.name, '#80c0ff'); sfx('pick');
 }
 window.addEventListener('mousedown', e => {
@@ -2082,8 +2111,8 @@ function drawHoverBar(e, y) {
 }
 function drawBigMap() {
   const p = player, s = Math.min((VW - 30) / MW, (VH - 60) / MH), w = MW * s, h = MH * s, ox = Math.round((VW - w) / 2), oy = Math.round((VH - 40 - h) / 2) + 4;
-  ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(ox - 4, oy - 12, w + 8, h + 16);
-  drawTextC(`MAP - DEPTH ${depth}` + (floorRevealed ? '  REVEALED' : '') + (touchMode ? '' : '   (M)'), VW / 2, oy - 9, '#c9a050');
+  const ga = ctx.globalAlpha; ctx.fillStyle = `rgba(0,0,0,${MAP_BG})`; ctx.fillRect(ox - 4, oy - 12, w + 8, h + 16); // v0.6.0: see-through map
+  drawTextC(`MAP - DEPTH ${depth}` + (floorRevealed ? '  REVEALED' : '') + (touchMode ? '' : '   (M)'), VW / 2, oy - 9, '#c9a050'); ctx.globalAlpha = ga * MAP_ALPHA;
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (!seen[y * MW + x]) continue; const t = map[y * MW + x];
     if (t === TILE.WALL) { if (!(walkable(x, y + 1) || walkable(x, y - 1) || walkable(x + 1, y) || walkable(x - 1, y))) continue; ctx.fillStyle = 'rgba(120,96,80,.85)'; }
     else ctx.fillStyle = t === TILE.STAIRS ? '#ffe040' : 'rgba(150,130,170,.45)';
@@ -2091,7 +2120,7 @@ function drawBigMap() {
   for (const c of chests) if (seen[c.ty * MW + c.tx]) { ctx.fillStyle = c.open ? '#6a5020' : '#e8c840'; ctx.fillRect(Math.round(ox + c.tx * s), Math.round(oy + c.ty * s), Math.ceil(s), Math.ceil(s)); }
   for (const b of braziers) { const tx = Math.floor(b.x / TS), ty = Math.floor(b.y / TS); if (seen[ty * MW + tx]) { ctx.fillStyle = '#ff8030'; ctx.fillRect(Math.round(ox + tx * s), Math.round(oy + ty * s), Math.ceil(s), Math.ceil(s)); } }
   const bo = enemies.find(e => e.T.boss && seen[Math.floor(e.y / TS) * MW + Math.floor(e.x / TS)]); if (bo) { ctx.fillStyle = '#ff3030'; ctx.fillRect(Math.round(ox + bo.x / TS * s) - 1, Math.round(oy + bo.y / TS * s) - 1, 3, 3); }
-  drawMapExtras(ox, oy, s);
+  drawMapExtras(ox, oy, s); drawMapV06(ox, oy, s); ctx.globalAlpha = ga;
   ctx.fillStyle = Math.floor(time * 4) % 2 ? '#fff' : '#4f4'; ctx.fillRect(Math.round(ox + p.x / TS * s) - 1, Math.round(oy + p.y / TS * s) - 1, 3, 3);
 }
 // ---------- D2-style bottom panel (desktop only) ----------
@@ -2120,7 +2149,7 @@ function drawDurWarn() {
   const on = Math.floor(time * 3) % 2 === 0;
   for (const w of ws) { const red = w.lvl === 2;
     ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y - 1, 16, 16); ctx.fillStyle = red ? '#e02020' : on ? '#e8c020' : '#706010'; ctx.fillRect(x, y, 14, 14);
-    ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(x + 1, y + 1, 12, 12); ctx.drawImage(ICONS[w.it.icon], x + 1, y + 1, 12, 12);
+    ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(x + 1, y + 1, 12, 12); ctx.drawImage(itemIcon(w.it), x + 1, y + 1, 12, 12);
     ctx.fillStyle = red ? 'rgba(255,30,30,.4)' : 'rgba(255,220,40,.25)'; ctx.fillRect(x + 1, y + 1, 12, 12);
     x -= 18; }
 }
@@ -2133,9 +2162,9 @@ function drawD2Panel() {
   drawOrb(VW - 19, VH - 17, 15, p.mp, s.maxMp, '#3050d0', '#08102a', String(Math.floor(p.mp)));
   // left attack icon (by the life orb), right skill icon (by the mana orb)
   const ly = y0 + 7; iconBox(38, ly, '#6a6a78', '', p.atkCd > 0 ? clamp(p.atkCd * p.st.aspd / .45, 0, 1) : 0); drawBlade2(46, ly + 8);
-  const S = SKILLS[rskill], rx = VW - 54; iconBox(rx, ly, p.lvl < S.lvl ? '#222' : SKILL_ICON_COL[rskill], String(rskill + 1), p.cds[rskill] / S.cd, true);
+  const S = SKILLS[rskill], rx = VW - 54; iconBox(rx, ly, skillLocked(rskill) ? '#222' : SKILL_ICON_COL[rskill], String(rskill + 1), p.cds[rskill] / S.cd, true);
   // the three selectable skills (small) + roll
-  for (let i = 0; i < 3; i++) { const x = rx - 46 + i * 11, Sk = SKILLS[i], lock = p.lvl < Sk.lvl; ctx.fillStyle = i === rskill ? '#e8c840' : '#000'; ctx.fillRect(x - 1, ly + 3, 10, 10);
+  for (let i = 0; i < 3; i++) { const x = rx - 46 + i * 11, Sk = SKILLS[i], lock = skillLocked(i); ctx.fillStyle = i === rskill ? '#e8c840' : '#000'; ctx.fillRect(x - 1, ly + 3, 10, 10);
     ctx.fillStyle = lock ? '#222' : SKILL_ICON_COL[i]; ctx.fillRect(x, ly + 4, 8, 8); if (p.cds[i] > 0) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x, ly + 4, 8, Math.round(8 * p.cds[i] / Sk.cd)); } drawText(String(keyOfSkill(i)), x + 3, ly + 6, lock ? '#555' : p.mp >= Sk.mana ? '#fff' : '#88f'); }
   { const x = rx - 64; ctx.fillStyle = '#000'; ctx.fillRect(x - 1, ly + 3, 16, 10); ctx.fillStyle = '#287850'; ctx.fillRect(x, ly + 4, 14, 8); if (p.rollCd > 0) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x, ly + 4, 14, Math.round(8 * p.rollCd / ROLL_CD)); } drawText('SPC', x + 1, ly + 6, '#fff'); }
   // potion belt
@@ -2294,7 +2323,7 @@ function setState(s) {
   if (s !== 'play' && s !== 'inv' && UPD.pending) setTimeout(maybeShowUpdate, 0);
   for (const k in held) { held[k] = false; tapQ[k] = 0; }
   document.querySelectorAll('#touch .btn').forEach(b => b.classList.remove('down'));
-  updateTouchUI(); updateA2HS();
+  updateTouchUI(); updateA2HS(); applyDim(); refreshProfileUI();
 }
 function updateTouchUI() {
   $('touch').classList.toggle('hidden', !((touchMode && state === 'play') || state === 'tlayout'));
@@ -2406,7 +2435,7 @@ function equipFrom(i) {
   if (!canWear(it)) { const t = `Requires level ${reqOf(it)}`; flashMsg(t, '#f66'); sfx('fail'); buzz(40);
     const dt = $('dtext'); if (dt && state === 'inv') { let w = dt.querySelector('.reqwarn'); if (!w) { w = document.createElement('div'); w.className = 'cbad reqwarn'; dt.prepend(w); } w.textContent = t + ' (you are level ' + p.lvl + ')'; }
     return false; }
-  const old = p.equip[it.slot]; it.isNew = false; p.equip[it.slot] = it; p.inv[i] = old || null;
+  const old = p.equip[it.slot]; it.isNew = false; p.equip[it.slot] = it; p.inv[i] = old || null; firstEquipCheck(it.slot, old); WARD_CACHE.size > 40 && WARD_CACHE.clear();
   sel = { where: 'eq', slot: it.slot }; sfx('pick'); computeStats(); renderInv();
 }
 function dropItem(it) { if (!it) return; dropAt(ground, player.x, player.y + 2, { item: it }); ground[ground.length - 1].lock = true; }
@@ -2447,17 +2476,17 @@ const DROP = { gold: .24, hp: .08, mp: .04, white: .05 }; // ~41% chance of any 
 const REP_DROP = { reg: .02, champ: .2, chest: .35, floor: .05 }; // per kill / per chest / per room; bosses: always one
 function regularDrops(e, d) {
   const at = (o, k) => dropAt(ground, e.x + rand(-6, 6), e.y + rand(-6, 6), o);
-  const white = () => at({ item: makeItem(d, 0) });
+  const gate = lootGated(), white = () => at({ item: makeItem(d, 0) });
   if (e.minion) { if (Math.random() < .12) at({ gold: irand(1, 4) * d }); return; }
   if (!e.T.disguise && Math.random() < (e.elite ? REP_DROP.champ : REP_DROP.reg * (e.T.pack || e.type === 'slimelet' ? .5 : 1))) at({ pot: 'rp' });
   if (e.T.disguise) { at({ gold: irand(15, 30) * d }); at({ pot: Math.random() < .6 ? 'hp' : 'mp' }); white(); return; }
-  if (e.elite) { at({ gold: irand(5, 12) * d }); if (champKeysFloor < CHAMP_KEY_CAP && Math.random() < CHAMP_KEY_P) { champKeysFloor++; at({ key: 1 }); } if (Math.random() < .5) at({ pot: Math.random() < .65 ? 'hp' : 'mp' }); if (Math.random() < .2) white(); return; }
+  if (e.elite) { at({ gold: irand(5, 12) * d }); if (champKeysFloor < CHAMP_KEY_CAP && Math.random() < CHAMP_KEY_P) { champKeysFloor++; at({ key: 1 }); } if (Math.random() < .5) at({ pot: Math.random() < .65 ? 'hp' : 'mp' }); if (Math.random() < .2 * (gate ? LOOT_GATE.champWhite : 1)) white(); return; }
   const swarm = e.T.pack || e.type === 'slimelet' ? .5 : 1; // packs give the same total per group, not per bug
   let r = Math.random() / swarm;
-  if ((r -= DROP.gold) < 0) at({ gold: irand(2, 8) * d });
+  if ((r -= DROP.gold) < 0) { if (!gate || Math.random() < LOOT_GATE.gold) at({ gold: irand(2, 8) * d }); }
   else if ((r -= DROP.hp) < 0) at({ pot: 'hp' });
   else if ((r -= DROP.mp) < 0) at({ pot: 'mp' });
-  else if ((r -= DROP.white) < 0) white();
+  else if ((r -= DROP.white) < 0) { if (!gate || Math.random() < LOOT_GATE.white) white(); } // v0.6.0 early loot gate
 }
 function bossUnique(L) { // prefers unfound + depth-appropriate (pickUnique); widens the level window if nothing is eligible yet
   for (let k = 0; k <= 60; k += 3) { const it = makeItem(L + k, 3); if (it.rarity === 3) { if (k) { it.lvl = L; it.reqLvl = calcReqLvl(it); } return it; } }
@@ -2473,7 +2502,7 @@ function killEnemy(e) {
   player.kills++; gainXp(e.xp); powersOnKill(e); if (T.boss) bossVoice(e, 'die'); else eventThought('postkill', .1, 40);
   const L = depth + (e.elite ? 1 : 0) + (T.boss ? 2 : 0);
   if (T.boss) {
-    const B = e.B, drop = (it, dx, dy) => dropAt(ground, e.x + dx, e.y + dy, { item: it });
+    const B = e.B, drop = (it, dx, dy) => { dropAt(ground, e.x + dx, e.y + dy, { item: it }); if (it.rarity === 3) uniqueDropFx(e.x + dx, e.y + dy); };
     // bosses are the ONLY source of uniques, and the main source of magic/rare gear
     drop(bossUnique(L), 0, -14);                                 // guaranteed unique
     drop(makeItem(L, 2), -14, 0);                                // guaranteed rare
@@ -2495,7 +2524,7 @@ function gainXp(n) {
   while (p.xp >= xpNeed(p.lvl)) {
     p.xp -= xpNeed(p.lvl); p.lvl++; computeStats(); p.hp = p.st.maxHp; p.mp = p.st.maxMp;
     addText(p.x, p.y - 16, 'LEVEL UP!', '#ffe040', true); sfx('lvl'); burst(p.x, p.y, '#ffe040', 24, 90);
-    const sk = SKILLS.find(s => s.lvl === p.lvl); if (sk) flashMsg('New skill: ' + sk.name + '!', '#80c0ff');
+    const sk = SKILLS.findIndex(s => s.lvl === p.lvl); if (sk >= 0 && skillLocked(sk)) flashMsg(`Somewhere below, a Spell Book of ${SKILLS[sk].name} waits behind a sealed door.`, '#80c0ff'); // v0.6.0: skills come from books
   }
 }
 function hurtPlayer(dmg, src) {
@@ -2555,7 +2584,7 @@ const mouse = { x: 0, y: 0, active: false };
 function mouseAim() { if (touchMode || !mouse.active || !player) return null; const dx = cam.x + mouse.x - player.x, dy = cam.y + mouse.y - player.y, l = Math.hypot(dx, dy); return l > 2 ? { x: dx / l, y: dy / l } : null; }
 function castSkill(i) {
   const p = player, S = SKILLS[i], hk = 's' + (i + 1);
-  if (p.lvl < S.lvl) { flashMsg(`${S.name} unlocks at level ${S.lvl}`, '#aaa'); held[hk] = false; tapQ[hk] = 0; return; }
+  if (skillLocked(i)) { lockedSkillMsg(i); held[hk] = false; tapQ[hk] = 0; return; }
   if (p.cds[i] > 0) return;
   if (p.mp < S.mana) { flashMsg('Not enough mana', '#88f'); held[hk] = false; tapQ[hk] = 0; return; }
   p.mp -= S.mana; p.cds[i] = S.cd;
@@ -2569,7 +2598,7 @@ function castSkill(i) {
   } else if (i === 1) {
     effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32, skill: 1 });
     for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg(); const dd = (dm * 1.4 + pw * .5) * amp; leech(dd); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit); } }
-    sfx(S.snd || 'swing'); addTrauma(.12); breakSecretsAt(p.x, p.y, 30, true); snuffTorchesNear(p.x, p.y, 34);
+    sfx(S.snd || 'swing'); addTrauma(.12); breakSecretsAt(p.x, p.y, 30, true); cutVinesNear(p.x, p.y, 32); snuffTorchesNear(p.x, p.y, 34);
   } else {
     effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70, skill: 2 });
     breakSecretsAt(p.x, p.y, 64, true); snuffTorchesNear(p.x, p.y, 70);
@@ -2636,7 +2665,7 @@ function update(dt) {
     if (dead && pr.kind === 'web' && !hitP) hazard(pr.x - pr.vx * dt, pr.y - pr.vy * dt, 10, 'web', 4);
     if (dead) {
       projs.splice(i, 1);
-      if (pr.owner === 'p') { const SK = SKILLS[pr.skill]; sfxAt((SK && SK.hit) || 'hit', pr.x, pr.y, 420); burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true);
+      if (pr.owner === 'p') { const SK = SKILLS[pr.skill]; sfxAt((SK && SK.hit) || 'hit', pr.x, pr.y, 420); burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true); if (pr.skill === 0) burnVinesAt(pr.x, pr.y, 14);
         for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) damageEnemy(e, pr.dmg * (d < e.r + 4 ? 1 : .6), (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040'); } }
       else burst(pr.x, pr.y, (PCOL[pr.kind] || PCOL.bolt)[0], 6, 40);
       if (state !== 'play') return;
@@ -2855,9 +2884,9 @@ function buffText() { const p = player; if (!p || !(p.xpBuffT > 0)) return ''; c
 function drawBuffHUD(x, y) { const s = buffText(); if (!s) return; const p = player, low = p.xpBuffT < 20 && Math.floor(time * 3) % 2;
   ctx.fillStyle = '#0a1818'; ctx.fillRect(x, y - 1, 7, 7); ctx.fillStyle = low ? '#407070' : '#a0fff0'; ctx.fillRect(x + 3, y, 1, 5); ctx.fillRect(x + 1, y + 2, 5, 1); ctx.fillStyle = '#fff'; ctx.fillRect(x + 3, y + 2, 1, 1);
   drawText(s, x + 9, y, low ? '#5a9090' : '#a0fff0'); }
-function clearFloorExtras() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; annexes = []; clearV05(); } // tests / arenas
-function placeV04Pre() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; floorRevealed = false; annexes = []; clearV05();
-  placeShop(); placeVaults(); }
+function clearFloorExtras() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; annexes = []; clearV05(); clearV06(); } // tests / arenas
+function placeV04Pre() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; floorRevealed = false; annexes = []; clearV05(); clearV06();
+  placeShop(); placeVaults(); placeBookVault(); }
 // v0.4.4: secret passages - real hidden shortcuts linking rooms that are far apart on the chain.
 // A straight 1-wide tunnel through solid rock, sealed by a cracked wall at BOTH ends (break either side).
 function placePassages() {
@@ -2912,9 +2941,10 @@ function placeV04Post() { placeBloodDoor(); placePassages(); placePassagePuzzle(
 // ---- doors, puzzles, interactables ----
 function openDoor(d, quiet) {
   if (d.open) return; d.open = true;
-  if (d.slide && !quiet) { d.slideK = 0; sfxAt('grind', (d.tiles[0].x + .5) * TS, (d.tiles[0].y + .5) * TS, 420, 1.1, .3); addTrauma(.12); return; } // v0.5.0: slab slides for ~1.6s, then the tile opens
+  if (d.slide && !quiet) { d.slideK = 0; const slow = !!d.puzzle; d.slideT = slow ? PUZZLE_SLIDE : SLIDE_TIME; // v0.6.0: puzzle slabs grind slowly, with a longer grumble
+    sfxAt(slow ? 'grindlong' : 'grind', (d.tiles[0].x + .5) * TS, (d.tiles[0].y + .5) * TS, 420, 1.1, .3); addTrauma(.12); doorOpenedV06(d); return; } // v0.5.0: slab slides for ~1.6s, then the tile opens
   for (const t of d.tiles) { map[t.y * MW + t.x] = TILE.FLOOR; seen[t.y * MW + t.x] = true; burst((t.x + .5) * TS, (t.y + .5) * TS, d.kind === 'blood' ? '#a01818' : '#8a8078', 12, 50); }
-  mapVer++; polyCache.clear(); if (!quiet) { sfx(d.kind === 'gate' ? 'gate' : d.kind === 'blood' ? 'blood' : 'door'); addTrauma(.15); }
+  mapVer++; polyCache.clear(); if (!quiet) { sfx(d.kind === 'gate' ? 'gate' : d.kind === 'blood' ? 'blood' : 'door'); addTrauma(.15); doorOpenedV06(d); }
 }
 function doorHint(d) {
   if (d.puzzle === 'p_levers') return 'A sealed stone slab. Three marks... three levers somewhere behind you must all be pulled.';
@@ -2939,7 +2969,7 @@ function useDoor(d) {
     p.hp -= cost; addText(p.x, p.y - 12, '-' + cost, '#ff3030'); burst(p.x, p.y - 4, '#c01010', 16, 50); openDoor(d);
     flashMsg('You bleed upon the bones. The door drinks... and opens.', '#ff5050'); return true;
   }
-  flashMsg(doorHint(d), '#c8b8a0');
+  examineSay(doorExamine(d)); // v0.6.0: examine text is a thought, not a banner
 }
 function puzzleStep(o) {
   const d = o.door; if (d.open || o.on) return;
@@ -2969,6 +2999,7 @@ function interactables() {
     else if (t.out && p.torchT > 0) L.push({ x, y, r: 16, label: 'RELIGHT SCONCE', use: () => { t.out = false; mapVer++; sfx('whoosh'); burst(t.x, t.y, '#ffb040', 8, 25); flashMsg('The sconce flares back to life.', '#ffb040'); }, ref: t }); }
   for (const c of chests) if (!c.open && close(c.x, c.y, 16)) L.push({ x: c.x, y: c.y, r: 18, label: p.keys > 0 ? 'OPEN CHEST' : 'LOCKED CHEST', use: () => openChest(c), ref: c });
   if (shop && close(shop.x, shop.y, 20)) L.push({ x: shop.x, y: shop.y + 4, r: 22, label: 'TRADE', use: openShop, ref: shop });
+  v06Interact(L, close);
   return L;
 }
 function nearestInteract() { const p = player; let best = null, bd = 1e9;
@@ -2987,7 +3018,7 @@ function torchInReach(t) { // a lit wall torch the player can hit: adjacent (bel
 function torchAtCursor() { const c = cursorWorld(); return torches.find(t => !t.out && Math.abs(c.x - t.x) < 8 && c.y > t.y - 10 && c.y < t.y + 12) || null; }
 function propAtCursor() { const c = cursorWorld(); return props.find(o => !o.broken && Math.abs(c.x - o.x) < 7 && c.y > o.y - 12 && c.y < o.y + 4) || null; }
 function snuffTorch(t, msg) { if (t.out) return false; t.out = true; mapVer++; burst(t.x, t.y, '#777', 12, 30); burst(t.x, t.y, '#ffa040', 4, 20); sfxAt('snuff', t.x, t.y, 260, 1.1); if (msg) flashMsg(msg, '#a09890'); return true; }
-function meleeWorld(x, y) { meleeWeb(x, y);
+function meleeWorld(x, y) { meleeWeb(x, y); meleeVine(x, y);
   for (const t of torches) if (!t.out && ((Math.abs(t.x - x) < 14 && y - t.y < 24 && y - t.y > -10) || torchInReach(t))) { snuffTorch(t, 'You knock the torch out. Smoke curls up.'); break; }
 }
 // v0.4.4: projectiles (player or enemy) that strike a lit sconce put it out; returns true if one was hit
@@ -3202,7 +3233,7 @@ const THOUGHTS = {
 };
 const MOB_THOUGHTS = ['FRESH MEAT!', 'GRR.', 'SHINY BOOTS...', 'HUNGRY...', '*RATTLE*', 'MINE!', 'THE CHOIR CALLS...', 'O_O', 'NOT ANOTHER ONE.', 'SING WITH US...', 'SKIN. HOW QUAINT.', 'DIG HIM A HOLE.', '*CLACK CLACK*', 'WARM BLOOD!', 'THE KING IS WATCHING.', 'LITTLE LIGHT...', 'HISSSS.', 'LEAVE THE TORCH.', 'WHO DISTURBS US?'];
 const thought = { t: 0, text: '', life: 0, ent: null, next: 60, mobNext: 30 };
-function sayThought(ent, text, life = 3.2) { thought.text = text; thought.ent = ent; thought.life = life; thought.t = 0; thoughtRecent.push(text); if (thoughtRecent.length > 6) thoughtRecent.shift(); }
+function sayThought(ent, text, life = ent === player ? PLAYER_BUBBLE : MOB_BUBBLE) { thought.text = text; thought.ent = ent; thought.life = life; thought.t = 0; thoughtRecent.push(text); if (thoughtRecent.length > 6) thoughtRecent.shift(); }
 // v0.5.0: no-repeat picker - never one of the last 6 lines shown (any pool), so nothing ever repeats back-to-back
 const thoughtRecent = [];
 function pickThought(pool) { const fresh = pool.filter(t => !thoughtRecent.includes(t)); return pick(fresh.length ? fresh : pool.filter(t => t !== thoughtRecent[thoughtRecent.length - 1])); }
@@ -3219,13 +3250,15 @@ function updateThoughts(dt) {
   if (p.torchT <= 0 && Math.random() < .6) pool = THOUGHTS.dark; else if (pool === THOUGHTS.idle && !(p.hpPot > 0) && Math.random() < .35) pool = THOUGHTS.lowpots;
   sayThought(p, pickThought(pool)); thought.next = rand(70, 150);
 }
-function mobThought(e) { if (thought.mobNext > 0 || thought.life > 0 || e.T.boss || Math.random() > .015) return; sayThought(e, pickThought(MOB_THOUGHTS), 2.4); thought.mobNext = 40; }
-function drawThought() {
-  const e = thought.ent; if (!e || thought.life <= 0 || (e !== player && !enemies.includes(e))) return;
-  const t = thought.text, w = textW(t), x = Math.round(e.x - w / 2 - 3), y = Math.round(e.y - (e.r || 6) - 26 - Math.round(e.z || 0)), a = Math.min(1, thought.life * 2);
-  ctx.globalAlpha = a; ctx.fillStyle = '#e8dcc0'; ctx.fillRect(x, y, w + 6, 9); ctx.fillStyle = '#2a2018'; ctx.fillRect(x + 1, y + 1, w + 4, 7);
-  ctx.fillStyle = '#e8dcc0'; ctx.fillRect(Math.round(e.x) - 1, y + 9, 2, 2); ctx.fillRect(Math.round(e.x), y + 11, 1, 1);
-  drawText(t, x + 3, y + 2, '#e8dcc0', false); ctx.globalAlpha = 1;
+function mobThought(e) { if (thought.mobNext > 0 || thought.life > 0 || e.T.boss || Math.random() > .015) return; sayThought(e, pickThought(MOB_THOUGHTS), MOB_BUBBLE); thought.mobNext = 40; }
+function drawThought() { // v0.6.0: multi-line, anchored to the same rounded pixel as the sprite (no 1px shimmer / ghosting while moving)
+  const e = thought.ent; if (!e || thought.life <= 0 || (e !== player && !enemies.includes(e))) { bubbleDraw = null; return; }
+  const lines = wrapBubble(thought.text), w = Math.max(...lines.map(textW)), h = lines.length * 7 + 2, ex = Math.round(e.x), ey = Math.round(e.y), bw = w + 6;
+  const x = ex - (bw >> 1), y = ey - (e.r || 6) - 19 - h - Math.round(e.z || 0), a = Math.min(1, thought.life * 2);
+  ctx.globalAlpha = a; ctx.fillStyle = '#e8dcc0'; ctx.fillRect(x, y, bw, h); ctx.fillStyle = '#2a2018'; ctx.fillRect(x + 1, y + 1, bw - 2, h - 2);
+  ctx.fillStyle = '#e8dcc0'; ctx.fillRect(ex - 1, y + h, 2, 2); ctx.fillRect(ex, y + h + 2, 1, 1);
+  lines.forEach((L, i) => drawText(L, x + 3 + ((w - textW(L)) >> 1), y + 2 + i * 7, '#e8dcc0', false)); ctx.globalAlpha = 1;
+  bubbleDraw = { x, y, w: bw, h, ex, ey, lines: lines.length };
 }
 // ---- skills: hotkeys CAST (rebindable), right-click skill selectable ----
 function hotkeys() { const h = settings.hotkeys; return Array.isArray(h) && h.length === 3 && [0, 1, 2].every(i => h.includes(i)) ? h : (settings.hotkeys = [0, 1, 2]); }
@@ -3234,7 +3267,7 @@ function bindHotkey(slot, skill) { const h = hotkeys().slice(), j = h.indexOf(sk
 function renderSkillsPanel() {
   const P = $('skRows'); P.innerHTML = '';
   SKILLS.forEach((S, i) => { const row = document.createElement('div'); row.className = 'skrow';
-    row.innerHTML = `<span class="skn" style="color:${SKILL_ICON_COL[i]}">${S.name.toUpperCase()}</span><span class="skl">LV ${S.lvl}</span>`;
+    row.innerHTML = `<span class="skn" style="color:${SKILL_ICON_COL[i]}">${S.name.toUpperCase()}</span><span class="skl">${skillLocked(i) ? 'NEEDS BOOK' : 'KNOWN'}</span>`;
     for (let k = 0; k < 3; k++) { const b = document.createElement('button'); b.className = 'shb skb' + (hotkeys()[k] === i ? ' on' : ''); b.textContent = 'KEY ' + (k + 1); b.dataset.sk = i; b.dataset.key = k + 1;
       b.addEventListener('click', () => bindHotkey(k, i)); row.appendChild(b); }
     const r = document.createElement('button'); r.className = 'shb skb rc' + (rskill === i ? ' on' : ''); r.textContent = 'RIGHT-CLICK'; r.dataset.sk = i;
@@ -3416,14 +3449,14 @@ function extraLights(L, view) {
   for (const g of glimmers) if (g.uses && view(g.x, g.y, 50)) { L.push({ x: g.x, y: g.y, r: 34 + Math.sin(time * 1.6 + g.ph) * 3, col: 'glimmer', a: .5 + Math.sin(time * 2.3 + g.ph) * .1, glim: 1 }); L.push({ x: g.x, y: g.y - 1, r: 12, col: 'white', a: .22 + .12 * Math.max(0, Math.sin(time * 3.1 + g.ph)), glim: 1 }); }
   if (shop && view(shop.x, shop.y, 80)) L.push({ x: shop.x + 7, y: shop.y - 4, r: 54 + Math.sin(time * 5) * 1.5, col: 'warm', a: .7 });
   for (const o of puzzles) if (o.kind === 'rune' && view(o.x, o.y, 20)) L.push({ x: o.x, y: o.y, r: o.on ? 18 : 10, col: 'cold', a: o.on ? .6 : .25 });
-  v05Lights(L, view);
+  v05Lights(L, view); v06Lights(L, view);
 }
 // ---- per-frame hook (play state only) ----
 function v04Update(dt) {
   const p = player;
   if (checkBossTalk()) return true;
   updateTraps(dt); if (state !== 'play') return true;
-  updateSurvival(dt); updateThoughts(dt); ambientTick(dt); v05Update(dt);
+  updateSurvival(dt); updateThoughts(dt); ambientTick(dt); v05Update(dt); v06Update(dt);
   if (p.xpBuffT > 0) { p.xpBuffT = Math.max(0, p.xpBuffT - dt); if (!p.xpBuffT) flashMsg('The glimmer fades from your blood.', '#80a8a8'); }
   if (p.useT) { const o = p.useT; if (Math.hypot(o.x - p.x, o.y - p.y) < o.r) { p.useT = null; p.walk = null; o.use(); } else if (!p.walk) p.useT = null; }
   if (touchMode) { const o = nearestInteract(), b = $('bUse'); b.classList.toggle('hidden', !o); if (o) $('bUseL').textContent = o.label.split(' ')[0]; }
@@ -3586,12 +3619,12 @@ function updateWebs(dt) { const p = player, w = webAt(p.x, p.y);
   for (const q of projs) if (q.owner === 'p' && q.skill === 0) { const v = webAt(q.x, q.y); if (v) burnWeb(v, 'fire'); } }
 function meleeWeb(x, y) { for (const w of webs) if (w.tiles.some(t => Math.hypot((t.x + .5) * TS - x, (t.y + .5) * TS - y) < 13)) { w.hp--; burst(w.x, w.y, '#ddd', 5, 20); if (w.hp <= 0) burnWeb(w, 'tear'); else sfxAt('webtear', w.x, w.y, 200, .6); return true; } return false; }
 // ---- 5: interact priority (doors / gates / chests / shop / puzzles beat drink) ----
-function interactTier(o) { const r = o.ref; if (doors.includes(r) || chests.includes(r) || r === shop) return 3; if (puzzles.includes(r) || pblocks.includes(r)) return 2; if (/^DRINK/.test(o.label)) return 0; return 1; }
+function interactTier(o) { if (o.tier !== undefined) return o.tier; const r = o.ref; if (doors.includes(r) || chests.includes(r) || r === shop) return 3; if (puzzles.includes(r) || pblocks.includes(r)) return 2; if (/^DRINK/.test(o.label)) return 0; return 1; }
 // ---- 6: door skins + sliding doors ----
 const SLIDE_TIME = 1.6;
 function skinDoors() { for (const d of doors) { if (d.skin) continue;
   if (d.kind === 'gate') d.skin = pick(['iron', 'iron', 'rusted']); else if (d.kind === 'stone') { d.skin = pick(['stone', 'barred', 'wood', 'bone']); if (d.puzzle) d.slide = true; } } }
-function updateSlides(dt) { for (const d of doors) if (d.open && d.slideK < 1) { d.slideK = Math.min(1, d.slideK + dt / SLIDE_TIME);
+function updateSlides(dt) { for (const d of doors) if (d.open && d.slideK < 1) { d.slideK = Math.min(1, d.slideK + dt / (d.slideT || SLIDE_TIME));
   for (const t of d.tiles) if (Math.random() < .5) parts.push({ x: (t.x + rand(.1, .9)) * TS, y: (t.y + 1) * TS - 1, vx: rand(-14, 14), vy: rand(-14, -2), life: rand(.3, .6), col: pick(['#8a8078', '#6a6058', '#a09888']) });
   if (Math.random() < .3) addTrauma(.02);
   if (d.slideK >= 1) { for (const t of d.tiles) { map[t.y * MW + t.x] = TILE.FLOOR; seen[t.y * MW + t.x] = true; burst((t.x + .5) * TS, (t.y + 1) * TS - 2, '#8a8078', 10, 40); } mapVer++; polyCache.clear(); sfxAt('thud', (d.tiles[0].x + .5) * TS, (d.tiles[0].y + .5) * TS, 400, 1); addTrauma(.12); } } }
@@ -3741,8 +3774,8 @@ function buildTex(th) { const P = TEX_PAL[th] || TEX_PAL.choir, F = P.f, W = P.w
     if (v === 7) { x.fillStyle = 'rgba(20,40,60,.35)'; x.fillRect(9, 2, 2, 13); x.fillRect(8, 9, 1, 6); } }));
   return TEX[th] = { floor, wall }; }
 function texHash(tx, ty) { let h = (tx * 73856093) ^ (ty * 19349663) ^ (depth * 83492791); h = Math.imul(h ^ (h >>> 13), 1274126177); return (h ^ (h >>> 16)) >>> 0; }
-function texFloor(tx, ty) { const T = TEX[floorTheme] || buildTex(floorTheme), h = texHash(tx, ty); return T.floor[h % 100 < 68 ? (h >>> 8) % 2 : 2 + (h >>> 8) % 8]; }
-function texWall(tx, ty) { const T = TEX[floorTheme] || buildTex(floorTheme), h = texHash(tx, ty); return T.wall[h % 100 < 58 ? (h >>> 8) % 2 : 2 + (h >>> 8) % 6]; }
+function texFloor(tx, ty) { const T = TEX[floorTheme] || buildTex(floorTheme), h = texHash(tx, ty); if (ART_TILES.floor.length && h % 100 < 70) return ART_TILES.floor[(h >>> 8) % ART_TILES.floor.length]; return T.floor[h % 100 < 68 ? (h >>> 8) % 2 : 2 + (h >>> 8) % 8]; }
+function texWall(tx, ty) { const T = TEX[floorTheme] || buildTex(floorTheme), h = texHash(tx, ty); if (ART_TILES.wall.length && h % 100 < 70) return ART_TILES.wall[(h >>> 8) % ART_TILES.wall.length]; return T.wall[h % 100 < 58 ? (h >>> 8) % 2 : 2 + (h >>> 8) % 6]; }
 // ---- 10: bloom: additive glow on flames + spell light. Low lighting = fewer sources, half strength. ----
 const BLOOM = { high: { cap: 24, k: .5 }, low: { cap: 8, k: .25 } };
 let bloomStats = { n: 0, k: 0, q: 'high' };
@@ -3802,6 +3835,7 @@ function sfxBoss(kind, arch) { const V = BOSS_VOX[arch]; if (!V) return false; c
   }
   return false; }
 function sfxExtra2(type) {
+  if (sfxExtra3(type)) return true; // v0.6.0 voices
   if (type.startsWith('b_')) { const [, kind, arch] = type.split('_'); return sfxBoss(kind, arch); }
   switch (type) {
     case 'block': sfxTone('square', 1700, 1300, .04, .08); sfxNoise('bandpass', 2600, .12, .14, 0, 4); sfxTone('triangle', 180, 120, .1, .1); return true; // shield clang
@@ -3864,8 +3898,405 @@ function v05Update(dt) { const p = player;
   if (!thought.life && Math.floor(time * 2) !== Math.floor((time - dt) * 2)) for (const e of enemies) if (e.T.boss && e.state !== 'chase' && !e.hidden && dist(e, p) < 240 && los(p, e)) { eventThought('nearboss', 1, 120); break; }
 }
 window.__tlReady = true;
-function placeV05() { skinDoors(); placeSetPieces(); placeWebs(); }
+function placeV05() { skinDoors(); placeSetPieces(); placeWebs(); placeV06(); }
 // ---------- render ----------
+// =====================================================================
+//  v0.6.0 — the parked backlog: dim UI, mushrooms, vines, character profiles + wardrobe, rarity icons,
+//  custom-art loader, spell books, fists-first + rusty sword, early loot gate, unique-drop fx, first-equip fanfare,
+//  examine bubbles, slow walkers, map opacity, puzzle glints + slow doors + map blink, depth banner, bubble ghost fix, damage bump.
+// =====================================================================
+const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } };
+const lsDel = k => { try { localStorage.removeItem(k); } catch (e) {} };
+// ---- §1 dim UI: Off / Low / Med (cryptdelve-settings.uiDim). Dims the canvas HUD + touch buttons + top bar, never the world ----
+const UI_DIM = { off: 1, low: .7, med: .48 };
+let UIA = 1;
+function uiAlpha() { return UI_DIM[settings.uiDim] || 1; }
+function applyDim() { if (!(settings.uiDim in UI_DIM)) settings.uiDim = 'off'; UIA = uiAlpha();
+  for (const id of ['touch', 'topbar']) { const el = document.getElementById(id); if (el) el.style.opacity = state === 'tlayout' ? '1' : String(UIA); }
+  const b = document.getElementById('mDim'); if (b) b.textContent = 'UI DIM: ' + settings.uiDim.toUpperCase(); }
+function cycleDim() { settings.uiDim = { off: 'low', low: 'med', med: 'off' }[settings.uiDim] || 'off'; saveSettings(); applyDim(); }
+// ---- §22 difficulty: enemies hit a little harder, front-loaded on the early floors (tune here) ----
+const DMG_BUMP = { base: 1.08, early: .17, fade: 10 };
+function dmgBump(d, boss) { return DMG_BUMP.base + (boss ? 0 : DMG_BUMP.early * Math.max(0, 1 - (d - 1) / DMG_BUMP.fade)); }
+// ---- §15 slow walkers (ai 'walker'): lurching approach, telegraphed wind-up swing instead of contact damage ----
+const WALKER_IDS = ['zombie', 'skelw', 'spiderw', 'goblin'], WALKER_WIND = .6;
+function addWalkers(pool, d) { for (const id of WALKER_IDS) { const T = ETYPES[id]; if (d >= T.min && Math.random() < (d - T.min < 2 ? .7 : .45)) pool.add(id); } }
+function walkerAI(e, dt, d, ax, ay, spd) { const p = player;
+  if (!e.groaned) { e.groaned = true; sfxAt('groan', e.x, e.y, 300); }
+  if (e.mode === 'wind') { e.t -= dt; e.flash = Math.floor(e.t * 10) % 2 ? .05 : 0;
+    if (e.t <= 0) { e.mode = 'rec'; e.t = .55; sfxAt('walkerswing', e.x, e.y, 300); burst(e.x + ax * 8, e.y + ay * 8, '#c8b890', 6, 40); if (d < e.r + p.r + 11 && los(e, p)) hurtPlayer(e.dmg, e); } return; }
+  if (e.mode === 'rec') { e.t -= dt; if (e.t <= 0) e.mode = ''; return; }
+  const lurch = .5 + .5 * Math.abs(Math.sin(e.anim * 2.4));
+  if (d > e.r + p.r + 4) moveDir(e, ax, ay, spd * lurch, dt);
+  if (d < e.r + p.r + 8 && e.atkCd <= 0) { e.mode = 'wind'; e.t = WALKER_WIND; e.atkCd = 1.7; tele({ x: e.x, y: e.y, r: e.r + p.r + 10, dur: WALKER_WIND, follow: e, col: '#d0b060' }); } }
+// ---- §10 early loot gate (player level <= 2): fewer / plainer drops; rusty sword + survival basics untouched ----
+const LOOT_GATE = { lvl: 2, white: .35, gold: .7, chestItem: .5, magic: .35, champWhite: .5 };
+function lootGated() { return !!player && player.lvl <= LOOT_GATE.lvl; }
+// ---- §11 unique drop: flash + shockwave + its own fanfare (one voice per 0.6s even if several drop) ----
+let vfx6 = [], uniqueFxT = -9;
+function uniqueDropFx(x, y) { if (vfx6.length > 10) vfx6.splice(0, vfx6.length - 10);
+  vfx6.push({ kind: 'uflash', x, y: y - 4, t: 0, dur: .5 }, { kind: 'shock', x, y: y - 2, t: 0, dur: .75, r: 46 });
+  burst(x, y - 4, '#ffe0a0', 18, 70); burst(x, y - 4, '#d8a040', 12, 50); addTrauma(.15);
+  if (time - uniqueFxT > .6) { uniqueFxT = time; sfxAt('unique', x, y, 700, 1); } }
+// ---- §12 first time a slot goes empty -> filled on this character: grunt + drums ----
+function firstEquipCheck(slot, old) { const p = player; p.slotsFilled = p.slotsFilled || {}; const first = !old && !p.slotsFilled[slot]; p.slotsFilled[slot] = true;
+  if (first) { sfx('firstequip'); addText(p.x, p.y - 18, 'GEARED UP!', '#ffe080', true); burst(p.x, p.y - 4, '#ffe080', 10, 40); } return first; }
+// ---- §13 / §14 / §21 thought bubbles: examine text in the bubble, +1.75s for the player, crisp anchor ----
+const PLAYER_BUBBLE = 4.95, MOB_BUBBLE = 2.4, BUBBLE_W = 36;
+function wrapBubble(t) { const out = []; for (const para of String(t).split('\n')) { let line = '';
+    for (const w of para.split(' ')) { if (line && (line + ' ' + w).length > BUBBLE_W) { out.push(line); line = w; } else line = line ? line + ' ' + w : w; }
+    if (line) out.push(line); } return out.slice(0, 3); }
+function examineSay(text) { const p = player; if (!p) return; sayThought(p, text, PLAYER_BUBBLE); thought.next = Math.max(thought.next, 20); thought.mobNext = Math.max(thought.mobNext, 8); sfx('examine'); }
+let bubbleDraw = null;
+const DOOR_EXAM = { p_levers: 'THREE MARKS. THREE LEVERS\nSOMEWHERE BEHIND ME.', p_braziers: 'EMBER MARKS: ONE, TWO, THREE.\nLIGHT THE SCONCES IN ORDER.', p_block: 'A WORN PLATE NEARBY WANTS\nA HEAVY STONE BLOCK.',
+  rune: 'THREE CARVED RUNES. TOUCH\nTHEIR TWINS IN ORDER.', plate: 'THREE WORN PLATES IN THIS\nROOM. STAND ON ALL OF THEM.' };
+function doorExamine(d) { const bk = d.book !== undefined ? '\nINK AND DUST BEHIND IT.' : '';
+  if (d.puzzle === 'lever') return 'PAINTED MARKS: ' + d.seq.map(i => LEVER_COL[i][0]).join(', ') + '.\nPULL THE LEVERS IN THAT ORDER.' + bk;
+  return (DOOR_EXAM[d.puzzle] || 'A SEALED STONE DOOR.') + bk; }
+// ---- §17 examine spots: statues, crypts, ritual sites (short bubble copy; the odd soft hint) ----
+const EXAM_TXT = {
+  idol: ['A CRACKED IDOL. ITS GRIN\nIS NEWER THAN ITS FACE.', 'SOMEONE LEFT TEETH AS AN\nOFFERING. SWEET.', 'THE IDOL IS WARM.\nTHAT IS NOT NORMAL.', 'ITS EYES ARE CHIPPED OUT.\nIT STILL WATCHES.'],
+  knight: ['A KNIGHT EFFIGY. THE\nPLAQUE SAYS: HE TRIED.', 'STONE ARMOR, STONE SWORD,\nSTONE REGRETS.', 'HOLLOWMERE CREST. OSWIN\'S\nMEN DIED STANDING.', 'HIS SHIELD IS SPLIT\nCLEAN IN TWO. YIKES.'],
+  saint: ['A FORGOTTEN SAINT. MOSS\nWHERE THE HALO WAS.', 'SHE HOLDS AN EMPTY LAMP.\nRELATABLE.', 'SAINT OF DRY FEET. SHE\nFAILED HERE, CLEARLY.', 'HER HANDS POINT DOWN.\nDEEPER. ALWAYS DEEPER.'],
+  coffin: ['A SEALED COFFIN. I WILL\nNOT BE KNOCKING.', 'NAME SCRATCHED OUT. THE\nCLAW MARKS ARE INSIDE.', 'THIS ONE IS EMPTY.\nWHERE DID YOU GO?', 'CHEAP PINE. THE CHOIR\nNEVER PAID FOR OAK.'],
+  niche: ['A BURIAL NICHE. THE SKULL\nHAS A BETTER VIEW THAN ME.', 'BONES, NEATLY STACKED.\nSOMEONE CARED, ONCE.', 'A CANDLE STUB. STILL\nWARM. WHO LIT IT?'],
+  ritual: ['CHALK CIRCLE. THE LINES\nARE FRESH. NOT GOOD.', 'AN ALTAR. DRIED BLOOD\nAND ONE NICE CANDLE.', 'THE CHOIR SANG HERE.\nTHE FLOOR STILL HUMS.', 'FIVE POINTS. FIVE CANDLES.\nZERO GOOD IDEAS.'],
+  bowl: ['AN OFFERING BOWL. COINS,\nASH, A SINGLE TOOTH.', 'RAINWATER IN THE BOWL.\nAND EYES. NO. JUST EYES.', 'OFFERINGS TO THE BONE\nKING. HE NEVER COLLECTS.'],
+  hint: ['THE STONE NEAR HERE\nSOUNDS HOLLOW...', 'A DRAFT. A CRACKED WALL\nMUST BE CLOSE.'],
+  bookhint: ['I SMELL OLD INK. A BOOK\nIS HIDDEN ON THIS FLOOR.'] };
+const EXAM_KINDS = { statue: 1, coffin: 1, ritual: 1, bowl: 1, niche: 1 };
+function examKey(o) { return o.kind === 'statue' ? ['idol', 'knight', 'saint'][o.v % 3] : o.kind; }
+function examineText(o) { const pool = EXAM_TXT[examKey(o)] || ['NOTHING USEFUL.'];
+  const sx = Math.floor(o.x / TS), sy = Math.floor(o.y / TS);
+  if (Math.random() < .3 && secrets.some(s => !s.broken && Math.abs(s.tx - sx) + Math.abs(s.ty - sy) < 10)) return pick(EXAM_TXT.hint);
+  if (Math.random() < .2 && books.some(b => !b.read && !b.door.open)) return EXAM_TXT.bookhint[0];
+  o.exN = ((o.exN === undefined ? (o.tx || 0) + (o.ty || 0) : o.exN + 1)) % pool.length; return pool[o.exN]; }
+function placePOIs() { const last = rooms[rooms.length - 1], boss = enemies.some(e => e.T.boss), inAnnex = (tx, ty) => annexes.some(A => inRect(tx, ty, A.rect));
+  const put = (kind, tx, ty, extra) => { const x = (tx + .5) * TS, y = (ty + .5) * TS; if (tileAt(tx, ty) !== TILE.FLOOR || inAnnex(tx, ty) || doorwayNear(tx, ty, 1) || nearAny(x, y, 18) || ground.some(g => Math.hypot(g.x - x, g.y - y) < 12)) return false;
+    if (tileAt(tx, ty + 1) === TILE.STAIRS || tileAt(tx, ty) === TILE.STAIRS) return false; setp.push(Object.assign({ kind, x, y, tx, ty, v: irand(0, 2) }, extra || {})); return true; };
+  let n = 0;
+  rooms.forEach((r, ri) => { if (ri === 0 || (r === last && boss)) return;
+    if (Math.random() < .22 && r.w >= 4) { for (let k = 0; k < 4; k++) if (put('statue', irand(r.x + 1, r.x + r.w - 2), r.y, { cracked: Math.random() < .5 })) { n++; break; } }
+    if (Math.random() < .14) { for (let k = 0; k < 4; k++) if (put('bowl', irand(r.x, r.x + r.w - 1), irand(r.y, r.y + r.h - 1))) { n++; break; } } });
+  for (let tries = 0; n < 2 && tries < 20; tries++) { const r = pick(rooms.slice(1, rooms.length - 1).concat(rooms.length < 3 ? [rooms[0]] : [])); if (r && r.w >= 4 && put('statue', irand(r.x + 1, r.x + r.w - 2), r.y, { cracked: Math.random() < .5 })) n++; }
+  return n; }
+// ---- §2 mushrooms: clusters in damp corners, by water / pools / fog, crypt niches. Some glow faintly ----
+const SHROOM_COL = [['#d8c8a8', '#8a7058'], ['#58f0d0', '#1e7060'], ['#d0a0ff', '#5a3a80'], ['#e06040', '#7a2a20']];
+function placeShrooms() { const spots = [], add = (tx, ty, w) => spots.push({ tx, ty, w }), inAnnex = (tx, ty) => annexes.some(A => inRect(tx, ty, A.rect));
+  for (const w of waters) for (let x = w.x0; x <= w.x1; x += 2) add(x, w.y - 1, 3);
+  for (const o of setp) { if (o.kind === 'pool' || o.kind === 'coffin') add(o.tx + irand(-1, 2), o.ty + irand(-1, 1), 3); else if (o.kind === 'fog') add(Math.floor(o.x / TS) + irand(-2, 2), Math.floor(o.y / TS) + irand(-1, 1), 2); else if (o.kind === 'niche') add(o.tx + irand(-1, 1), o.ty + 1, 3); }
+  for (const b of basins) add(Math.floor(b.x / TS) + pick([-1, 1]), Math.floor(b.y / TS), 2);
+  for (const r of rooms) for (const [x, y] of [[r.x, r.y], [r.x + r.w - 1, r.y], [r.x, r.y + r.h - 1], [r.x + r.w - 1, r.y + r.h - 1]]) add(x, y, 1);
+  const max = window.__forceShrooms || 5 + Math.min(6, depth), damp = floorTheme === 'drowned' || floorTheme === 'vermin'; let n = 0;
+  for (const s of shuffled(spots)) { if (n >= max) break; if (!window.__forceShrooms && Math.random() > .22 * s.w) continue;
+    if (tileAt(s.tx, s.ty) !== TILE.FLOOR || inAnnex(s.tx, s.ty) || doorwayNear(s.tx, s.ty, 1) || (vineGrid && vineGrid[s.ty * MW + s.tx]) || webs.some(w => w.tiles.some(t => t.x === s.tx && t.y === s.ty))) continue;
+    const x = (s.tx + .5) * TS + rand(-3, 3), y = (s.ty + .5) * TS + rand(-1, 4); if (nearAny(x, y, 12)) continue;
+    const glow = Math.random() < (damp ? .45 : .3); setp.push({ kind: 'shroom', x, y, tx: s.tx, ty: s.ty, v: glow ? irand(1, 2) : pick([0, 0, 3]), n: irand(2, 4), seed: irand(1, 99999), glow, ph: Math.random() * 6 }); n++; }
+  return n; }
+function shroomCaps(o) { if (o.caps) return o.caps; const R = mulberry(o.seed), c = [];
+  for (let i = 0; i < o.n; i++) c.push({ dx: Math.round((R() - .5) * 9), dy: Math.round((R() - .5) * 4), h: 1 + Math.floor(R() * 3), w: R() < .35 ? 2 : 1 }); c.sort((a, b) => a.dy - b.dy); return (o.caps = c); }
+// ---- §3 vines: solid tangles across corridor chokes. Cut (any melee, fists too) or burn (torch / Fireball). Never seal the stairs ----
+let vines = [], vineBurnN = 0;
+const VINE_HP = 4, VINE_BURN = .8, VINE_TORCH = 3;
+function setVineGrid() { vineGrid = new Uint8Array(MW * MH); vineN = 0; for (const v of vines) for (const t of v.tiles) { vineGrid[t.y * MW + t.x] = 1; vineN++; } }
+function vineAtTile(tx, ty) { if (!vineN) return null; for (const v of vines) if (v.tiles.some(t => t.x === tx && t.y === ty)) return v; return null; }
+function stairsReachable(extraSolid) { // BFS from the start with every door open, vines (and extraSolid) closed
+  const s = rooms[0], vis = new Uint8Array(MW * MH), q = [s.cy * MW + s.cx], doorT = new Set(); for (const d of doors) for (const t of d.tiles) doorT.add(t.y * MW + t.x);
+  const open = k => (map[k] !== TILE.WALL || doorT.has(k)) && !vineGrid[k] && !(extraSolid && extraSolid.has(k)); vis[q[0]] = 1; let st = -1;
+  while (q.length) { const c = q.pop(); if (map[c] === TILE.STAIRS) st = c; const x = c % MW, y = (c / MW) | 0;
+    for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + i, Y = y + j; if (X < 0 || Y < 0 || X >= MW || Y >= MH) continue; const k = Y * MW + X; if (vis[k] || !open(k)) continue; vis[k] = 1; q.push(k); } }
+  return st >= 0; }
+function placeVines() { vines = []; setVineGrid(); if (depth < 2 && window.__forceVines == null) return 0;
+  const n = window.__forceVines != null ? window.__forceVines : Math.min(3, irand(0, 1) + (depth >= 3 ? 1 : 0) + (depth >= 7 ? 1 : 0)); if (!n) return 0;
+  const s = rooms[0]; if (!stairsReachable()) return 0; const cand = [];
+  for (let ty = 1; ty < MH - 1; ty++) for (let tx = 1; tx < MW - 1; tx++) { const cs = crossSection(tx, ty); if (!cs) continue;
+    if (cs.tiles.some(t => Math.hypot(t.x - s.cx, t.y - s.cy) < 7 || doorwayNear(t.x, t.y, 2) || traps.some(T => Math.abs(T.tx - t.x) + Math.abs(T.ty - t.y) < 3) || secrets.some(q => Math.abs(q.tx - t.x) <= 1 && Math.abs(q.ty - t.y) <= 1)
+      || webs.some(w => Math.abs(w.tx - t.x) + Math.abs(w.ty - t.y) < 6) || puzzles.some(o => Math.hypot(o.x - (t.x + .5) * TS, o.y - (t.y + .5) * TS) < 40) || pblocks.some(b => Math.abs(b.ty - t.y) < 2 && Math.abs(b.tx - t.x) < 8) || ground.some(g => Math.floor(g.x / TS) === t.x && Math.floor(g.y / TS) === t.y))) continue;
+    cand.push(cs); }
+  for (const c of shuffled(cand)) { if (vines.length >= n) break; const t0 = c.tiles[0]; if (vines.some(v => Math.abs(v.tx - t0.x) + Math.abs(v.ty - t0.y) < 10)) continue;
+    const ks = new Set(c.tiles.map(t => t.y * MW + t.x)); if (!stairsReachable(ks)) continue; // §3: the stairs never sit behind a vine
+    const tl = c.tiles[c.tiles.length - 1]; vines.push({ tiles: c.tiles.map(t => ({ x: t.x, y: t.y })), tx: t0.x, ty: t0.y, x: (t0.x + tl.x + 1) / 2 * TS, y: (t0.y + tl.y + 1) / 2 * TS, axis: c.axis, hp: VINE_HP, burning: 0, shake: 0, seed: irand(1, 99999) }); setVineGrid(); }
+  return vines.length; }
+function clearVine(v, how) { const i = vines.indexOf(v); if (i < 0) return false; vines.splice(i, 1); setVineGrid();
+  for (const t of v.tiles) { const x = (t.x + .5) * TS, y = (t.y + .5) * TS; if (how === 'burn') { burst(x, y, '#ff9030', 10, 30); burst(x, y - 3, '#555', 6, 18); } else { burst(x, y, '#4a8a30', 10, 50); burst(x, y, '#7ab048', 6, 30); } }
+  sfxAt(how === 'burn' ? 'vineburn' : 'vinechop', v.x, v.y, 300, 1.1); if (how === 'burn') vineBurnN++; flashMsg(how === 'burn' ? 'The vines shrivel to ash.' : 'You hack through the vines.', how === 'burn' ? '#ffb070' : '#9ad070'); return true; }
+function hitVine(v, dmg) { if (v.burning > 0) return; v.hp -= dmg; v.shake = .25; burst(v.x, v.y, '#5a9a38', 6, 40); if (v.hp <= 0) clearVine(v, 'cut'); else sfxAt('vinechop', v.x, v.y, 260, .7); }
+function meleeVine(x, y) { for (const v of vines) if (v.tiles.some(t => Math.hypot((t.x + .5) * TS - x, (t.y + .5) * TS - y) < 15)) { hitVine(v, player.equip.weapon ? 2 : 1); return true; } return false; }
+function cutVinesNear(x, y, r) { for (const v of vines.slice()) if (v.tiles.some(t => Math.hypot((t.x + .5) * TS - x, (t.y + .5) * TS - y) < r + 8)) hitVine(v, 2); }
+function burnVine(v) { if (v.burning > 0 || vines.indexOf(v) < 0) return false; v.burning = VINE_BURN; sfxAt('smolder', v.x, v.y, 260, 1); return true; }
+function burnVinesAt(x, y, r) { for (const v of vines.slice()) if (v.tiles.some(t => Math.hypot((t.x + .5) * TS - x, (t.y + .5) * TS - y) < r + 8)) burnVine(v); }
+function vineUse(v) { const p = player;
+  if (p.torchT > 0) { if (burnVine(v)) { p.torchT = Math.max(0, p.torchT - VINE_TORCH); flashMsg('You hold your torch to the vines...', '#ffb070'); } return; }
+  if (p.atkCd > 0) return; faceTo(v.x, v.y); p.atkCd = 0; doAttack(true); }
+function updateVines(dt) { const p = player;
+  for (const v of vines.slice()) { v.shake = Math.max(0, v.shake - dt);
+    if (v.burning > 0) { v.burning -= dt; if (Math.random() < .8) { const t = pick(v.tiles); parts.push({ x: (t.x + Math.random()) * TS, y: (t.y + Math.random()) * TS, vx: rand(-8, 8), vy: rand(-26, -8), life: rand(.2, .5), col: pick(['#ffa040', '#ff6020', '#ffe0a0', '#555']) }); } if (v.burning <= 0) clearVine(v, 'burn'); continue; }
+    if (!v.hinted && Math.hypot(v.x - p.x, v.y - p.y) < 30) { v.hinted = true; flashMsg(p.torchT > 0 ? `Thick vines choke the way. Burn them (${touchMode ? 'USE' : 'F'}) or cut them down.` : 'Thick vines choke the way. Cut them down - or find a flame.', '#9ad070'); } } }
+// ---- §8 spell books: one per floor for the next unknown skill, in a sealed puzzle niche; USE to read + learn ----
+const BOOK_MIN = [1, 3, 6], BOOK_COL = ['#ff9030', '#e2c480', '#5ad8ff'], BOOK_TXT = ['"IGNIS." THE PAGE IS HOT.\nMY HANDS REMEMBER FIRE.', '"TURBO." THE WORDS SPIN.\nSO DOES MY HEAD. AND BLADE.', '"GELU." FROST ON THE INK.\nMY BREATH TURNS TO ICE.'];
+let books = [];
+function skillLocked(i) { return !(player && player.learned && player.learned[i]); }
+function lockedSkillMsg(i) { flashMsg(`${SKILLS[i].name} is unknown - its Spell Book lies behind a sealed puzzle door`, '#aaa'); }
+function nextBook() { const p = player; if (!p || !p.learned) return -1; for (let i = 0; i < 3; i++) if (!p.learned[i]) return depth >= BOOK_MIN[i] ? i : -1; return -1; }
+function placeBookVault() { books = []; const k = window.__forceBookSkill != null ? window.__forceBookSkill : nextBook(); if (k < 0) return null;
+  const pool = rooms.length > 2 ? rooms.slice(1, rooms.length - 1) : rooms.slice(0, 1);
+  for (let tries = 0; tries < 4; tries++) { const A = carveAnnex(pool, 2, 3, 2, 2); if (!A) return null;
+    const doorPt = { x: (A.dx + .5) * TS, y: (A.dy + .5) * TS }, pts = puzzleSpots(A.room, 3, doorPt);
+    if (!pts) { const R = A.rect; for (let y = R.y; y < R.y + R.h; y++) for (let x = R.x; x < R.x + R.w; x++) map[y * MW + x] = TILE.WALL; annexes.pop(); continue; }
+    map[A.dy * MW + A.dx] = TILE.WALL; const pk = window.__forceBookPuzzle || pick(['lever', 'rune', 'plate']);
+    const d = { kind: 'stone', tiles: [{ x: A.dx, y: A.dy }], open: false, rect: A.rect, room: A.room, side: A.side, puzzle: pk, prog: 0, seq: shuffled([0, 1, 2]), glyphs: shuffled([0, 1, 2, 3, 4]).slice(0, 3), book: k, skin: 'stone', slide: true };
+    pts.forEach((pt, i) => puzzles.push({ door: d, kind: pk, x: pt.x, y: pt.y, idx: i, on: false })); doors.push(d);
+    const R = A.rect, b = { x: (R.x + R.w / 2) * TS, y: (R.y + R.h / 2) * TS + 2, skill: k, door: d, read: false, ph: Math.random() * 6 }; books.push(b); return b; }
+  return null; }
+function bookOpen(b) { return b.door.open && !(b.door.slideK < 1); }
+function readBook(b) { const p = player; if (b.read) return false; b.read = true; p.learned = p.learned || [false, false, false]; p.learned[b.skill] = true;
+  sfx('learn'); burst(b.x, b.y - 4, BOOK_COL[b.skill], 22, 60); burst(p.x, p.y - 6, '#ffffff', 10, 30); addTrauma(.1); examineSay(BOOK_TXT[b.skill]);
+  flashMsg(`You learned ${SKILLS[b.skill].name}! ` + (touchMode ? 'Tap its button to cast.' : `Press ${keyOfSkill(b.skill)} to cast.`), BOOK_COL[b.skill]); save(); return true; }
+// ---- §9 fists first + a guaranteed worn Rusty Sword on the first floor(s) ----
+function makeRusty() { const it = makeItem(1, 0, 'Rusty Sword'); it.dur = Math.max(1, Math.round(it.maxDur * .55)); it.rusty = true; return it; }
+function hasWeapon() { const p = player; return !!(p.equip.weapon || p.inv.some(it => it && it.slot === 'weapon')); }
+function placeRusty() { const p = player; if (!p || p.gotRusty || hasWeapon() || depth > 3 || ground.some(g => g.rusty)) return null;
+  const R = bfsCount(rooms[0].cx, rooms[0].cy).vis, cand = rooms.slice(1).filter(r => R[r.cy * MW + r.cx] && !(enemies.some(e => e.T.boss) && r === rooms[rooms.length - 1]));
+  const r = cand[0] || rooms[0], s = freeSpot(r); const g = { x: s.x, y: s.y, bob: Math.random() * 6, lock: false, item: makeRusty(), rusty: true };
+  const q = safeSpot(g.x, g.y); g.x = q.x; g.y = q.y; ground.push(g);
+  const rx = g.x - 11; if (!solidAt(rx, g.y) && !props.some(o => Math.hypot(o.x - rx, o.y - g.y) < 10)) props.push({ kind: 'remains', x: rx, y: g.y + 1, broken: false, v: 0 }); return g; }
+// ---- §4 character profiles: 'cryptdelve' always holds the ACTIVE character's run (old builds keep working);
+//      other characters live in cryptdelve-p-<id>; the list + active id in cryptdelve-profiles ----
+const PROF_KEY = 'cryptdelve-profiles', PROF_MAX = 6, profSlot = id => 'cryptdelve-p-' + id;
+const LOOKS = { skin: ['#f0c090', '#d8a070', '#b07848', '#7a4a2a', '#e8d8cc'], hair: ['#c8c8d8', '#3a2a20', '#8a5a30', '#e0c060', '#a03020', '#2a2a38'], cloak: ['#3868d0', '#a03030', '#3a8040', '#6a40a0', '#806040', '#404050'] };
+let profiles = null;
+function cleanLook(L) { L = L && typeof L === 'object' ? L : {}; const o = {}; for (const k in LOOKS) o[k] = clamp(Math.floor(+L[k] || 0), 0, LOOKS[k].length - 1); return o; }
+function cleanName(n) { return String(n || '').toUpperCase().replace(/[^A-Z0-9 '\-]/g, '').trim().slice(0, 12); }
+function saveProfiles() { lsSet(PROF_KEY, JSON.stringify(profiles)); }
+function loadProfiles() { let P = null; try { P = JSON.parse(lsGet(PROF_KEY)); } catch (e) {}
+  if (!P || !Array.isArray(P.list) || !P.list.length) { P = { v: 1, active: 'p1', list: [{ id: 'p1', name: 'WANDERER', look: cleanLook(), t: Date.now() }] };
+    if (lsGet('cryptdelve')) P.migrated = true; } // the old single save simply becomes the default character's run (same key, untouched)
+  P.list = P.list.filter(q => q && typeof q.id === 'string' && /^[a-z0-9]+$/i.test(q.id)).slice(0, PROF_MAX).map(q => ({ id: q.id, name: cleanName(q.name) || 'WANDERER', look: cleanLook(q.look), t: +q.t || 0 }));
+  if (!P.list.length) P.list = [{ id: 'p1', name: 'WANDERER', look: cleanLook(), t: Date.now() }];
+  if (!P.list.some(q => q.id === P.active)) P.active = P.list[0].id; profiles = P; saveProfiles(); return P; }
+function activeProfile() { if (!profiles) loadProfiles(); return profiles.list.find(q => q.id === profiles.active) || profiles.list[0]; }
+function profRaw(id) { return id === profiles.active ? lsGet('cryptdelve') : lsGet(profSlot(id)); }
+function profMeta(id) { try { const s = JSON.parse(profRaw(id)); if (s && s.p) return { lvl: +s.p.lvl || 1, depth: +s.depth || 1 }; } catch (e) {} return null; }
+function switchProfile(id) { if (!profiles.list.some(q => q.id === id)) return false; if (id === profiles.active) return true;
+  const cur = lsGet('cryptdelve'); if (cur) lsSet(profSlot(profiles.active), cur); else lsDel(profSlot(profiles.active));
+  const nx = lsGet(profSlot(id)); if (nx) lsSet('cryptdelve', nx); else lsDel('cryptdelve'); lsDel(profSlot(id));
+  profiles.active = id; saveProfiles(); refreshProfileUI(); return true; }
+function createProfile(name, look) { if (profiles.list.length >= PROF_MAX) return null; let id; do id = 'p' + Math.random().toString(36).slice(2, 8); while (profiles.list.some(q => q.id === id));
+  const P = { id, name: cleanName(name) || ('WANDERER ' + (profiles.list.length + 1)), look: cleanLook(look), t: Date.now() }; profiles.list.push(P); saveProfiles(); switchProfile(id); return P; }
+function deleteProfile(id) { const i = profiles.list.findIndex(q => q.id === id); if (i < 0) return false;
+  if (profiles.list.length === 1) { lsDel('cryptdelve'); profiles.list[0] = { id: profiles.list[0].id, name: 'WANDERER', look: cleanLook(), t: Date.now() }; saveProfiles(); refreshProfileUI(); return true; }
+  if (id === profiles.active) switchProfile(profiles.list[i ? 0 : 1].id);
+  lsDel(profSlot(id)); profiles.list.splice(profiles.list.indexOf(profiles.list.find(q => q.id === id)), 1); saveProfiles(); refreshProfileUI(); return true; }
+function lookOf(p) { return cleanLook(p && p.look); }
+// ---- §5 wardrobe: the on-map hero wears what's equipped (helm / armor / boots recolour the sprite; shield, amulet, ring, weapon drawn on top) ----
+const P_ROWS = [["....kkkk....", "...khhhhk...", "..khhhhhhk..", "..khkssksk..", "..kssssssk..", "...kbbbbk...", "..kbbbybbk..", ".kbbbbybbbk.", ".ksbbbybbsk.", "..kBBBBBBk..", "..kwk..kwk..", "..kkk..kkk.."],
+  ["....kkkk....", "...khhhhk...", "..khhhhhhk..", "..khkssksk..", "..kssssssk..", "...kbbbbk...", "..kbbbybbk..", ".kbbbbybbbk.", ".ksbbbybbsk.", "..kBBBBBBk..", "...kwkkwk...", "...kkk.kk..."]];
+const ARMOR_COL = { 'Leather Armor': ['#8a5a30', '#5a3a20'], 'Chain Mail': ['#9aa2b2', '#5a6070'], 'Plate Mail': ['#d0d8e4', '#7a8290'], 'Dusk Shroud': ['#4a3a5a', '#2a2036'] };
+const HELM_COL = { Cap: '#7a4a20', Helm: '#9aa2b2', 'Great Helm': '#d0d8e4', 'Bone Visage': '#e8e0c8' }, BOOT_COL = { Boots: '#7a4a24', Greaves: '#b0b8c8' };
+const SHIELD_COL = { 'Wooden Buckler': '#8a5a30', 'Round Shield': '#9a7040', 'Bone Ward': '#e8e0c8', 'Choir Pavise': '#e8e8f0' };
+function shadeHex(h, k) { const n = parseInt(h.slice(1), 16), f = c => clamp(Math.round(c * k), 0, 255); return '#' + [f(n >> 16), f((n >> 8) & 255), f(n & 255)].map(v => v.toString(16).padStart(2, '0')).join(''); }
+function wardrobe(p) { const L = lookOf(p), E = (p && p.equip) || {}, pal = Object.assign({}, PAL);
+  pal.s = LOOKS.skin[L.skin]; pal.h = LOOKS.hair[L.hair]; pal.b = LOOKS.cloak[L.cloak]; pal.B = shadeHex(pal.b, .6); pal.y = '#c8a040'; pal.w = '#3a2c26';
+  if (E.armor) { const c = ARMOR_COL[E.armor.base] || ['#9aa2b2', '#5a6070']; pal.b = c[0]; pal.B = c[1]; pal.y = E.armor.rarity ? RCOL[E.armor.rarity] : '#e8c840'; }
+  let visor = false; if (E.helm) { pal.h = HELM_COL[E.helm.base] || '#9aa2b2'; pal.H = shadeHex(pal.h, .62); visor = /Great|Visage/.test(E.helm.base); }
+  if (E.boots) pal.w = BOOT_COL[E.boots.base] || '#7a4a24';
+  const key = [pal.s, pal.h, pal.b, pal.B, pal.y, pal.w, visor ? 1 : 0].join('|');
+  const over = []; if (E.shield) over.push('shield'); if (E.amulet) over.push('amulet'); if (E.ring) over.push('ring'); if (E.helm) over.push('helm'); over.push(E.weapon ? 'weapon:' + E.weapon.icon : 'fists');
+  return { pal, key, visor, over }; }
+const WARD_CACHE = new Map();
+function wardSprites(p) { const W = wardrobe(p); let S = WARD_CACHE.get(W.key); if (S) return S; if (WARD_CACHE.size > 40) WARD_CACHE.clear();
+  const rows = P_ROWS.map(R => R.map((r, j) => W.visor && j === 3 ? r.replace(/s/g, 'H') : r));
+  S = { a: withFlips(makeSprite(rows[0], W.pal)), b: withFlips(makeSprite(rows[1], W.pal)), key: W.key }; WARD_CACHE.set(W.key, S); return S; }
+function drawWardOverlays(p, X, Y, side) { const E = p.equip;
+  if (E.shield) { const c = SHIELD_COL[E.shield.base] || '#9aa2b2', sx = side > 0 ? X : X + 8, sy = Y + 6; ctx.fillStyle = '#1a1020'; ctx.fillRect(sx, sy, 4, 6); ctx.fillStyle = c; ctx.fillRect(sx + 1, sy + 1, 2, 4); ctx.fillStyle = shadeHex(c, .6); ctx.fillRect(sx + 1, sy + 4, 2, 1);
+    ctx.fillStyle = E.shield.rarity ? RCOL[E.shield.rarity] : '#c8a040'; ctx.fillRect(sx + 1 + (side > 0 ? 1 : 0), sy + 2, 1, 1); }
+  if (E.amulet) { ctx.fillStyle = Math.floor(time * 2 + 1) % 3 ? (E.amulet.rarity ? RCOL[E.amulet.rarity] : '#e8c840') : '#ffffff'; ctx.fillRect(X + 5 + (side > 0 ? 1 : 0), Y + 5, 1, 1); }
+  if (E.ring && Math.floor(time * 1.5) % 2) { ctx.fillStyle = '#ffe060'; ctx.fillRect(side > 0 ? X + 9 : X + 2, Y + 8, 1, 1); } }
+// ---- §6 rarity icons: normals keep the shared art; Magic / Rare / Unique get their own look, seeded from name + powers ----
+const ICON_CACHE = new Map(), ICON_URL6 = new Map();
+function hashStr(s) { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+const POWER_GEM = { barrier: '#5ae8ff', thorns: '#ff5040', secrets: '#c890ff', skillAmp: '#ffa030', firePulse: '#ff7020', fear: '#b0b0ff', onKillMana: '#6080ff', onKillLife: '#ff6080', dodgeWindow: '#a0ffa0' };
+const ICON_METAL = [null, ['#a8c0ff', '#90b0e8', '#b8d8f0', '#9ad0ff'], ['#f0f0a0', '#d8e0ff', '#e8c8ff', '#c0f0d0', '#ffd8a0'], ['#f0d080', '#ffd0a0', '#e8e0ff', '#ff9a7a', '#c0ffe0']];
+const ICON_GEM = ['#ff4040', '#40e060', '#4080ff', '#e040ff', '#40e0e0', '#ffa020', '#ffffff'];
+function iconKey(it) { return it.icon + '|' + it.rarity + '|' + it.name + '|' + (it.powers || []).map(q => q && q.t).join(','); }
+function hexRGB(h) { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+function genRarityIcon(it) { const base = ICONS[it.icon], W = base.width, H = base.height, R = mulberry(hashStr(iconKey(it))), rar = clamp(it.rarity | 0, 1, 3);
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d'); x.drawImage(base, 0, 0);
+  const img = x.getImageData(0, 0, W, H), d = img.data, eq = (i, h) => { const q = hexRGB(h); return Math.abs(d[i] - q[0]) < 10 && Math.abs(d[i + 1] - q[1]) < 10 && Math.abs(d[i + 2] - q[2]) < 10; }; // tolerant: WebKit canvases may shift colours slightly
+  const metal = hexRGB(ICON_METAL[rar][Math.floor(R() * ICON_METAL[rar].length)]), metalD = metal.map(v => Math.round(v * .58));
+  const pw = (it.powers || []).map(q => POWER_GEM[q.t]).filter(Boolean), gem = hexRGB(pw[0] || ICON_GEM[Math.floor(R() * ICON_GEM.length)]), gem2 = hexRGB(pw[1] || ICON_GEM[Math.floor(R() * ICON_GEM.length)]);
+  const wood = hexRGB(['#7a4a20', '#5a3a50', '#3a4a5a', '#6a2a20', '#2a2a30'][Math.floor(R() * 5)]), set = (i, q) => { d[i] = q[0]; d[i + 1] = q[1]; d[i + 2] = q[2]; d[i + 3] = 255; };
+  const metalPx = [], woodPx = [];
+  for (let i = 0; i < d.length; i += 4) { if (!d[i + 3]) continue;
+    if (eq(i, PAL.m) || eq(i, PAL.h) || eq(i, PAL.O)) { set(i, metal); metalPx.push(i); } else if (eq(i, PAL.M) || eq(i, PAL.H)) set(i, metalD);
+    else if (eq(i, PAL.c)) set(i, gem); else if (eq(i, PAL.y) || eq(i, PAL.F)) { set(i, metal.map((v, j) => Math.round(v * .55 + [255, 220, 120][j] * .45))); metalPx.push(i); } else if (eq(i, PAL.w) || eq(i, PAL.W)) { set(i, eq(i, PAL.W) ? wood.map(v => Math.min(255, Math.round(v * 1.35))) : wood); woodPx.push(i); }
+    else if (!eq(i, PAL.k)) { set(i, [0, 1, 2].map(j => Math.round(d[i + j] * .6 + metal[j] * .4))); metalPx.push(i); } } // other art (amulets, boots...): tint toward the seeded metal
+  if (metalPx.length < 3) metalPx.push(...woodPx); // all-leather art (boots...) still gets its studs
+  const nGem = rar === 1 ? 1 : rar === 2 ? 2 : 3; for (let g = 0; g < nGem && metalPx.length; g++) set(metalPx.splice(Math.floor(R() * metalPx.length), 1)[0], g % 2 ? gem2 : gem);
+  if (rar >= 2) for (let g = 0; g < 2 && metalPx.length; g++) set(metalPx.splice(Math.floor(R() * metalPx.length), 1)[0], [255, 255, 255]);
+  if (rar === 3) { const halo = hexRGB(RCOL[3]), op = new Uint8Array(W * H); for (let j = 0; j < W * H; j++) op[j] = d[j * 4 + 3] ? 1 : 0;
+    for (let yy = 0; yy < H; yy++) for (let xx = 0; xx < W; xx++) { const j = yy * W + xx; if (op[j]) continue; if ((xx > 0 && op[j - 1]) || (xx < W - 1 && op[j + 1]) || (yy > 0 && op[j - W]) || (yy < H - 1 && op[j + W])) { const i = j * 4; d[i] = halo[0]; d[i + 1] = halo[1]; d[i + 2] = halo[2]; d[i + 3] = 120; } } }
+  x.putImageData(img, 0, 0); return c; }
+function itemIcon(it) { if (!it || !ICONS[it.icon]) return ICONS.ring; const art = artIcon(it); if (art) return art; if (!it.rarity) return ICONS[it.icon];
+  const k = iconKey(it); let c = ICON_CACHE.get(k); if (!c) { if (ICON_CACHE.size > 400) { ICON_CACHE.clear(); ICON_URL6.clear(); } c = genRarityIcon(it); ICON_CACHE.set(k, c); } return c; }
+// ---- §7 custom art loader: drop PNGs into assets/ and list them in assets/manifest.json ({"files": [...]}); missing = procedural ----
+const ART = {}, ART_TILES = { floor: [], wall: [] }; let artReady = false;
+const RAR_SLUG = ['normal', 'magic', 'rare', 'unique'];
+function slugify(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''); }
+function to12(img) { const c = document.createElement('canvas'); c.width = c.height = 12; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(img, 0, 0, 12, 12); return c; }
+function artIcon(it) { if (!artReady) return null; const ic = slugify(it.icon), r = RAR_SLUG[it.rarity] || 'normal', nm = slugify(it.name);
+  let a = ART['icon_' + ic + '_' + r + '_' + nm]; if (!a && it.rarity) { const pre = 'icon_' + ic + '_' + r + '_'; for (const k in ART) if (k.startsWith(pre) && nm.includes(k.slice(pre.length))) { a = ART[k]; break; } }
+  if (!a && it.rarity) a = ART['icon_' + ic + '_' + r]; if (!a && !it.rarity) a = ART['icon_' + ic]; return a || null; }
+function registerArt(name, img) { name = name.toLowerCase(); if (/^icon_/.test(name)) ART[name] = to12(img);
+  else if (/^floor_/.test(name) && img.width === TS && img.height === TS) ART_TILES.floor.push(img); else if (/^wall_face_/.test(name) && img.width === TS && img.height === TS) ART_TILES.wall.push(img);
+  else ART[name] = img; artReady = true; ICON_CACHE.clear(); ICON_URL6.clear(); }
+async function loadArt() { if (location.protocol === 'file:') return 0; try { const r = await fetch('assets/manifest.json', { cache: 'no-store' }); if (!r.ok) return 0; const j = await r.json();
+  const files = (j && Array.isArray(j.files) ? j.files : []).filter(f => typeof f === 'string' && /^[a-z0-9_\-]+\.png$/i.test(f)).slice(0, 400);
+  await Promise.all(files.map(f => new Promise(res => { const im = new Image(); im.onload = () => { registerArt(f.replace(/\.png$/i, ''), im); res(); }; im.onerror = res; im.src = 'assets/' + f; }))); return files.length; } catch (e) { return 0; } }
+// ---- §18 puzzle glints / §19 slow puzzle doors, distant echo, map blink ----
+const PUZZLE_SLIDE = 3.2, MAP_BLINK = 15, MAP_ALPHA = .72, MAP_BG = .3;
+let glintStats = { n: 0 }, mapBlinkStats = { n: 0 };
+function doorOpenedV06(d) { if (!d.puzzle) return; d.blinkUntil = time + MAP_BLINK;
+  if (d.puzzle === 'lever' || d.puzzle === 'p_levers') later(.9, () => sfx('echodoor', { wet: .9 }));
+  if (d.book !== undefined) flashMsg('A hidden reading niche grinds open...', '#c8b8ff'); }
+function puzzleGlintTargets() { const L = [];
+  for (const o of puzzles) if (!o.on && !o.door.open) L.push({ x: o.x, y: o.kind === 'mlever' ? o.y - 9 : o.kind === 'sconce' ? o.y - 11 : o.kind === 'lever' ? o.y - 7 : o.y - 1, s: o.idx * 2.1 + o.x * .01 });
+  for (const b of pblocks) if (!b.on && !b.door.open) { L.push({ x: b.x, y: b.y - 7, s: 1.3 }); L.push({ x: b.plate.x, y: b.plate.y, s: 4.4 }); }
+  for (const b of books) if (!b.read && bookOpen(b)) L.push({ x: b.x, y: b.y - 5, s: 2.7, col: BOOK_COL[b.skill] }); return L; }
+// ---- §20 depth banner: longer, bigger, higher ----
+const BANNER_T = 4.5;
+function bannerY() { return touchMode ? 24 : 16; }
+function bannerBottom() { return bannerY() + (bossForDepth(depth) ? 28 : 21); }
+function drawBig(s, cx, y, col) { ctx.save(); ctx.translate(Math.round(cx - textW(s)), Math.round(y)); ctx.scale(2, 2); drawText(s, 0, 0, col, true); ctx.restore(); }
+function drawDepthBanner() { if (bannerT <= 0) return; const bf = bossForDepth(depth), age = BANNER_T - bannerT, a = clamp(Math.min(age / .35, bannerT / .9), 0, 1);
+  const y = bannerY(), t1 = `DEPTH ${depth}`, t2 = bf ? bf.B.n + (bf.cycle ? ' +' + bf.cycle : '') : THEMES[floorTheme], t3 = bf ? bf.B.t : '';
+  const w = Math.max(textW(t1) * 2, textW(t2), textW(t3)) + 16, h = bannerBottom() - y + 3, x0 = Math.round(VW / 2 - w / 2);
+  ctx.globalAlpha = a * .62 * UIA; ctx.fillStyle = '#000'; ctx.fillRect(x0, y - 3, w, h); ctx.globalAlpha = a * UIA; ctx.fillStyle = bf ? '#a02020' : '#8a6a30'; ctx.fillRect(x0, y - 3, w, 1); ctx.fillRect(x0, y - 4 + h, w, 1);
+  drawBig(t1, VW / 2, y, bf ? '#ff6040' : '#f0d090'); drawTextC(t2, VW / 2, y + 12, bf ? '#e8b050' : '#d8c8a8'); if (t3) drawTextC(t3, VW / 2, y + 19, '#e05050'); ctx.globalAlpha = UIA; }
+// ---- per-floor placement / state ----
+function clearV06() { vines = []; setVineGrid(); books = []; vfx6 = []; }
+function placeV06() { placePOIs(); placeShrooms(); placeVines(); placeRusty(); }
+function v06Load(s) { const p = player, sp = s.p || {};
+  p.learned = Array.isArray(sp.learned) ? [0, 1, 2].map(i => !!sp.learned[i]) : SKILLS.map(S => p.lvl >= S.lvl); // old saves keep every skill their level had unlocked
+  if (window.__legacyStart) p.learned = [true, true, true]; // test hook (pre-0.6 suites)
+  p.slotsFilled = {}; if (sp.slots && typeof sp.slots === 'object') for (const k of SLOTS) if (sp.slots[k]) p.slotsFilled[k] = true; for (const k of SLOTS) if (p.equip[k]) p.slotsFilled[k] = true;
+  p.look = cleanLook(sp.look || activeProfile().look); p.pname = cleanName(sp.pname) || activeProfile().name; p.gotRusty = sp.gotRusty === undefined ? true : !!sp.gotRusty; }
+function v06Interact(L, close) { const p = player;
+  for (const v of vines) if (!(v.burning > 0)) for (const t of v.tiles) { const x = (t.x + .5) * TS, y = (t.y + .5) * TS; if (!close(x, y, 24)) continue;
+    L.push({ x, y, r: 24, label: p.torchT > 0 ? 'BURN VINES' : p.equip.weapon ? 'CUT VINES' : 'TEAR VINES', use: () => vineUse(v), ref: v, tier: 1 }); }
+  for (const b of books) if (!b.read && bookOpen(b) && close(b.x, b.y, 16)) L.push({ x: b.x, y: b.y, r: 17, label: 'READ BOOK', use: () => readBook(b), ref: b, tier: 2 });
+  for (const o of setp) if (EXAM_KINDS[o.kind]) { const x = o.x, y = o.kind === 'niche' ? o.y + 12 : o.y; if (!close(x, y, 16)) continue; L.push({ x, y, r: 17, label: 'EXAMINE', use: () => examineSay(examineText(o)), ref: o, tier: -1 }); } }
+function v06Update(dt) { const p = player; updateVines(dt);
+  for (let i = vfx6.length - 1; i >= 0; i--) { const f = vfx6[i]; f.t += dt; if (f.t >= f.dur) vfx6.splice(i, 1); }
+  if (!p.equip.weapon) { const i = p.inv.findIndex(it => it && it.rusty); if (i >= 0 && canWear(p.inv[i])) { p.gotRusty = true; const st = state; equipFrom(i); if (state !== st) setState(st); sel = null;
+      flashMsg('You take up the Rusty Sword. Better than knuckles.', '#d8c8a0'); if (thought.life <= 0) sayThought(p, 'RUSTY. WOBBLY. MINE.'); } }
+  if (mapOpen) for (const d of doors) if (d.blinkUntil > time && d.blinkUntil - time < .5) d.blinkUntil = time + .5; }
+function v06Lights(L, view) { const hi = lightingQ() !== 'low'; let ns = 0;
+  for (const o of setp) if (o.kind === 'shroom' && o.glow && ns < (hi ? 8 : 3) && view(o.x, o.y, 20)) { ns++; L.push({ x: o.x, y: o.y - 2, r: 16 + Math.sin(time * 1.3 + o.ph) * 2, col: o.v === 2 ? 'violet' : 'teal', a: .22 }); }
+  for (const b of books) if (!b.read && view(b.x, b.y, 30)) L.push({ x: b.x, y: b.y - 3, r: 24 + Math.sin(time * 2 + b.ph) * 3, col: b.skill === 2 ? 'cold' : 'warm', a: .45 });
+  for (const v of vines) if (v.burning > 0 && view(v.x, v.y, 40)) L.push({ x: v.x, y: v.y, r: 34, col: 'fire', a: .6 });
+  for (const f of vfx6) if (f.kind === 'uflash') { const k = f.t / f.dur; L.push({ x: f.x, y: f.y, r: 26 + 50 * (1 - k), col: 'warm', a: .95 * (1 - k) }); }
+  if (hi) for (const g of puzzleGlintTargets()) if (view(g.x, g.y, 14)) L.push({ x: g.x, y: g.y, r: 11, col: 'white', a: .12 + .08 * Math.sin(time * 2.4 + g.s) }); }
+// ---- drawing ----
+function drawStatue(o, X, Y) { const g = o.cracked ? '#6a6470' : '#7a7480', d = '#4a4450', hi = '#9a94a0'; ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(X - 6, Y + 4, 12, 2);
+  ctx.fillStyle = d; ctx.fillRect(X - 5, Y + 1, 10, 4); ctx.fillStyle = g; ctx.fillRect(X - 5, Y + 1, 10, 1);
+  if (o.v % 3 === 0) { ctx.fillStyle = g; ctx.fillRect(X - 4, Y - 8, 8, 9); ctx.fillStyle = hi; ctx.fillRect(X - 3, Y - 8, 3, 2); ctx.fillStyle = '#1a1020'; ctx.fillRect(X - 2, Y - 5, 1, 1); ctx.fillRect(X + 1, Y - 5, 1, 1); ctx.fillRect(X - 2, Y - 2, 4, 1); }
+  else if (o.v % 3 === 1) { ctx.fillStyle = g; ctx.fillRect(X - 3, Y - 14, 6, 5); ctx.fillRect(X - 4, Y - 9, 8, 10); ctx.fillStyle = '#1a1020'; ctx.fillRect(X - 2, Y - 12, 4, 1); ctx.fillStyle = hi; ctx.fillRect(X + 4, Y - 13, 1, 13); ctx.fillRect(X + 3, Y - 6, 3, 1); ctx.fillStyle = d; ctx.fillRect(X - 6, Y - 8, 3, 6); }
+  else { ctx.fillStyle = g; ctx.fillRect(X - 2, Y - 14, 5, 5); ctx.fillRect(X - 4, Y - 9, 8, 10); ctx.fillStyle = d; ctx.fillRect(X - 1, Y - 13, 3, 3); ctx.fillStyle = 'rgba(90,140,70,.7)'; ctx.fillRect(X - 3, Y - 16, 7, 1); ctx.fillStyle = hi; ctx.fillRect(X - 1, Y - 7, 3, 2); }
+  if (o.cracked) { ctx.fillStyle = '#2a2430'; ctx.fillRect(X + 1, Y - 7, 1, 3); ctx.fillRect(X, Y - 4, 1, 2); ctx.fillRect(X - 1, Y - 2, 1, 2); } }
+function drawV06Floor() { for (const o of setp) { if (o.kind !== 'shroom' && o.kind !== 'bowl') continue; if (offView(o.x, o.y, 20)) continue; const X = Math.round(o.x), Y = Math.round(o.y);
+    if (o.kind === 'bowl') { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(X - 5, Y + 2, 10, 2); ctx.fillStyle = '#5a5258'; ctx.fillRect(X - 5, Y - 2, 10, 4); ctx.fillStyle = '#7a7278'; ctx.fillRect(X - 5, Y - 2, 10, 1); ctx.fillStyle = '#2a2026'; ctx.fillRect(X - 4, Y - 1, 8, 1); ctx.fillStyle = '#c8a040'; ctx.fillRect(X - 2, Y - 2, 1, 1); ctx.fillRect(X + 1, Y - 2, 1, 1); continue; }
+    const C = SHROOM_COL[o.v] || SHROOM_COL[0];
+    for (const c of shroomCaps(o)) { const x = X + c.dx, y = Y + c.dy; ctx.fillStyle = '#c8c0b0'; ctx.fillRect(x, y - c.h, 1, c.h); ctx.fillStyle = C[1]; ctx.fillRect(x - c.w, y - c.h - 1, 1 + c.w * 2, 1); ctx.fillStyle = C[0]; ctx.fillRect(x - c.w + 1, y - c.h - 2, Math.max(1, c.w * 2 - 1), 1); } } }
+function drawVine(v) { const R = mulberry(v.seed), sh = v.shake > 0 ? Math.round(Math.sin(time * 60) * 1) : 0, burn = v.burning > 0;
+  for (const t of v.tiles) { const X = t.x * TS + sh, Y = t.y * TS; ctx.fillStyle = burn ? '#3a2410' : '#16281a'; ctx.fillRect(X + 1, Y + 1, TS - 2, TS - 2);
+    for (let k = 0; k < 7; k++) { const a = R() * 6.28, cx = X + 2 + R() * 12, cy = Y + 2 + R() * 12; ctx.fillStyle = burn ? (Math.sin(time * 20 + k) > 0 ? '#ff8030' : '#6a3a1a') : k % 2 ? '#2e6a28' : '#3e8a30';
+      for (let s = -4; s <= 4; s++) ctx.fillRect(Math.round(cx + Math.cos(a) * s), Math.round(cy + Math.sin(a) * s * .7), 1, 1); }
+    ctx.fillStyle = burn ? '#ffb060' : '#7ab048'; for (let k = 0; k < 6; k++) ctx.fillRect(X + 1 + Math.floor(R() * 13), Y + 1 + Math.floor(R() * 13), 2, 1);
+    if (!burn) { ctx.fillStyle = '#c86090'; if (R() < .5) ctx.fillRect(X + 3 + Math.floor(R() * 9), Y + 3 + Math.floor(R() * 9), 1, 1); } } }
+function drawBook(b) { const X = Math.round(b.x), Y = Math.round(b.y); ctx.fillStyle = '#3a2a20'; ctx.fillRect(X - 4, Y - 1, 8, 5); ctx.fillStyle = '#5a4030'; ctx.fillRect(X - 5, Y - 2, 10, 1);
+  if (b.read) { ctx.fillStyle = '#4a3a30'; ctx.fillRect(X - 3, Y - 4, 6, 2); return; }
+  ctx.fillStyle = '#e8dcc0'; ctx.fillRect(X - 4, Y - 5, 4, 3); ctx.fillRect(X + 1, Y - 5, 4, 3); ctx.fillStyle = BOOK_COL[b.skill]; ctx.fillRect(X, Y - 5, 1, 3); ctx.fillStyle = '#8a7a60'; ctx.fillRect(X - 3, Y - 4, 2, 1); ctx.fillRect(X + 2, Y - 4, 2, 1); }
+function drawV06World() { for (const o of setp) if (o.kind === 'statue' && !offView(o.x, o.y, 30)) drawStatue(o, Math.round(o.x), Math.round(o.y));
+  for (const v of vines) if (!offView(v.x, v.y, 40)) drawVine(v); for (const b of books) if (!offView(b.x, b.y, 20)) drawBook(b); }
+function drawV06Emissive() { let n = 0;
+  for (const o of setp) if (o.kind === 'shroom' && o.glow && !offView(o.x, o.y, 10)) { const C = SHROOM_COL[o.v], X = Math.round(o.x), Y = Math.round(o.y); ctx.globalAlpha = .55 + .35 * Math.sin(time * 1.4 + o.ph); ctx.fillStyle = C[0];
+    for (const c of shroomCaps(o)) ctx.fillRect(X + c.dx - c.w + 1, Y + c.dy - c.h - 2, Math.max(1, c.w * 2 - 1), 1); ctx.globalAlpha = 1; }
+  for (const g of puzzleGlintTargets()) { if (offView(g.x, g.y, 8)) continue; n++; const k = .5 + .5 * Math.sin(time * 2.4 + g.s), col = g.col || (k > .6 ? '#fff6d0' : '#d8f0ff');
+    for (let q = 0; q < 3; q++) { const ph = (time * .7 + q * .33 + g.s) % 1; if (ph > .4) continue; const a = Math.sin(ph / .4 * Math.PI), ox = ((q * 5 + Math.floor(time * .7 + q * .33 + g.s) * 3) % 9) - 4, oy = ((q * 7 + Math.floor(time * .7 + q * .33 + g.s) * 5) % 7) - 3;
+      ctx.globalAlpha = .8 * a; ctx.fillStyle = col; ctx.fillRect(Math.round(g.x + ox), Math.round(g.y + oy), 1, 1); if (a > .85) { ctx.globalAlpha = .4 * a; ctx.fillRect(Math.round(g.x + ox) - 1, Math.round(g.y + oy), 3, 1); ctx.fillRect(Math.round(g.x + ox), Math.round(g.y + oy) - 1, 1, 3); } }
+    ctx.globalAlpha = .1 + .12 * k; ctx.fillStyle = col; ctx.fillRect(Math.round(g.x) - 2, Math.round(g.y) - 2, 5, 5); ctx.globalAlpha = 1; }
+  glintStats = { n };
+  for (const b of books) if (!b.read && !offView(b.x, b.y, 10)) { ctx.globalAlpha = .5 + .4 * Math.sin(time * 3 + b.ph); ctx.fillStyle = BOOK_COL[b.skill]; ctx.fillRect(Math.round(b.x), Math.round(b.y) - 5, 1, 3); ctx.globalAlpha = 1; }
+  for (const f of vfx6) { const k = f.t / f.dur;
+    if (f.kind === 'uflash') { ctx.globalAlpha = 1 - k; const r = Math.round(4 + k * 14); ctx.fillStyle = k < .3 ? '#ffffff' : '#ffe0a0'; ctx.beginPath(); ctx.arc(f.x, f.y, r, 0, 6.28); ctx.fill(); ctx.globalAlpha = (1 - k) * .6; ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(f.x) - 1, Math.round(f.y - 20 * (1 - k)) - 10, 2, 20); }
+    else if (f.kind === 'shock') { ctx.globalAlpha = (1 - k) * .9; ctx.strokeStyle = '#ffd070'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(f.x, f.y, Math.max(1, f.r * k), Math.max(1, f.r * k * .6), 0, 0, 6.28); ctx.stroke(); ctx.lineWidth = 1; } }
+  ctx.globalAlpha = 1; }
+function drawMapV06(ox, oy, s) { const dot = (tx, ty, col) => { ctx.fillStyle = col; ctx.fillRect(Math.round(ox + tx * s), Math.round(oy + ty * s), Math.ceil(s), Math.ceil(s)); };
+  for (const v of vines) for (const t of v.tiles) if (seen[t.y * MW + t.x]) dot(t.x, t.y, v.burning > 0 ? '#ff8030' : '#3a9a30');
+  for (const b of books) { const tx = Math.floor(b.x / TS), ty = Math.floor(b.y / TS); if (seen[ty * MW + tx] || b.door.open) dot(tx, ty, b.read ? '#6a6050' : BOOK_COL[b.skill]); }
+  let n = 0; for (const d of doors) if (d.blinkUntil > time) { n++; const on = Math.floor(time * 4) % 2, t = d.tiles[0], X = Math.round(ox + t.x * s), Y = Math.round(oy + t.y * s), z = Math.max(3, Math.ceil(s * 2.5)), c = Math.ceil(s);
+    ctx.strokeStyle = on ? '#ffffff' : '#ffd040'; ctx.lineWidth = 1; ctx.strokeRect(X - z + .5 + c / 2, Y - z + .5 + c / 2, z * 2 - 1, z * 2 - 1); for (const q of d.tiles) dot(q.x, q.y, on ? '#ffe060' : '#ffffff'); }
+  mapBlinkStats = { n }; }
+// ---- sounds (procedural, gated by Sound Off / SFX volume like every other voice) ----
+function sfxExtra3(type) {
+  switch (type) {
+    case 'unique': [784, 988, 1175, 1568].forEach((f, i) => sfxTone('sine', f, f * 1.004, 1.2, .05, i * .06)); sfxSweep('highpass', 3000, 9000, .9, .04, .05, .7); sfxTone('sine', 92, 44, .6, .15); sfxNoise('lowpass', 300, .5, .08); return true; // bell chord + shimmer + low boom
+    case 'firstequip': sfxTone('sawtooth', 132, 80, .22, .07); sfxNoise('bandpass', 700, .18, .07, 0, 3); [0, .12, .24, .42].forEach((t, i) => sfxTone('sine', i === 3 ? 72 : 96, 40, .22, .16, .1 + t)); sfxNoise('bandpass', 1800, .14, .08, .52, 1.2); sfxSweep('bandpass', 600, 1400, .5, .045, .55, 2); return true; // grunt + drums + cheer
+    case 'vinechop': sfxSweep('bandpass', 2600, 1100, .14, .1, 0, 1.5); sfxNoise('highpass', 3500, .12, .05, .03); sfxTone('triangle', 240, 140, .06, .05); return true;
+    case 'vineburn': sfxNoise('highpass', 2400, .7, .09); for (let i = 0; i < 5; i++) sfxNoise('bandpass', rand(1600, 3400), .03, .06, .04 + i * .1, 3); sfxNoise('lowpass', 420, .6, .06); return true;
+    case 'learn': [523, 659, 784, 1046].forEach((f, i) => sfxTone('triangle', f, f, .5, .05, i * .09)); sfxSweep('highpass', 1500, 6000, .8, .04, 0, .7); sfxNoise('bandpass', 3000, .15, .04, 0, 2); return true;
+    case 'grindlong': sfxSweep('bandpass', 160, 320, PUZZLE_SLIDE, .15, 0, 3); sfxNoise('lowpass', 130, PUZZLE_SLIDE, .17); sfxTone('sawtooth', 50, 42, PUZZLE_SLIDE - .1, .05); for (let i = 0; i < 6; i++) sfxNoise('bandpass', rand(900, 1800), .04, .05, .2 + i * .48, 3); return true; // slow puzzle slab
+    case 'echodoor': sfxSweep('bandpass', 140, 230, 1.8, .07, 0, 2); sfxNoise('lowpass', 110, 1.6, .09, .05); sfxTone('sine', 60, 38, .6, .08, 1.6); sfxNoise('lowpass', 200, .5, .05, 1.65); return true; // far-off slab, heard through stone
+    case 'groan': sfxTone('sawtooth', 95, 70, .8, .05); sfxSweep('bandpass', 300, 600, .8, .05, 0, 4); sfxTone('sine', 140, 100, .7, .03, .1); return true;
+    case 'walkerswing': sfxSweep('bandpass', 400, 1600, .25, .1, 0, 1); sfxNoise('lowpass', 250, .2, .12, .2); sfxTone('sine', 80, 40, .2, .12, .2); return true;
+    case 'examine': sfxNoise('bandpass', 2400, .1, .035, 0, 2); sfxTone('sine', 660, 640, .12, .02, .02); return true;
+  }
+  return false; }
+loadProfiles(); window.__v06 = true; setTimeout(loadArt, 900);
+// ---- §4 / §5 title-screen character UI ----
+let profOpen = false, profEdit = null, profDelAsk = null;
+function profLabel(q) { const m = profMeta(q.id); return m ? `LV ${m.lvl} - DEPTH ${m.depth}` : 'NEW'; }
+function drawLookPreview(cv, look) { if (!cv) return; const x = cv.getContext('2d'), S = wardSprites({ look, equip: {} }); x.imageSmoothingEnabled = false; x.clearRect(0, 0, cv.width, cv.height);
+  const k = Math.floor(Math.min(cv.width, cv.height) / 13); x.drawImage(S.a.r, Math.round((cv.width - 12 * k) / 2), Math.round((cv.height - 12 * k) / 2), 12 * k, 12 * k); }
+function refreshProfileUI() { const row = document.getElementById('profRow'); if (!row || !profiles) return; const P = activeProfile();
+  $('profName').textContent = P.name + ' (' + profLabel(P) + ')'; drawLookPreview($('profMini'), P.look);
+  row.classList.toggle('hidden', state === 'pause');
+  if (state !== 'pause') { $('mCont').classList.toggle('hidden', !loadSave()); }
+  if (profOpen) renderProfiles(); }
+function swatchRow(kind, look, onPick) { const d = document.createElement('div'); d.className = 'pswr'; const lb = document.createElement('span'); lb.textContent = kind.toUpperCase(); d.appendChild(lb);
+  LOOKS[kind].forEach((c, i) => { const b = document.createElement('button'); b.className = 'psw' + (look[kind] === i ? ' on' : ''); b.style.background = c; b.dataset.kind = kind; b.dataset.i = i; b.setAttribute('aria-label', kind + ' ' + (i + 1));
+    b.addEventListener('click', () => { look[kind] = i; onPick(); }); d.appendChild(b); }); return d; }
+function renderProfiles() { const L = $('profList'), F = $('profForm'); L.innerHTML = ''; F.innerHTML = '';
+  if (profEdit) { // create / edit look
+    const ed = profEdit, wrap = document.createElement('div'); wrap.className = 'pform';
+    const cv = document.createElement('canvas'); cv.width = cv.height = 52; cv.id = 'profPrev'; wrap.appendChild(cv);
+    const col = document.createElement('div');
+    const inp = document.createElement('input'); inp.id = 'profNameIn'; inp.maxLength = 12; inp.placeholder = 'NAME'; inp.value = ed.name || ''; inp.autocomplete = 'off'; inp.spellcheck = false;
+    inp.addEventListener('input', () => { ed.name = inp.value; }); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') $('profOk').click(); if (e.key === 'Escape') closeProfiles(); });
+    col.appendChild(inp); const redraw = () => { drawLookPreview(cv, ed.look); col.querySelectorAll('.psw').forEach(b => b.classList.toggle('on', ed.look[b.dataset.kind] === +b.dataset.i)); };
+    for (const k of ['skin', 'hair', 'cloak']) col.appendChild(swatchRow(k, ed.look, redraw));
+    const bt = document.createElement('div'); bt.className = 'pbtns';
+    const ok = document.createElement('button'); ok.className = 'mbtn small'; ok.id = 'profOk'; ok.textContent = ed.id ? 'SAVE LOOK' : 'CREATE';
+    ok.addEventListener('click', () => { if (ed.id) { const q = profiles.list.find(q => q.id === ed.id); if (q) { q.look = cleanLook(ed.look); const n = cleanName(ed.name); if (n) q.name = n; saveProfiles(); WARD_CACHE.clear(); } }
+      else if (!createProfile(ed.name, ed.look)) { flashMsg('Six characters is the limit.', '#f88'); } profEdit = null; sfx('pick'); refreshProfileUI(); renderProfiles(); });
+    const cn = document.createElement('button'); cn.className = 'mbtn small'; cn.textContent = 'BACK'; cn.addEventListener('click', () => { profEdit = null; renderProfiles(); });
+    bt.appendChild(ok); bt.appendChild(cn); col.appendChild(bt); wrap.appendChild(col); F.appendChild(wrap); redraw(); return; }
+  for (const q of profiles.list) { const r = document.createElement('div'); r.className = 'prow' + (q.id === profiles.active ? ' on' : ''); r.dataset.id = q.id;
+    const cv = document.createElement('canvas'); cv.width = cv.height = 26; r.appendChild(cv); drawLookPreview(cv, q.look);
+    const nm = document.createElement('span'); nm.className = 'pnm'; nm.innerHTML = ''; nm.textContent = q.name; const sub = document.createElement('small'); sub.textContent = profLabel(q); nm.appendChild(document.createElement('br')); nm.appendChild(sub); r.appendChild(nm);
+    const mk = (t, cls, fn) => { const b = document.createElement('button'); b.className = 'shb ' + cls; b.textContent = t; b.addEventListener('click', fn); r.appendChild(b); return b; };
+    mk('PLAY', 'pplay', () => { switchProfile(q.id); closeProfiles(); if (loadSave()) continueGame(); else newGame(); });
+    mk('LOOK', 'plook', () => { profEdit = { id: q.id, name: q.name, look: Object.assign({}, q.look) }; renderProfiles(); });
+    mk(profDelAsk === q.id ? 'SURE?' : 'DEL', 'pdel', () => { if (profDelAsk !== q.id) { profDelAsk = q.id; renderProfiles(); return; } profDelAsk = null; deleteProfile(q.id); sfx('fail'); renderProfiles(); });
+    L.appendChild(r); }
+  if (profiles.list.length < PROF_MAX) { const b = document.createElement('button'); b.className = 'mbtn small'; b.id = 'profNew'; b.textContent = '+ NEW CHARACTER';
+    b.addEventListener('click', () => { profEdit = { name: '', look: { skin: irand(0, LOOKS.skin.length - 1), hair: irand(0, LOOKS.hair.length - 1), cloak: irand(0, LOOKS.cloak.length - 1) } }; renderProfiles(); setTimeout(() => { const i = $('profNameIn'); if (i && !touchMode) i.focus(); }, 0); }); F.appendChild(b); } }
+function openProfiles() { profOpen = true; profEdit = null; profDelAsk = null; $('profiles').classList.remove('hidden'); renderProfiles(); }
+function closeProfiles() { profOpen = false; profEdit = null; $('profiles').classList.add('hidden'); refreshProfileUI(); }
+$('profBtn').addEventListener('click', openProfiles); $('profX').addEventListener('click', closeProfiles);
+$('mDim').addEventListener('click', cycleDim);
 function render() {
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
   if (!player) { drawMenuBg(); return; }
@@ -3882,11 +4313,11 @@ function render() {
     else { ctx.drawImage(texFloor(tx, ty), X, Y);
       if (tileAt(tx, ty - 1) === TILE.WALL) { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(X, Y, TS, 3); } }
   }
-  drawFloorDecor(); drawV05Floor(); drawDebris(); drawSecrets(); drawSecretSense(); drawHazards(); drawChests(); drawProps(); drawDoors(); drawV05Upper();
+  drawFloorDecor(); drawV05Floor(); drawV06Floor(); drawDebris(); drawSecrets(); drawSecretSense(); drawHazards(); drawChests(); drawProps(); drawDoors(); drawV05Upper(); drawV06World();
   for (const g of ground) {
     const by = Math.round(Math.sin(time * 3 + g.bob));
     if (g.item) { if (g.item.rarity >= 2) { ctx.fillStyle = g.item.rarity === 3 ? 'rgba(216,160,64,.3)' : 'rgba(240,240,96,.2)'; ctx.fillRect(Math.round(g.x) - 1, Math.round(g.y) - 22, 2, 18); }
-      ctx.drawImage(ICONS[g.item.icon], Math.round(g.x - 6), Math.round(g.y - 8 + by)); }
+      ctx.drawImage(itemIcon(g.item), Math.round(g.x - 6), Math.round(g.y - 8 + by)); }
     else if (g.pot) ctx.drawImage(ICONS[g.pot], Math.round(g.x - 4), Math.round(g.y - 6 + by));
     else if (g.gold) ctx.drawImage(ICONS.gold, Math.round(g.x - 4), Math.round(g.y - 3));
     else if (drawGroundExtra(g, by)) { /* v0.4 pickups */ }
@@ -3913,7 +4344,7 @@ function render() {
   renderLighting(sx, sy);
   // emissive + labels drawn above the darkness
   ctx.save(); ctx.translate(-sx, -sy);
-  drawEmissive(sx, sy); drawBloom();
+  drawEmissive(sx, sy); drawBloom(); drawV06Emissive();
   for (const g of ground) { if (!g.item) continue; const d = Math.hypot(g.x - p.x, g.y - p.y);
     if (labelShown(g)) { const nm = g.item.name.toUpperCase(), w = textW(nm);
       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 17), w + 3, 7); drawTextC(nm, g.x, g.y - 16, RCOL[g.item.rarity], false); } }
@@ -3930,12 +4361,12 @@ function render() {
   for (const q of texts) drawTextC(q.t, q.x, q.y, q.col);
   ctx.restore();
   drawVignette();
-  drawHUD(); drawSleep();
+  UIA = uiAlpha(); ctx.globalAlpha = UIA; drawHUD(); ctx.globalAlpha = 1; drawSleep(); // v0.6.0 dim UI
 }
 function drawPlayer() {
   const p = player, flick = p.inv0 > 0 && Math.floor(time * 20) % 2;
   const step = p.walkT > 0 && Math.floor(p.walkT * 8) % 2;
-  const fr = step ? SPR.player2 : SPR.player;
+  const WS = wardSprites(p), fr = step ? WS.b : WS.a; // v0.6.0 wardrobe: equipped gear shows on the map sprite
   const X = Math.round(p.x - 6), Y = Math.round(p.y - 9 - (step ? 1 : 0));
   const ang = Math.atan2(p.fy, p.fx), side = p.fx >= 0 ? 1 : -1;
   if (p.swing > 0) {
@@ -3945,17 +4376,18 @@ function drawPlayer() {
     drawBlade(p.x, p.y - 2, a0, 17);
   } else if (p.fy < 0) drawBlade(p.x + 4 * side, p.y - 2, ang, 9);
   if (p.roll > 0) { // tumble: spin the sprite a full turn, slightly squashed, with a fading after-image
-    const k = 1 - p.roll / ROLL_TIME, img = SPR.player[p.rx >= 0 ? 'r' : 'l'];
+    const k = 1 - p.roll / ROLL_TIME, img = WS.a[p.rx >= 0 ? 'r' : 'l'];
     ctx.save(); ctx.globalAlpha = .3; ctx.drawImage(img, Math.round(p.x - 6 - p.rx * 8), Math.round(p.y - 9 - p.ry * 8)); ctx.restore();
     ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y - 3)); ctx.rotate((p.rx >= 0 ? 1 : -1) * k * Math.PI * 2); ctx.scale(1, .85);
     ctx.drawImage(img, -6, -6); ctx.restore(); return;
   }
-  if (!flick) ctx.drawImage(fr[side > 0 ? 'r' : 'l'], X, Y);
+  if (!flick) { ctx.drawImage(fr[side > 0 ? 'r' : 'l'], X, Y); drawWardOverlays(p, X, Y, side); }
   if (p.swing <= 0 && p.fy >= 0) drawBlade(p.x + 4 * side, p.y - 1, ang, 9);
 }
 function drawBlade(x, y, a, len) {
-  const w = player.equip.weapon, icon = w ? w.icon : 'sword', col = icon === 'staff' ? '#a87038' : '#e0e8f0';
+  const w = player.equip.weapon, icon = w ? w.icon : 'sword', col = icon === 'staff' ? '#a87038' : w && w.rusty ? '#b08060' : w && w.rarity ? ['#e0e8f0', '#b8ccff', '#f4f0a8', '#f0d080'][w.rarity] : '#e0e8f0';
   const c = Math.cos(a), s = Math.sin(a);
+  if (!w) { const L = lookOf(player), r = Math.min(len, 9) * .6; ctx.fillStyle = '#1a1020'; ctx.fillRect(Math.round(x + c * r) - 1, Math.round(y + s * r) - 1, 3, 3); ctx.fillStyle = LOOKS.skin[L.skin]; ctx.fillRect(Math.round(x + c * r) - 1, Math.round(y + s * r) - 1, 2, 2); return; } // fists
   for (let i = 3; i < len; i++) { ctx.fillStyle = i < 5 ? '#e8c840' : col; ctx.fillRect(Math.round(x + c * i), Math.round(y + s * i), 1, 1);
     if ((icon === 'axe' || icon === 'maul') && i > len - 4) { ctx.fillStyle = '#c0c8d8'; ctx.fillRect(Math.round(x + c * i - s * 2), Math.round(y + s * i + c * 2), 2, 2); } }
   if (icon === 'staff') { ctx.fillStyle = '#60c0ff'; ctx.fillRect(Math.round(x + c * len) - 1, Math.round(y + s * len) - 1, 2, 2); }
@@ -4001,16 +4433,14 @@ function drawHUD() {
   const bo = activeBoss(); let my2 = touchMode ? 56 : 40, hy = bossBarY();
   if (hoverEnemy && hoverEnemy !== bo && !touchMode) { hy = drawHoverBar(hoverEnemy, hy); my2 = Math.max(my2, hy + 2); }
   if (bo) my2 = Math.max(40, drawBossBar(bo, hy) + 2);
+  if (bannerT > 0) my2 = Math.max(my2, bannerBottom() + 3);
   if (msg.life > 0) { const w = textW(msg.t); ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(VW / 2 - w / 2 - 3), my2, w + 6, 9); drawTextC(msg.t, VW / 2, my2 + 2, msg.col); }
   const bf = bossForDepth(depth);
-  if (bannerT > 0) { ctx.globalAlpha = clamp(bannerT, 0, 1); drawTextC(`- DEPTH ${depth} -`, VW / 2, VH / 2 - 40, bf ? '#ff6040' : '#e0c080');
-    if (bf) { drawTextC(bf.B.n + (bf.cycle ? ' +' + bf.cycle : ''), VW / 2, VH / 2 - 32, '#d8a040'); drawTextC(bf.B.t, VW / 2, VH / 2 - 24, '#c04040'); }
-    else drawTextC(THEMES[floorTheme], VW / 2, VH / 2 - 32, '#9a8a7a');
-    ctx.globalAlpha = 1; }
+  if (bannerT > 0) drawDepthBanner(); // v0.6.0: longer, larger, higher
   else if (bossIntro > 0 && introBoss) { const a = clamp(Math.min(bossIntro, 2.8 - bossIntro) * 3, 0, 1), y = Math.round(VH * .62);
     ctx.globalAlpha = a * .65; ctx.fillStyle = '#000'; ctx.fillRect(0, y - 4, VW, 21); ctx.globalAlpha = a;
     ctx.fillStyle = '#c03030'; ctx.fillRect(0, y - 4, VW, 1); ctx.fillRect(0, y + 16, VW, 1);
-    drawTextC(introBoss.name, VW / 2, y, '#ffd060'); drawTextC(introBoss.B.t, VW / 2, y + 8, '#c04040'); ctx.globalAlpha = 1; }
+    drawTextC(introBoss.name, VW / 2, y, '#ffd060'); drawTextC(introBoss.B.t, VW / 2, y + 8, '#c04040'); ctx.globalAlpha = UIA; }
   if (p.hp / s.maxHp < .3) { ctx.fillStyle = `rgba(160,0,0,${.12 + Math.sin(time * 6) * .06})`; ctx.fillRect(0, 0, VW, VH); }
 }
 function drawMenuBg() {
@@ -4021,10 +4451,10 @@ function updateTouchHUD() {
   if (!touchMode || state !== 'play') return;
   const p = player;
   $('nHP').textContent = p.hpPot; $('nMP').textContent = p.mpPot;
-  for (let i = 0; i < 3; i++) { const b = $('bS' + (i + 1)), S = SKILLS[i], locked = p.lvl < S.lvl;
+  for (let i = 0; i < 3; i++) { const b = $('bS' + (i + 1)), S = SKILLS[i], locked = skillLocked(i);
     b.classList.toggle('locked', locked); b.classList.toggle('nomana', !locked && p.mp < S.mana);
     b.querySelector('.cd').style.height = (locked ? 0 : (p.cds[i] / S.cd * 100)) + '%';
-    b.querySelector('.sub').textContent = locked ? 'LV' + S.lvl : ['FIRE', 'SPIN', 'NOVA'][i]; }
+    b.querySelector('.sub').textContent = locked ? 'BOOK' : ['FIRE', 'SPIN', 'NOVA'][i]; }
   $('bRoll').querySelector('.cd').style.height = (p.rollCd / ROLL_CD * 100) + '%';
 }
 
@@ -4045,6 +4475,7 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pageshow', () => { queueResize(); if (actx && actx.state !== 'running' && actx.state !== 'closed') actx.resume().catch(() => {}); });
 resize(); joyRest(); updateTouchUI(); syncAudioUI(); updateA2HS();
 if (loadSave()) $('mCont').classList.remove('hidden');
+applyDim(); refreshProfileUI(); // v0.6.0
 requestAnimationFrame(loop);
 // debug/test hook
 $('verTxt').textContent = 'v' + VERSION;

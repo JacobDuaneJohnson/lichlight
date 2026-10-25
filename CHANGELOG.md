@@ -4,6 +4,35 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-10-25
+
+_Characters, spell books, vines and wardrobe_
+
+### Added
+- **Characters**: keep up to six heroes, each with its own run. The title screen shows who you're playing; **CHARACTERS** lets you play, change the look of, add or delete a hero. Your existing save becomes the first character (WANDERER) automatically, nothing is lost.
+- **Character look + wardrobe**: pick skin, hair and cloak colours. What you wear now shows on your hero in the dungeon: armour, helm and boots recolour the sprite, and shields, amulets, rings and your weapon (tinted by rarity) are drawn on top.
+- **Spell Books**: skills are no longer handed out by level. Each skill's book is hidden behind a sealed puzzle door (levers, runes or pressure plates). Read it to learn the skill. Fireball can turn up from depth 1, Whirlwind from depth 3 and Frost Nova from depth 6. Existing saves keep every skill their level already unlocked.
+- **Fists first**: new heroes start bare-handed. A worn **Rusty Sword** lies beside some old remains in a room near the start, and you pick it up and wield it automatically.
+- **Vines** (depth 2+): thick tangles that block corridors. Cut them with any weapon (fists work, slowly), burn them with your torch (USE) or a Fireball, or spin through them with Whirlwind. They never block the way to the stairs.
+- **Mushrooms**: clusters grow in damp corners, by water, fog, coffins and niches. Some glow faintly teal or violet.
+- **Slow walkers**: Rotting Zombies (depth 4+), Lumbering Skeletons (7+), Brood Spiders (10+) and Goblin Brutes (13+). They lurch slowly and wind up a heavy, telegraphed swing.
+- **Item art by rarity**: magic, rare and unique items get their own icons, with recoloured metal, gem studs and a halo on uniques. Each icon is seeded from the item's name and powers, so the same unique always looks the same. Normal items keep the classic art.
+- **Custom art loader**: PNGs listed in `assets/manifest.json` replace item icons, floor tiles or wall faces (see `assets/README.md`). The game runs fine without them.
+- **More to examine**: statues (idols, knights, saints), offering bowls, coffins, burial niches and ritual sites. Some lines hint at hollow walls or a hidden book nearby.
+- **UI DIM** setting (OFF / LOW / MED) fades the HUD, touch buttons and top bar without darkening the dungeon. It's saved with your settings.
+- **Unique drops** flash, send out a shockwave and play their own fanfare.
+- **First gear in an empty slot** gets a grunt and a drum roll.
+- **Puzzle glimmer**: levers, runes, plates, push blocks and open books sparkle faintly.
+
+### Changed
+- Examining doors and objects now shows a short thought bubble instead of a long banner message.
+- Your thought bubbles stay up longer (about 5s). Bubbles no longer shimmer or ghost while you move.
+- Puzzle doors grind open more slowly with a longer rumble. Lever puzzles answer with a distant echo, and the opened door blinks on the map.
+- The map (M) is more see-through.
+- The depth banner is bigger, stays longer and sits near the top of the screen.
+- Early loot is leaner while you're level 1–2: fewer drops, less gold and mostly plain chest gear. Rations and torches can stand in for chest items.
+- Enemies hit a little harder, most noticeably on the first floors (+25% at depth 1, easing to +8%).
+
 ## [0.5.0] - 2026-10-24
 
 _Shields, amulets, powers, set pieces and puzzles_
@@ -252,6 +281,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.6.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.0
 [0.5.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.5.0
 [0.4.6]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.6
 [0.4.5]: https://github.com/gamedevjake/lichlight/releases/tag/v0.4.5
