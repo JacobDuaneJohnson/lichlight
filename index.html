@@ -239,7 +239,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.4.5'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.4.6'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -442,7 +442,10 @@ function setupBus() {
   const cv = A.createGain(); cv.gain.value = .12; cbt.connect(mus); cbt.connect(cv); cv.connect(verb);
   noiseBuf = A.createBuffer(1, A.sampleRate, A.sampleRate);
   const nd = noiseBuf.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-  bus = { master, mus, sx, verb, delay, amb, cbt, dripIn: A.createGain() };
+  // v0.4.6: a short damp echo on the SFX bus (drips, chimes, cave tails) - obeys the SFX volume / mute like everything else
+  const sxEcho = A.createGain(), exd = A.createDelay(1), exfb = A.createGain(), exlp = A.createBiquadFilter(); sxEcho.gain.value = .55; exd.delayTime.value = .27; exfb.gain.value = .36; exlp.type = 'lowpass'; exlp.frequency.value = 2200;
+  sxEcho.connect(exd); exd.connect(exlp); exlp.connect(exfb); exfb.connect(exd); exlp.connect(sx);
+  bus = { master, mus, sx, verb, delay, amb, cbt, dripIn: A.createGain(), sxEcho };
   bus.dripIn.connect(amb); bus.dripIn.connect(delay);
   applyVolumes(true);
 }
@@ -464,21 +467,40 @@ function sfxShatter() { // metallic crack + tinkling shards, a bit louder than h
     o.type = 'sine'; o.frequency.setValueAtTime(fr, st); o.frequency.exponentialRampToValueAtTime(fr * .8, st + .12); o.connect(g); g.connect(bus.sx);
     g.gain.setValueAtTime(.0001, t); g.gain.setValueAtTime(.09, st); g.gain.exponentialRampToValueAtTime(.001, st + .16); o.start(st); o.stop(st + .18); }
 }
-function sfx(type) {
-  sfxLog.push(type); if (sfxLog.length > 40) sfxLog.shift();
+// v0.4.6: sfx(type, { vol, pan, wet }) - vol scales every voice, pan places it left/right, wet sends it into the SFX echo
+let sfxMul = 1, sfxDest = null, sfxWet = 0, sfxLast = null, sfxN = 0;
+// v0.4.6 mix: player hurt / death loudest, combat + world mid, ambience quiet (multiplies each voice's own level)
+const SFX_MIX = { hurt: 1.45, die: 1.35,
+  fbcast: .8, fbboom: .75, whirl: .85, frost: .8, meat: .75, whiff: .8, ehit: .75, snuff: .8, awaken: 1, enrage: .9,
+  chest: .9, locked: .9, key: .9, gkey: .9, gate: .85, blood: .85, secret: .8, crumble: .85, glimmer: .9, stairs: .9,
+  crackle: .55, pop: .6, drip: .65, splash: .6, wind: .7, mob: .6, growl: .7 };
+// cave-y voices that get the echo send by default (drip / splash / glimmer / distant mob / secret)
+const SFX_WET = { drip: .45, splash: .8, glimmer: .6, mob: .5, secret: .5 };
+function sfxOut() { return sfxDest || bus.sx; }
+function sfx(type, o) {
+  sfxLog.push(type); if (sfxLog.length > 40) sfxLog.shift(); sfxN++; sfxLast = { type, vol: o && o.vol != null ? o.vol : 1, pan: o && o.pan || 0, wet: o && o.wet || 0 };
   if (!actx || !bus || !settings.sound) return;
+  const vol = (o && o.vol != null ? o.vol : 1) * (SFX_MIX[type] || 1); if (vol < .015) return;
   if (type === 'shatter') { try { sfxShatter(); } catch (e) {} return; }
-  try { if (sfxExtra(type)) return; } catch (e) { return; }
+  sfxMul = vol; sfxWet = o && o.wet != null ? o.wet : SFX_WET[type] || 0; sfxDest = null;
+  try { if (o && o.pan && actx.createStereoPanner) { sfxDest = actx.createStereoPanner(); sfxDest.pan.value = Math.max(-.85, Math.min(.85, o.pan)); sfxDest.connect(bus.sx); } } catch (e) { sfxDest = null; }
+  try { if (sfxExtra(type)) return; } catch (e) { return; } finally { sfxMul = 1; sfxWet = 0; sfxDest = null; }
   const S = { swing: ['triangle', 300, 120, .08, .06], hit: ['square', 180, 60, .1, .08], hurt: ['sawtooth', 140, 50, .18, .1],
     fire: ['sawtooth', 500, 150, .15, .05], pick: ['square', 600, 1200, .08, .05], gold: ['square', 900, 1400, .06, .04],
     lvl: ['square', 400, 1000, .4, .07], drink: ['sine', 300, 700, .2, .1], nova: ['triangle', 1200, 200, .3, .08], stairs: ['sine', 500, 100, .5, .1],
     die: ['sawtooth', 300, 40, .8, .1], roll: ['triangle', 200, 90, .18, .07], sort: ['square', 500, 900, .1, .04], fail: ['square', 160, 90, .16, .06], break: ['sawtooth', 700, 60, .45, .1], repair: ['triangle', 500, 1300, .25, .07] }[type];
   if (!S) return;
-  const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
-  o.connect(g); g.connect(bus.sx);
-  o.type = S[0]; o.frequency.setValueAtTime(S[1], t); o.frequency.exponentialRampToValueAtTime(S[2], t + S[3]);
-  g.gain.setValueAtTime(S[4], t); g.gain.exponentialRampToValueAtTime(0.001, t + S[3]);
-  o.start(t); o.stop(t + S[3] + .02);
+  const t = actx.currentTime, osc = actx.createOscillator(), g = actx.createGain();
+  osc.connect(g); g.connect(bus.sx);
+  osc.type = S[0]; osc.frequency.setValueAtTime(S[1], t); osc.frequency.exponentialRampToValueAtTime(S[2], t + S[3]);
+  g.gain.setValueAtTime(S[4] * vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + S[3]);
+  osc.start(t); osc.stop(t + S[3] + .02);
+}
+// positional one-shot: quieter with distance (silent past range), panned by screen side; always logged
+function sfxAt(type, x, y, range = 260, vol = 1, wet = 0) {
+  const p = player; if (!p) return sfx(type, { vol, wet });
+  const d = Math.hypot(x - p.x, y - p.y), k = Math.max(0, 1 - d / range);
+  return sfx(type, { vol: vol * Math.pow(k, 1.3), pan: (x - p.x) / 170, wet });
 }
 function buzz(ms) { try { if (navigator.vibrate && touchMode) navigator.vibrate(ms); } catch (e) {} }
 
@@ -814,9 +836,9 @@ let passages = [];
 let state = 'menu', depth = 1, player = null, enemies = [], projs = [], parts = [], texts = [], ground = [], effects = [];
 let cam = { x: 0, y: 0 }, msg = { t: '', life: 0, col: '#fff' }, time = 0, bannerT = 0;
 const SKILLS = [
-  { name: 'Fireball', mana: 4, cd: 0.45, lvl: 1, light: 'amber', col: '#ffa030' },
-  { name: 'Whirlwind', mana: 8, cd: 1.6, lvl: 2, light: 'steel', col: '#e2c480' },
-  { name: 'Frost Nova', mana: 14, cd: 4.5, lvl: 4, light: 'ice', col: '#5ad8ff' },
+  { name: 'Fireball', mana: 4, cd: 0.45, lvl: 1, light: 'amber', col: '#ffa030', snd: 'fbcast', hit: 'fbboom' },
+  { name: 'Whirlwind', mana: 8, cd: 1.6, lvl: 2, light: 'steel', col: '#e2c480', snd: 'whirl' },
+  { name: 'Frost Nova', mana: 14, cd: 4.5, lvl: 4, light: 'ice', col: '#5ad8ff', snd: 'frost' },
 ];
 // v0.4.5: every skill casts a named-tint light (SKILLS[i].light = an LCOL key, .col = matching hex). New skills without one get it from their name.
 const TINT_HEX = { amber: '#ffa030', steel: '#e2c480', ice: '#5ad8ff', storm: '#d6c4ff', venom: '#8ce646', shadow: '#9650dc', warm: '#ffba70' };
@@ -962,8 +984,8 @@ function breakSecret(s) {
   if (s.broken) return; s.broken = true;
   const cx = (s.tx + .5) * TS, cy = (s.ty + .5) * TS;
   if (s.kind === 'wall') { map[s.ty * MW + s.tx] = TILE.FLOOR; seen[s.ty * MW + s.tx] = true; mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear(); }
-  if (s.passage) { burst(cx, cy, '#6a5a6a', 14, 60); addTrauma(.2); sfx('door'); const o = s.pair && !s.pair.broken; flashMsg(o ? 'A hidden passage! It runs on into the dark...' : 'The passage breaks through!', '#c8b8ff'); return; }
-  burst(cx, cy, '#6a5a6a', 14, 60); burst(cx, cy, '#8a7a80', 8, 40); addTrauma(.18); sfx('hit');
+  if (s.passage) { burst(cx, cy, '#6a5a6a', 14, 60); addTrauma(.2); sfx('secret'); const o = s.pair && !s.pair.broken; flashMsg(o ? 'A hidden passage! It runs on into the dark...' : 'The passage breaks through!', '#c8b8ff'); return; }
+  burst(cx, cy, '#6a5a6a', 14, 60); burst(cx, cy, '#8a7a80', 8, 40); addTrauma(.18); sfx('crumble');
   const ly = s.kind === 'wall' ? cy + 1 : cy;
   if (s.loot === 'key') { dropAt(ground, cx, ly, { key: 1 }); flashMsg('Something glints in the rubble...', '#ffe060'); }
   else if (s.loot === 'gold') dropAt(ground, cx, ly, { gold: irand(4, 12) * depth });
@@ -977,8 +999,8 @@ function breakSecretsAt(x, y, r, walls) {
 function chestLoot(d) { const rareP = Math.min(.6, .15 + d * .012); return makeItem(d + 1, Math.random() < rareP ? 2 : 1); } // never unique
 function openChest(c) {
   const p = player; if (c.open) return;
-  if (p.keys <= 0) { if (c.msgT < time) { flashMsg('Locked. Find a key - look for cracked stone.', '#c8a040'); c.msgT = time + 2.5; } return false; }
-  p.keys--; c.open = true; sfx('lvl'); burst(c.x, c.y - 4, '#ffe060', 18, 70); addTrauma(.08);
+  if (p.keys <= 0) { if (c.msgT < time) { sfx('locked'); flashMsg('Locked. Find a key - look for cracked stone.', '#c8a040'); c.msgT = time + 2.5; } return false; }
+  p.keys--; c.open = true; sfx('chest'); burst(c.x, c.y - 4, '#ffe060', 18, 70); addTrauma(.08);
   dropAt(ground, c.x, c.y + 10, { item: chestLoot(depth) });
   dropAt(ground, c.x - 10, c.y + 6, { gold: irand(10, 25) * depth });
   if (Math.random() < .35) dropAt(ground, c.x + 10, c.y + 6, { pot: Math.random() < .65 ? 'hp' : 'mp' });
@@ -1454,7 +1476,7 @@ function bossPick(e) { const pool = e.pool.filter(q => q !== e.last); return pic
 function bossAI(e, dt, d, ax, ay) {
   const p = player, B = e.B, P2 = e.phase >= 2, spd = e.spd * e.enr * (e.slow > 0 ? .5 : 1);
   // phase changes
-  if (e.phase === 1 && e.hp < e.maxHp * .5) { e.phase = 2; e.enr = 1.25; e.pool = e.pool.concat(B.p2); flashMsg(e.name + ' ENRAGES!', '#ff4040'); addTrauma(.45); burst(e.x, e.y, '#ff4040', 24, 90); sfx('lvl'); }
+  if (e.phase === 1 && e.hp < e.maxHp * .5) { e.phase = 2; e.enr = 1.25; e.pool = e.pool.concat(B.p2); flashMsg(e.name + ' ENRAGES!', '#ff4040'); addTrauma(.45); burst(e.x, e.y, '#ff4040', 24, 90); sfx('enrage'); }
   if (e.phase === 2 && B.p3 && e.hp < e.maxHp * .25) { e.phase = 3; e.enr = 1.4; e.pool = e.pool.concat(B.p3); flashMsg('THE BONE KING UNBOUND!', '#ffe060'); addTrauma(.6); burst(e.x, e.y, '#ffe060', 30, 110); }
   if (e.busy > 0) { e.busy -= dt;
     if (e.mode === 'charge') { const bx = e.x, by = e.y; moveEnt(e, e.cx * 260 * dt, e.cy * 260 * dt); if (Math.random() < .7) parts.push({ x: e.x + rand(-6, 6), y: e.y + 8, vx: rand(-15, 15), vy: -8, life: .35, col: '#a8a088' });
@@ -1554,7 +1576,7 @@ function updateEnemies(dt) {
 function aggro(e) {
   if (e.state !== 'idle') return; e.state = 'chase'; onAggroV04(e);
   if (e.T.ai === 'eel') { e.mode = 'under'; e.t = 2; e.hidden = true; }
-  if (e.T.boss) { bossIntro = 2.8; introBoss = e; addTrauma(.35); flashMsg(e.name + ' AWAKENS', '#f44'); sfx('nova'); e.patCd = 1.4; }
+  if (e.T.boss) { bossIntro = 2.8; introBoss = e; addTrauma(.35); flashMsg(e.name + ' AWAKENS', '#f44'); sfx('awaken'); e.patCd = 1.4; }
 }
 function wakeMimic(e) { if (!e.disg) return; e.disg = false; e.state = 'chase'; flashMsg('A MIMIC!', '#ffb040'); addTrauma(.2); burst(e.x, e.y, '#a87038', 12, 60); }
 // ---------- rendering helpers for the bestiary ----------
@@ -2295,6 +2317,7 @@ function moveEnt(e, dx, dy) {
   if (!hit(e.x + dx, e.y)) e.x += dx;
   if (!hit(e.x, e.y + dy)) e.y += dy;
 }
+let meleeSfx = false, ehitT = -1; // v0.4.6: melee voices its own connect; other hits get a throttled enemy flinch
 function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src) {
   if (e.hp <= 0 || e.dead || e.hidden || e.downT) return;
   if (e.disg) wakeMimic(e);
@@ -2306,6 +2329,7 @@ function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src) {
   dmg = Math.max(1, Math.round(dmg));
   const kb = T.boss ? .1 : T.ai === 'golem' ? .3 : 1;
   e.hp -= dmg; e.flash = .12; e.kx += kx * kb; e.ky += ky * kb;
+  if (!meleeSfx && time - ehitT > .07) { ehitT = time; sfxAt('ehit', e.x, e.y, 320); }
   aggro(e); if (crit) addTrauma(.12);
   addText(e.x, e.y - 10, dmg + (crit ? '!' : ''), crit ? '#ffe040' : col);
   burst(e.x, e.y, T.boss ? e.B.pal[0] : BLOOD[e.type] || '#e8e0c8', 5, 50);
@@ -2404,7 +2428,7 @@ function doAttack(fixed) {
   if (fixed) { /* keep facing */ }
   else if (ma) { p.fx = ma.x; p.fy = ma.y; }
   else if (t && (touchMode || !(mv.x || mv.y))) { const a = Math.atan2(t.y - p.y, t.x - p.x); p.fx = Math.cos(a); p.fy = Math.sin(a); }
-  p.swing = .22; p.atkCd = .45 / p.st.aspd; sfx('swing');
+  p.swing = .22; p.atkCd = .45 / p.st.aspd; meleeSfx = true;
   const ang = Math.atan2(p.fy, p.fx); let landed = false;
   for (const e of enemies.slice()) {
     const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy);
@@ -2414,6 +2438,7 @@ function doAttack(fixed) {
     const { d: dmg, crit } = rollDmg(); leech(dmg);
     damageEnemy(e, dmg, dx / (d || 1) * 60, dy / (d || 1) * 60, '#fff', crit); landed = true;
   }
+  meleeSfx = false; sfx(landed ? 'meat' : 'whiff');
   if (landed) wearWeapon();
   breakSecretsAt(p.x + p.fx * 13, p.y + p.fy * 13, 9, true); meleeWorld(p.x + p.fx * 13, p.y + p.fy * 13);
   for (const c of chests) if (!c.open && Math.hypot(c.x - p.x, c.y - p.y) < 20) openChest(c);
@@ -2433,16 +2458,16 @@ function castSkill(i) {
     if (ma) { ax = ma.x; ay = ma.y; p.fx = ax; p.fy = ay; }
     else if (t) { const a = Math.atan2(t.y - p.y, t.x - p.x); ax = Math.cos(a); ay = Math.sin(a); p.fx = ax; p.fy = ay; }
     projs.push({ x: p.x + ax * 6, y: p.y + ay * 6, vx: ax * 170, vy: ay * 170, r: 3, dmg: 8 + pw * 1.4, owner: 'p', kind: 'fire', life: 1.4, skill: 0 });
-    sfx('fire');
+    sfx(S.snd || 'fire');
   } else if (i === 1) {
     effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32, skill: 1 });
     for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg(); const dd = dm * 1.4 + pw * .5; leech(dd); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit); } }
-    sfx('swing'); addTrauma(.12); breakSecretsAt(p.x, p.y, 30, true); snuffTorchesNear(p.x, p.y, 34);
+    sfx(S.snd || 'swing'); addTrauma(.12); breakSecretsAt(p.x, p.y, 30, true); snuffTorchesNear(p.x, p.y, 34);
   } else {
     effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70, skill: 2 });
     breakSecretsAt(p.x, p.y, 64, true); snuffTorchesNear(p.x, p.y, 70);
+    sfx(S.snd || 'nova');
     for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, 6 + pw * 1.1, 0, 0, '#80d0ff'); } }
-    sfx('nova');
   }
 }
 
@@ -2504,7 +2529,7 @@ function update(dt) {
     if (dead && pr.kind === 'web' && !hitP) hazard(pr.x - pr.vx * dt, pr.y - pr.vy * dt, 10, 'web', 4);
     if (dead) {
       projs.splice(i, 1);
-      if (pr.owner === 'p') { burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true);
+      if (pr.owner === 'p') { const SK = SKILLS[pr.skill]; sfxAt((SK && SK.hit) || 'hit', pr.x, pr.y, 420); burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true);
         for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) damageEnemy(e, pr.dmg * (d < e.r + 4 ? 1 : .6), (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040'); } }
       else burst(pr.x, pr.y, (PCOL[pr.kind] || PCOL.bolt)[0], 6, 40);
       if (state !== 'play') return;
@@ -2515,7 +2540,7 @@ function update(dt) {
     if (g.lock) { if (d > 16) g.lock = false; continue; }
     if (d < 10) {
       if (g.torch) { if (giveTorch()) { addText(g.x, g.y - 6, '+TORCH', '#ffb040'); ground.splice(i, 1); } else g.lock = true; }
-      else if (g.key) { p.keys += g.key; addText(g.x, g.y - 6, '+KEY', '#ffe060'); sfx('lvl'); ground.splice(i, 1); flashMsg('You found a key! (' + p.keys + ')', '#ffe060'); }
+      else if (g.key) { p.keys += g.key; addText(g.x, g.y - 6, '+KEY', '#ffe060'); sfx('key'); ground.splice(i, 1); flashMsg('You found a key! (' + p.keys + ')', '#ffe060'); }
       else if (pickupExtra(g)) ground.splice(i, 1);
       else if (g.gold) { p.gold += g.gold; addText(g.x, g.y - 6, '+' + g.gold + 'G', '#e8c840'); sfx('gold'); ground.splice(i, 1); }
       else if (g.pot === 'rp') { p.rpPot = (p.rpPot || 0) + 1; addText(g.x, g.y - 6, '+REPAIR POT', '#ffa850'); sfx('pick'); ground.splice(i, 1); flashMsg('Repair Potion (' + p.rpPot + ') - use it from the bag', '#ffa850'); }
@@ -2714,7 +2739,7 @@ function placeGlimmer() {
   return null;
 }
 function drinkGlimmer(g) { const p = player; if (!g || g.uses <= 0) return false; g.uses--;
-  const refresh = p.xpBuffT > 0; p.thirst = Math.min(100, p.thirst + 45); p.xpBuffT = XPBUFF_TIME; sfx('gulp'); sfx('drink');
+  const refresh = p.xpBuffT > 0; p.thirst = Math.min(100, p.thirst + 45); p.xpBuffT = XPBUFF_TIME; sfx('gulp'); sfx('glimmer');
   burst(p.x, p.y - 6, '#a0fff0', 10, 26); burst(g.x, g.y - 2, '#e8ffff', 8, 18);
   flashMsg(refresh ? 'The glimmer renews. +25% XP for 5:00.' : 'Glimmering water... you feel keen. +25% XP for 5:00.', '#a0fff0'); return true; }
 function buffText() { const p = player; if (!p || !(p.xpBuffT > 0)) return ''; const t = Math.ceil(p.xpBuffT); return `XP+${Math.round(XPBUFF * 100)}% ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; }
@@ -2779,7 +2804,7 @@ function placeV04Post() { placeBloodDoor(); placePassages(); placeTraps(); place
 function openDoor(d, quiet) {
   if (d.open) return; d.open = true;
   for (const t of d.tiles) { map[t.y * MW + t.x] = TILE.FLOOR; seen[t.y * MW + t.x] = true; burst((t.x + .5) * TS, (t.y + .5) * TS, d.kind === 'blood' ? '#a01818' : '#8a8078', 12, 50); }
-  mapVer++; polyCache.clear(); if (!quiet) { sfx('door'); addTrauma(.15); }
+  mapVer++; polyCache.clear(); if (!quiet) { sfx(d.kind === 'gate' ? 'gate' : d.kind === 'blood' ? 'blood' : 'door'); addTrauma(.15); }
 }
 function doorHint(d) {
   if (d.puzzle === 'lever') return 'A sealed stone door. Three painted marks: ' + d.seq.map(i => LEVER_COL[i][0]).join(', ') + '. Levers nearby...';
@@ -2792,13 +2817,13 @@ function useDoor(d) {
   const p = player;
   if (d.kind === 'gate') {
     if ((p.gateKeys || 0) > 0) { p.gateKeys--; openDoor(d); flashMsg('The Gate Key turns. The iron gate grinds open.' + (p.gateKeys ? ` (${p.gateKeys} left)` : ''), '#c0d0e0'); }
-    else { sfx('fail'); flashMsg('A locked iron gate. It needs a Gate Key (chest keys won\'t fit).', '#a0b0c0'); }
+    else { sfx('locked'); flashMsg('A locked iron gate. It needs a Gate Key (chest keys won\'t fit).', '#a0b0c0'); }
     return;
   }
   if (d.kind === 'blood') {
     const cost = bloodCost();
     if (p.hp <= cost) { sfx('fail'); flashMsg(`The blood door wants ${cost} life - more than you can spare. Heal first.`, '#ff6060'); return false; }
-    p.hp -= cost; addText(p.x, p.y - 12, '-' + cost, '#ff3030'); burst(p.x, p.y - 4, '#c01010', 16, 50); sfx('hurt'); openDoor(d);
+    p.hp -= cost; addText(p.x, p.y - 12, '-' + cost, '#ff3030'); burst(p.x, p.y - 4, '#c01010', 16, 50); openDoor(d);
     flashMsg('You bleed upon the bones. The door drinks... and opens.', '#ff5050'); return true;
   }
   flashMsg(doorHint(d), '#c8b8a0');
@@ -2842,7 +2867,7 @@ function torchInReach(t) { // a lit wall torch the player can hit: adjacent (bel
 }
 function torchAtCursor() { const c = cursorWorld(); return torches.find(t => !t.out && Math.abs(c.x - t.x) < 8 && c.y > t.y - 10 && c.y < t.y + 12) || null; }
 function propAtCursor() { const c = cursorWorld(); return props.find(o => !o.broken && Math.abs(c.x - o.x) < 7 && c.y > o.y - 12 && c.y < o.y + 4) || null; }
-function snuffTorch(t, msg) { if (t.out) return false; t.out = true; mapVer++; burst(t.x, t.y, '#777', 12, 30); burst(t.x, t.y, '#ffa040', 4, 20); if (Math.hypot(t.x - player.x, t.y - player.y) < 220) sfx('hiss'); if (msg) flashMsg(msg, '#a09890'); return true; }
+function snuffTorch(t, msg) { if (t.out) return false; t.out = true; mapVer++; burst(t.x, t.y, '#777', 12, 30); burst(t.x, t.y, '#ffa040', 4, 20); sfxAt('snuff', t.x, t.y, 260, 1.1); if (msg) flashMsg(msg, '#a09890'); return true; }
 function meleeWorld(x, y) {
   for (const t of torches) if (!t.out && ((Math.abs(t.x - x) < 14 && y - t.y < 24 && y - t.y > -10) || torchInReach(t))) { snuffTorch(t, 'You knock the torch out. Smoke curls up.'); break; }
 }
@@ -2931,7 +2956,7 @@ let restLog = null;
 function pickupExtra(g) {
   const p = player;
   if (g.ration) { p.rations = (p.rations || 0) + g.ration; addText(g.x, g.y - 6, '+RATION', '#d0b070'); sfx('pick'); flashMsg(`Ration (${p.rations}) - eat it from the bag`, '#d0b070'); return true; }
-  if (g.gkey) { p.gateKeys = (p.gateKeys || 0) + g.gkey; addText(g.x, g.y - 6, '+GATE KEY', '#c0d0e0'); sfx('lvl'); flashMsg(`Gate Key (${p.gateKeys}) - opens iron gates`, '#c0d0e0'); return true; }
+  if (g.gkey) { p.gateKeys = (p.gateKeys || 0) + g.gkey; addText(g.x, g.y - 6, '+GATE KEY', '#c0d0e0'); sfx('gkey'); flashMsg(`Gate Key (${p.gateKeys}) - opens iron gates`, '#c0d0e0'); return true; }
   if (g.frag) { p.mapFrags = (p.mapFrags || 0) + 1; addText(g.x, g.y - 6, '+MAP FRAGMENT', '#e0d0a0'); sfx('pick'); flashMsg(`Map Fragment (${p.mapFrags}/${FRAG_NEED})` + (p.mapFrags >= FRAG_NEED ? ' - use them from the bag to reveal this floor' : ''), '#e0d0a0'); return true; }
   if (g.bag) { const room = BAG_MAX - invSize();
     if (room <= 0) { p.gold += 200 * depth; addText(g.x, g.y - 6, '+' + 200 * depth + 'G', '#e8c840'); flashMsg('Your pack is as big as it gets - you sell the spare bag.', '#e8c840'); sfx('gold'); return true; }
@@ -3032,7 +3057,7 @@ function openTalk(e) {
     b.addEventListener('click', () => { $('tkResp').textContent = (e.name || nm) + ': ' + a; R.querySelectorAll('button').forEach(x => x.classList.add('dis')); b.classList.remove('dis'); b.classList.add('on'); sfx('pick'); }); R.appendChild(b); }
   const cv = $('tkPort'), c = cv.getContext('2d'); c.imageSmoothingEnabled = false; c.fillStyle = '#0c080a'; c.fillRect(0, 0, cv.width, cv.height);
   try { const img = enemyImg(e); if (img) { const s = Math.min(cv.width / img.width, cv.height / img.height) * .9; c.drawImage(img, (cv.width - img.width * s) / 2, (cv.height - img.height * s) / 2, img.width * s, img.height * s); } } catch (_) {}
-  setState('talk'); sfx('stairs');
+  setState('talk'); sfx('rune');
 }
 function beginFight() { if (state !== 'talk') return; const e = talkBoss; talkBoss = null; setState('play'); if (e && enemies.includes(e)) { aggro(e); music.combatUntil = time + 4; } }
 function checkBossTalk() {
@@ -3086,15 +3111,47 @@ function openSkills() { renderSkillsPanel(); $('skills').classList.remove('hidde
 function closeSkills() { $('skills').classList.add('hidden'); }
 // ---- ambient + new SFX (all procedural) ----
 function sfxTone(type, f0, f1, dur, vol, dly = 0) { const t = actx.currentTime + dly, o = actx.createOscillator(), g = actx.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-  o.connect(g); g.connect(bus.sx); g.gain.setValueAtTime(.0001, actx.currentTime); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.start(t); o.stop(t + dur + .02); }
+  vol *= sfxMul; o.connect(g); sfxRoute(g); g.gain.setValueAtTime(.0001, actx.currentTime); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.start(t); o.stop(t + dur + .02); }
+function sfxRoute(g) { g.connect(sfxOut()); if (sfxWet && bus.sxEcho) { const w = actx.createGain(); w.gain.value = sfxWet; g.connect(w); w.connect(bus.sxEcho); } }
 function sfxNoise(ft, fr, dur, vol, dly = 0, q = 1) { if (!noiseBuf) return; const t = actx.currentTime + dly, n = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain(); n.buffer = noiseBuf; f.type = ft; f.frequency.value = fr; f.Q.value = q;
-  n.connect(f); f.connect(g); g.connect(bus.sx); g.gain.setValueAtTime(.0001, actx.currentTime); g.gain.linearRampToValueAtTime(vol, t + Math.min(.05, dur * .3)); g.gain.exponentialRampToValueAtTime(.001, t + dur); n.start(t); n.stop(t + dur + .05); }
+  vol *= sfxMul; n.connect(f); f.connect(g); sfxRoute(g); g.gain.setValueAtTime(.0001, actx.currentTime); g.gain.linearRampToValueAtTime(vol, t + Math.min(.05, dur * .3)); g.gain.exponentialRampToValueAtTime(.001, t + dur); n.start(t); n.stop(t + dur + .05); }
+// filtered noise whose filter sweeps f0 -> f1 (whooshes, air, grinding stone); random buffer offset so repeats don't sound identical
+function sfxSweep(ft, f0, f1, dur, vol, dly = 0, q = 1) { if (!noiseBuf) return; const t = actx.currentTime + dly, n = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain(); n.buffer = noiseBuf; f.type = ft; f.Q.value = q;
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur); vol *= sfxMul; n.connect(f); f.connect(g); sfxRoute(g);
+  g.gain.setValueAtTime(.0001, actx.currentTime); g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * .35); g.gain.exponentialRampToValueAtTime(.001, t + dur); n.start(t, Math.random() * .5); n.stop(t + dur + .05); }
 function sfxExtra(type) {
   switch (type) {
-    case 'crackle': for (let i = 0; i < 3; i++) sfxNoise('highpass', 2500 + Math.random() * 2000, .03, .05, i * rand(.03, .09)); return true;
+    case 'crackle': { const n = irand(2, 4); for (let i = 0; i < n; i++) sfxNoise('highpass', 2200 + Math.random() * 2600, rand(.02, .04), rand(.035, .06), i * rand(.03, .1)); if (Math.random() < .35) sfxNoise('lowpass', 500, .25, .025); return true; } // + soft flame breath
+    case 'pop': sfxNoise('bandpass', rand(1400, 2400), .03, .1, 0, 3); sfxNoise('highpass', 3500, .22, .05, .03); return true; // sputtering held torch
     case 'drip': { const f = rand(900, 1500); sfxTone('sine', f, f * 2.2, .06, .05); sfxTone('sine', f * .8, f * 1.7, .05, .02, .16); return true; } // with a wet echo
-    case 'wind': sfxNoise('bandpass', rand(300, 600), 2.2, .05, 0, 2); return true;
+    case 'splash': sfxSweep('bandpass', 1400, 500, .35, .05, 0, 1.2); sfxTone('sine', 420, 180, .12, .025, .05); return true; // something slips into water, far off
+    case 'wind': { const f = rand(300, 600); sfxSweep('bandpass', f, f * rand(.6, 1.5), rand(2, 3), .05, 0, 2); return true; }
     case 'growl': sfxTone('sawtooth', rand(70, 110), 50, .45, .06); sfxNoise('lowpass', 300, .4, .05); return true;
+    case 'mob': if (Math.random() < .5) { sfxTone('sawtooth', rand(55, 80), 38, .9, .03); sfxNoise('lowpass', 220, .8, .04); } // distant groan...
+      else for (let i = 0; i < 3; i++) sfxNoise('bandpass', rand(250, 450), .08, .035, i * rand(.18, .3), 2); return true; // ...or shuffling feet
+    // ---- v0.4.6 combat + skills
+    case 'fbcast': sfxSweep('bandpass', 500, 2200, .28, .16, 0, 1.4); sfxTone('sawtooth', 260, 120, .22, .045); for (let i = 0; i < 3; i++) sfxNoise('highpass', 3000, .02, .05, .04 + i * .05); return true; // fiery whoosh
+    case 'fbboom': sfxNoise('lowpass', 500, .4, .26); sfxTone('sine', 130, 38, .35, .2); sfxNoise('highpass', 2600, .18, .06, .03); return true; // amber impact boom
+    case 'whirl': for (let i = 0; i < 3; i++) sfxSweep('bandpass', 700 + i * 250, 1900 + i * 300, .13, .12, i * .11, 2.2); sfxTone('triangle', 1300, 900, .3, .025, .02); return true; // spinning blade air
+    case 'frost': sfxNoise('highpass', 4000, .06, .2); sfxTone('square', 2400, 600, .05, .05); // icy crack...
+      [1760, 2350, 3140].forEach((f, i) => sfxTone('sine', f, f * 1.02, .5, .045, .03 + i * .04)); sfxSweep('highpass', 6000, 2000, .5, .05, .04, .7); return true; // ...+ glassy ring
+    case 'whiff': sfxSweep('bandpass', 500, 1500, .14, .09, 0, 1.6); return true; // clean miss
+    case 'meat': sfxSweep('bandpass', 600, 1300, .08, .06, 0, 1.6); sfxNoise('lowpass', 420, .1, .2, .03); sfxTone('sine', 150, 55, .12, .16, .03); return true; // meaty connect
+    case 'ehit': sfxNoise('bandpass', rand(500, 900), .07, .12, 0, 2.5); sfxTone('square', rand(230, 300), 110, .07, .035); return true; // enemy flinch (player 'hurt' stays the low saw)
+    case 'snuff': sfxNoise('lowpass', 700, .14, .14); sfxNoise('highpass', 2800, .32, .05, .05); return true; // soft puff + thin hiss (not the burnout hiss)
+    case 'awaken': sfxTone('sine', 45, 90, 1.6, .2); sfxTone('sawtooth', 90, 180, 1.4, .04, .1); [0, .45].forEach(d => sfxTone('triangle', 330, 320, 1.4, .07, .3 + d)); return true; // rising drone + toll
+    case 'enrage': sfxTone('sawtooth', 160, 60, .7, .12); sfxTone('square', 120, 50, .6, .06, .03); sfxNoise('lowpass', 900, .6, .2); return true; // roar
+    // ---- v0.4.6 world
+    case 'chest': sfxTone('triangle', 110, 175, .35, .07); sfxNoise('bandpass', 520, .32, .07, 0, 6); [2100, 2650, 2400].forEach((f, i) => sfxTone('sine', f, f * .97, .12, .06, .3 + i * .07)); return true; // creak + coin clink
+    case 'locked': sfxTone('square', 1500, 1100, .025, .07); sfxTone('square', 1300, 900, .025, .06, .07); sfxTone('triangle', 140, 90, .1, .1, .1); return true; // rattle-clunk
+    case 'key': sfxTone('sine', 1800, 1790, .45, .07); sfxTone('sine', 2700, 2690, .3, .035, .01); sfxTone('square', 2200, 1900, .02, .03); return true; // bright little ring
+    case 'gkey': sfxTone('triangle', 620, 610, .8, .09); sfxTone('sine', 930, 925, .6, .05, .01); sfxTone('sine', 1400, 1395, .4, .03, .02); sfxTone('square', 900, 700, .03, .04); return true; // heavy iron ring
+    case 'gate': sfxTone('square', 900, 500, .04, .08); sfxTone('triangle', 200, 120, .1, .1, .05); sfxSweep('bandpass', 260, 420, 1.1, .16, .15, 3); sfxTone('sawtooth', 70, 55, 1, .05, .15); return true; // key turns, iron grinds
+    case 'blood': sfxNoise('lowpass', 600, .25, .16); [0, .32].forEach(d => sfxTone('sine', 70, 40, .18, .22, .1 + d)); sfxNoise('lowpass', 200, .9, .22, .55); sfxTone('sawtooth', 55, 38, .8, .05, .55); return true; // wet drink, heartbeat, bone door
+    case 'secret': sfxNoise('lowpass', 150, 1, .3); sfxTone('sine', 48, 30, .9, .14); sfxSweep('bandpass', 180, 90, .8, .1, .05, 2); for (let i = 0; i < 5; i++) sfxNoise('bandpass', rand(900, 2200), .04, .07, .15 + i * rand(.08, .16), 3); return true; // stone shifts + debris
+    case 'crumble': sfxNoise('lowpass', 400, .25, .16); for (let i = 0; i < 4; i++) sfxNoise('bandpass', rand(1000, 2400), .035, .07, .05 + i * rand(.05, .1), 3); return true; // cracked stone falls apart
+    case 'glimmer': [880, 1320, 1760, 2640].forEach((f, i) => sfxTone('sine', f, f, .6, .05, i * .07)); sfxSweep('highpass', 5000, 8000, .7, .03, .1, .7); return true; // teal chime
+    case 'stairs': sfxSweep('bandpass', 800, 250, .7, .06, 0, 1); [0, .17, .34].forEach((d, i) => { sfxNoise('lowpass', 380 - i * 80, .09, .12, d); sfxTone('sine', 110 - i * 18, 60 - i * 10, .1, .08, d); }); return true; // steps down into the dark
     case 'hiss': sfxNoise('highpass', 3000, .45, .12); return true;
     case 'click': sfxTone('square', 1800, 900, .03, .08); return true;
     case 'rumble': sfxNoise('lowpass', 120, 1.1, .3); sfxTone('sine', 50, 30, 1, .15); return true;
@@ -3108,15 +3165,36 @@ function sfxExtra(type) {
   }
   return false;
 }
-const amb = { crackle: 0, drip: 4, wind: 9, growl: 0 };
+// v0.4.6 ambience: sparse, positional one-shots (never loops). Each voice has its own timer; nothing fires every frame.
+const amb = { crackle: 0, drip: 4, wind: 9, growl: 0, pop: 1, mob: 30, splash: 20 };
+const AMB = { flameR: 120, wetR: 130, mobMin: 140, mobMax: 460 };
+function nearestFlame(p) { let best = null, bd = AMB.flameR;
+  for (const t of torches) if (!t.out) { const d = Math.hypot(t.x - p.x, t.y - p.y); if (d < bd) { bd = d; best = t; } }
+  for (const b of braziers) { const d = Math.hypot(b.x - p.x, b.y - p.y); if (d < bd) { bd = d; best = b; } } return best ? { x: best.x, y: best.y, d: bd } : null; }
+function nearestWet(p) { let bd = AMB.wetR, best = null; const chk = (x, y) => { const d = Math.hypot(x - p.x, y - p.y); if (d < bd) { bd = d; best = { x, y, d }; } };
+  for (const w of waters) chk(Math.max(w.x0, Math.min(w.x1, Math.floor(p.x / TS))) * TS + TS / 2, w.y * TS + 8);
+  for (const b of basins) chk(b.x, b.y); for (const g of glimmers) chk(g.x, g.y); return best; }
+function corridorRun(tx, ty) { if (!isCorridor(tx, ty)) return 0; let n = 1; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) for (let k = 1; k <= 6 && isCorridor(tx + dx * k, ty + dy * k); k++) n++; return n; }
+const AMB_GAP = .5; let ambClock = 0, ambLastT = -99, ambN = 0; // never two ambient voices inside half a second
+function ambOk(k) { if (sfxN !== ambN) ambLastT = ambClock, ambN = sfxN; const since = ambClock - ambLastT; if (since < AMB_GAP) { amb[k] = AMB_GAP - since + rand(.1, .6); return false; } return true; }
 function ambientTick(dt) {
-  const p = player; amb.crackle -= dt; amb.drip -= dt; amb.wind -= dt; amb.growl -= dt;
-  if (amb.crackle <= 0) { amb.crackle = rand(.5, 1.4); let near = false; for (const t of torches) if (!t.out && Math.hypot(t.x - p.x, t.y - p.y) < 60) { near = true; break; }
-    if (!near) for (const b of braziers) if (Math.hypot(b.x - p.x, b.y - p.y) < 70) { near = true; break; } if (near) sfx('crackle'); }
-  if (amb.drip <= 0) { amb.drip = rand(3, 9) * (waters.length || decor.length > 12 ? .7 : 1); sfx('drip'); }
-  if (amb.wind <= 0) { amb.wind = rand(9, 18); if (isCorridor(Math.floor(p.x / TS), Math.floor(p.y / TS))) sfx('wind'); }
+  const p = player; ambClock += dt; for (const k in amb) amb[k] -= dt; ambN = sfxN;
+  ambientVoices(p);
+  if (sfxN !== ambN) ambLastT = ambClock;
 }
-function onAggroV04(e) { if (player) { e.seenX = player.x; e.seenY = player.y; e.seenT = time; } if (amb.growl <= 0 && !e.T.boss && dist(e, player) < 200) { amb.growl = 1.6; if (Math.random() < .5) sfx('growl'); } mobThought(e); }
+function ambientVoices(p) {
+  if (amb.crackle <= 0 && ambOk('crackle')) { const f = nearestFlame(p); amb.crackle = f ? rand(1.1, 2.4) + f.d / 70 : rand(.6, 1.2); if (f) sfxAt('crackle', f.x, f.y, AMB.flameR, 1.15); }
+  if (p.torchT > 0 && p.torchT <= TORCH_WARN && amb.pop <= 0 && ambOk('pop')) { amb.pop = rand(2, 4.5); sfx('pop', { vol: rand(.7, 1.1) }); } // sputtering held torch spits
+  if (amb.drip <= 0 && ambOk('drip')) { const w = nearestWet(p); amb.drip = w ? rand(2.2, 5) : rand(5, 11) * (decor.length > 12 ? .8 : 1);
+    if (w) sfxAt('drip', w.x + rand(-30, 30), w.y, 260, 1.1, .7); else sfx('drip', { vol: rand(.5, .9), wet: .45, pan: rand(-.6, .6) }); }
+  if (amb.splash <= 0 && ambOk('splash')) { amb.splash = rand(25, 55); const w = nearestWet(p); if (w && Math.random() < .5) sfx('splash', { vol: .7, pan: rand(-.7, .7), wet: .8 }); }
+  if (amb.wind <= 0 && ambOk('wind')) { const run = corridorRun(Math.floor(p.x / TS), Math.floor(p.y / TS)); amb.wind = run >= 7 ? rand(6, 11) : rand(9, 18);
+    if (run) sfx('wind', { vol: run >= 7 ? 1.35 : 1, pan: rand(-.5, .5) }); }
+  if (amb.mob <= 0 && ambOk('mob')) { amb.mob = rand(28, 55); // distant presence: an unaware mob somewhere out of sight, heard faintly
+    const c = enemies.filter(e => !e.T.boss && !e.hidden && e.state !== 'chase' && dist(e, p) > AMB.mobMin && dist(e, p) < AMB.mobMax);
+    if (c.length) { const e = pick(c); sfxAt('mob', e.x, e.y, AMB.mobMax + 120, 1.1, .5); } }
+}
+function onAggroV04(e) { if (player) { e.seenX = player.x; e.seenY = player.y; e.seenT = time; } if (amb.growl <= 0 && !e.T.boss && dist(e, player) < 200) { amb.growl = 3.5; if (Math.random() < .35) sfxAt('growl', e.x, e.y, 260, 1.2); } mobThought(e); }
 // ---- drawing ----
 function drawFloorDecor() {
   for (const d of decor) { if (d.kind === 'puddle') { ctx.fillStyle = 'rgba(40,60,80,.55)'; ctx.fillRect(Math.round(d.x), Math.round(d.y), d.w, d.h); ctx.fillStyle = 'rgba(120,160,200,.25)'; ctx.fillRect(Math.round(d.x + 1 + (Math.sin(time * 1.3 + d.ph) + 1) * (d.w - 4) / 2), Math.round(d.y), 2, 1); }

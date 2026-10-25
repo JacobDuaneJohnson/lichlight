@@ -4,6 +4,23 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.4.6] - 2026-10-24
+
+_Sound pass: skill voices, world tells, sparse crypt ambience_
+
+### Added
+- **Skills have their own voices.** **Fireball** casts with a fiery whoosh and lands with a deep amber boom. **Whirlwind** makes a spinning, blade-in-the-air rush. **Frost Nova** cracks like ice and rings like glass.
+- **A soft puff when a wall torch goes out.** Knocking out a sconce with your weapon, a skill, or an enemy shot makes its own quiet puff and hiss. Your own torch burning out still sounds like it used to.
+- **New world sounds.** Chests creak open with a clink of coins. Locked chests and gates rattle. Chest keys ring brightly and Gate Keys ring heavy and iron. A Gate Key turns and the gate grinds open. Blood doors drink with a heartbeat. Secret passages rumble as the stone shifts, and cracked stone crumbles. Glimmering pools chime when you drink. The stairs sound like footsteps going down.
+- **Bosses** have a rising toll when they awaken and a roar when they enrage.
+
+### Changed
+- **Melee sounds different when you hit and when you miss.** A hit lands with a meaty thud. A miss is just a whoosh of air. Enemies flinch with their own sound, separate from yours when you get hurt.
+- **The crypt sounds more alive, but stays quiet.** Torches and braziers crackle softly when you're close and fall silent as you walk away, and you can hear which side they're on. A sputtering torch spits and pops. Near water you hear more drips, with a damp echo, and once in a while a distant splash. Wind is a little stronger in long corridors. Sometimes you'll hear a faint groan or shuffling feet from something that hasn't noticed you yet. Monsters growl less often when they spot you. No two ambient sounds play within half a second of each other.
+- **Mix.** Getting hurt and dying are now the loudest sounds. Combat and world sounds sit in the middle, and ambience sits quietly underneath.
+
+Sound Off, the SFX slider and the iOS silent switch work as before. Battle music still starts Off. Saves aren't affected.
+
 ## [0.4.5] - 2026-10-24
 
 _Lighting pass: skill glows, livelier torches, glimmering pools_
@@ -196,6 +213,7 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.4.6]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.6
 [0.4.5]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.5
 [0.4.4]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.4
 [0.4.3]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.3
