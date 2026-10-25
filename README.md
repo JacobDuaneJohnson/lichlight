@@ -2,7 +2,7 @@
 
 **[▶ Play Lichlight](https://jacobduanejohnson.github.io/lichlight/)**
 
-Current version: **v0.4.3** · [What's new](CHANGELOG.md) · [All releases](https://github.com/JacobDuaneJohnson/lichlight/releases)
+Current version: **v0.4.4** · [What's new](CHANGELOG.md) · [All releases](https://github.com/JacobDuaneJohnson/lichlight/releases)
 
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 
@@ -23,13 +23,15 @@ Your progress saves automatically each time you reach a new floor. Choose **Cont
 
 Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked up automatically. Gear has to be clicked or tapped to pick it up. Newly looted items are marked **NEW** in your bag.
 
-- **Light:** you start with only a faint glow. Pick up torches to light the walls around you, but each one burns out after a while. Some unique rings give off magic light of their own.
-- **Chests and keys:** locked chests hold magic and rare gear. Keys are hidden under cracked floor tiles and behind cracked brick walls (hit them to break them open), and champions sometimes drop one.
+- **Light:** you start with only a faint glow. Pick up torches and press **F** (**USE** on a phone) to light one. Each torch burns out after a while, and when it dies you stay in the dark until you light another with **F**. Some unique rings give off magic light of their own. Lit wall torches are rare now, so floors are darker.
+- **Chests and keys:** locked chests hold magic and rare gear. Open one by clicking it or pressing **F** / **USE** next to it (walking into it does nothing). Keys are hidden under cracked floor tiles and behind cracked brick walls (hit them to break them open), and champions sometimes drop one.
+- **Secret passages:** some cracked walls hide a tunnel that links two rooms far apart on the floor, a real shortcut. Both ends are sealed with cracked stone, so break either side to open it. Map Fragments show them on the map.
+- **Ghosts:** ghosts and other spirits can drift through walls, but they can't see through them. Break line of sight and they lose you.
 - **Loot:** regular monsters drop gold, potions, and the occasional normal item. Only bosses drop uniques.
 - **Level requirements:** every piece of gear has a required level. Gear you are too low to wear is tinted red in your bag, and you can't equip it until you reach that level.
 - **Bigger floors, sealed doors:** floors are larger now. Stone doors are sealed by a puzzle in the room (pull levers or touch runes in the order shown on the door, or stand on every pressure plate). Iron gates need a **Gate Key**, which is a separate item from chest keys. The boss room is behind a **blood door** that costs 15% of your max life to open. It never kills you; if you're too low it refuses until you heal.
 - **Traps:** narrow corridors can hide pitfalls, dart traps, collapsing ceilings, rolling stones, and fire jets. Each one flashes a warning first, so roll.
-- **Torches:** hit a wall torch to knock it out. Walk up to a lit torch or brazier and use it (**F** / **USE**) to relight your own torch, and use a lit torch on an empty sconce to relight it.
+- **Torches:** hit a wall torch to knock it out. Fireballs, Whirlwind, Frost Nova, and enemy shots put them out too. Walk up to a lit torch or brazier and use it (**F** / **USE**) to relight your own torch, and use a lit torch on an empty sconce to relight it.
 - **Survival:** watch **F**ood, **W**ater, and **R**est. When a bar runs low you move slower. When it's empty you slowly lose life, but this alone never kills you. Eat rations from your bag (they turn up in crates, urns, and vaults, or from the trader), drink from stone basins and running water, and **REST** for 1 to 8 hours in a quiet room with no enemies nearby. 6 to 8 hours is a full rest.
 - **Crypt shop:** sometimes the floor right after a boss has the Hollow Pedlar in a side room. Sell backpack items, repair everything, and buy potions, rations, and Gate Keys.
 - **Map Fragments:** very rare. Collect 4 and use them from your bag to reveal the whole floor, including hidden walls and traps.
@@ -47,7 +49,7 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 | Skills | **FIRE** (level 1), Whirlwind (level 2), Frost Nova (level 4) |
 | Pick up gear | Tap the item. Press and hold it to see its stats. |
 | Potions | Heart button for life, blue button for mana |
-| Use / interact | **USE** button (appears next to doors, levers, runes, water, torches, and the trader) |
+| Use / interact | **USE** button (appears next to chests, doors, levers, runes, water, torches, and the trader; also lights a spare torch in the dark) |
 | Map | ⌗ button at the top |
 | Inventory | Bag button. Tap an item to see stats and lore, then **EQUIP** or **DROP**. **SORT** organizes your backpack. Rations, Map Fragments, and **REST** are in the bag too. |
 | Pause / settings | ❚❚ button at the top (sound, music, battle music, volume, screenshake) |
@@ -63,7 +65,7 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 | Cast skill | 1, 2, 3 cast a skill toward the cursor. Right-click casts the selected right-click skill. |
 | Choose right-click skill | F1–F3, or click a skill box on the bottom bar |
 | Rebind skill keys | Pause → **SKILL KEYS** (choose which skill each of 1/2/3 and right-click casts) |
-| Use / interact | F, or left-click it (doors, levers, runes, water, torches, the trader) |
+| Use / interact | F, or left-click it (chests, doors, levers, runes, water, torches, the trader). In the dark, F lights a spare torch. |
 | Eat a ration / rest | R / Z |
 | Dodge roll | Space (or K) |
 | Potions | Q (life), E (mana) |
@@ -79,5 +81,6 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 - Watch for red warning markers before a boss's big attacks. Bosses get angrier at half health.
 - Save a torch for boss floors. Fighting in the dark is rough.
 - Battle music is **Off** by default. Turn it on in the pause menu (**BATTLE MUSIC**) if you want the combat track.
+- **LIGHTING: HIGH / LOW** in the pause menu sets the lighting detail. High gives smoother shadows. Low is lighter on older phones and is the default on touch screens.
 - Heal up before you open a blood door, and rest before a boss if you can.
 - Compare gear in the inventory before equipping. The detail panel shows how it stacks up against what you're wearing.

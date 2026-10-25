@@ -4,6 +4,21 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.4.4] - 2026-10-24
+
+_Evening playtest: darker crypts, real secret passages_
+
+### Changed
+- **Chests open only when you ask.** Click a chest, or press **F** / **USE** next to it. Walking into a chest no longer opens it. Locked chests still need a key.
+- **Torches no longer relight themselves.** When your torch burns out you stay in the dark until you press **F** (**USE** on a phone), which lights one spare torch if you have one. A hint tells you when this happens. Torches you pick up also wait for **F**.
+- **Darker floors.** There are far fewer lit wall torches (about a quarter as many as before). Braziers are still around as safe spots of light.
+- **Smoother lighting.** The light map now renders at full resolution, so shadows are much less blocky. A new **LIGHTING: HIGH / LOW** option in the pause menu switches between full and half resolution (the old look). The default is High on computers and Low on touch screens, and your choice is saved.
+- **More secret passages, and they lead somewhere.** Each floor has 1–3 hidden tunnels that link two rooms far apart on the floor, so they work as real shortcuts. Both ends are sealed with cracked stone that you can break from either side. Map Fragments show them on the map.
+
+### Fixed
+- **Ghosts and other spirits can't see through walls anymore.** Every monster needs line of sight to notice you. Spirits can still drift through stone, but only toward the spot where they last saw you, and they give up after a few seconds.
+- **Anything that hits a lit wall torch puts it out:** melee, Fireball, Whirlwind, Frost Nova, and enemy projectiles. It stays out for the rest of the floor.
+
 ## [0.4.3] - 2026-10-24
 
 _No more torch farming from sconces_
@@ -169,6 +184,7 @@ First public release, playable in your browser at https://jacobduanejohnson.gith
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.4.4]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.4
 [0.4.3]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.3
 [0.4.2]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.2
 [0.4.1]: https://github.com/JacobDuaneJohnson/lichlight/releases/tag/v0.4.1

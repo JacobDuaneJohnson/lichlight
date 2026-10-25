@@ -189,6 +189,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small" id="mSound">SOUND: ON</button>
     <button class="mbtn small" id="mMusic">MUSIC: ON</button>
     <button class="mbtn small" id="mBattle">BATTLE MUSIC: OFF</button>
+    <button class="mbtn small" id="mLight">LIGHTING: HIGH</button>
     <button class="mbtn small" id="mSkills">SKILL KEYS</button>
     <button class="mbtn small hidden" id="mRest">REST</button>
     <button class="mbtn small" id="mShake">SHAKE: FULL</button>
@@ -238,7 +239,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.4.3'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.4.4'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -804,11 +805,12 @@ function genDungeon(depth) {
   for (let i = 0; i < 2; i++) { const a = pick(rooms), b = pick(rooms); if (a !== b) corridor(a, b); }
   const last = rooms[rooms.length - 1];
   map[last.cy * MW + last.cx] = TILE.STAIRS;
-  for (const r of rooms) { const ty = r.y - 1; for (let i = r.x + 1; i < r.x + r.w - 1; i += 4) if (tileAt(i, ty) === TILE.WALL && tileAt(i, ty + 1) === TILE.FLOOR && Math.random() < .7) torches.push({ x: i * TS + 8, y: ty * TS + 6 }); }
+  for (const r of rooms) { const ty = r.y - 1; if (Math.random() < .5) continue; let n = 0; for (let i = r.x + 1 + irand(0, 2); i < r.x + r.w - 1 && n < 2; i += 7) if (tileAt(i, ty) === TILE.WALL && tileAt(i, ty + 1) === TILE.FLOOR && Math.random() < .55) { torches.push({ x: i * TS + 8, y: ty * TS + 6 }); n++; } } // v0.4.4: sparser sconces (darker baseline)
   mapVar = new Array(MW * MH).fill(0).map(() => Math.random() < .8 ? irand(0, 1) : irand(2, 3));
 }
 
 // ---------- game state ----------
+let passages = [];
 let state = 'menu', depth = 1, player = null, enemies = [], projs = [], parts = [], texts = [], ground = [], effects = [];
 let cam = { x: 0, y: 0 }, msg = { t: '', life: 0, col: '#fff' }, time = 0, bannerT = 0;
 const SKILLS = [
@@ -953,7 +955,8 @@ function placeTreasure() {
 function breakSecret(s) {
   if (s.broken) return; s.broken = true;
   const cx = (s.tx + .5) * TS, cy = (s.ty + .5) * TS;
-  if (s.kind === 'wall') { map[s.ty * MW + s.tx] = TILE.FLOOR; seen[s.ty * MW + s.tx] = true; mapVer++; }
+  if (s.kind === 'wall') { map[s.ty * MW + s.tx] = TILE.FLOOR; seen[s.ty * MW + s.tx] = true; mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear(); }
+  if (s.passage) { burst(cx, cy, '#6a5a6a', 14, 60); addTrauma(.2); sfx('door'); const o = s.pair && !s.pair.broken; flashMsg(o ? 'A hidden passage! It runs on into the dark...' : 'The passage breaks through!', '#c8b8ff'); return; }
   burst(cx, cy, '#6a5a6a', 14, 60); burst(cx, cy, '#8a7a80', 8, 40); addTrauma(.18); sfx('hit');
   const ly = s.kind === 'wall' ? cy + 1 : cy;
   if (s.loot === 'key') { dropAt(ground, cx, ly, { key: 1 }); flashMsg('Something glints in the rubble...', '#ffe060'); }
@@ -980,7 +983,7 @@ function openChest(c) {
 }
 function updateTreasure(dt, rolling) {
   const p = player;
-  for (const c of chests) if (!c.open && Math.abs(c.x - p.x) < 11 && Math.abs(c.y - p.y) < 10) openChest(c);
+  // v0.4.4: chests open only on click / F / USE (no walk-over auto-open)
   if (rolling) { const tx = Math.floor(p.x / TS), ty = Math.floor((p.y + 3) / TS); for (const s of secrets) if (!s.broken && s.kind === 'floor' && s.tx === tx && s.ty === ty) breakSecret(s); }
 }
 function drawSecrets() { // hairline cracks: subtle but visible
@@ -1052,13 +1055,16 @@ function inPoly(poly, x, y) { let c = false; const n = poly.length / 2; for (let
 function lightAt(x, y) { // approximate brightness 0..~2 at a world point (uses this frame's lights)
   let s = 0; for (const l of frameLights) { const d = Math.hypot(x - l.x, y - l.y); if (d >= l.r) continue; if (l.poly && !inPoly(l.poly, x, y)) continue; const k = d / l.r; s += l.a * (k < .35 ? 1 - k * .7 : k < .7 ? .75 - (k - .35) * 1.34 : .28 * (1 - k) / .3); } return s;
 }
+// v0.4.4: Lighting quality. High = full-res lightmap, Low = half-res (the old look). Unset = auto: Low on touch, High otherwise.
+function lightingQ() { if (settings.lighting === 'low' || settings.lighting === 'high') return settings.lighting; let coarse = false; try { coarse = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches; } catch (e) {} return coarse ? 'low' : 'high'; }
+function lightScale() { return lightingQ() === 'low' ? .5 : 1; }
 function renderLighting(sx, sy) {
-  const LW = Math.ceil(VW / 2), LH = Math.ceil(VH / 2);
+  const LQ = lightScale(), LW = Math.ceil(VW * LQ), LH = Math.ceil(VH * LQ);
   if (lcan.width !== LW || lcan.height !== LH) { lcan.width = LW; lcan.height = LH; }
   const L = gatherLights(sx, sy); frameLights = L;
   lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.globalCompositeOperation = 'source-over'; lctx.globalAlpha = 1;
   lctx.fillStyle = '#050408'; lctx.fillRect(0, 0, LW, LH);
-  lctx.setTransform(.5, 0, 0, .5, -sx * .5, -sy * .5);
+  lctx.setTransform(LQ, 0, 0, LQ, -sx * LQ, -sy * LQ);
   // explored-but-dark tiles stay faintly remembered
   lctx.fillStyle = '#1a1520';
   const t0x = Math.floor(sx / TS), t0y = Math.floor(sy / TS);
@@ -1114,8 +1120,9 @@ function updateTorch(dt) {
   const p = player;
   if (p.torchT > 0) { p.torchT = Math.max(0, p.torchT - dt);
     if (p.torchT <= TORCH_WARN && !p.torchWarn) { p.torchWarn = true; flashMsg(p.torches ? 'Your torch is sputtering...' : 'Your torch is sputtering - and you have no spare!', '#ffb040'); }
-    if (p.torchT <= 0) { burst(p.x, p.y - 8, '#555', 10, 25); if (!lightTorch()) flashMsg('Your torch burns out. Darkness closes in.', '#a08870'); else flashMsg('Torch burned out - you light a fresh one.', '#ffb040'); } }
-  else if (p.torches > 0) lightTorch();
+    if (p.torchT <= 0) { burst(p.x, p.y - 8, '#555', 10, 25); sfx('hiss'); p.torchOutT = time;
+      if (p.torches > 0) flashMsg(touchMode ? 'Torch died. Tap USE to light another.' : 'Torch died. Press F to light another.', '#ffb040'); else flashMsg('Your torch burns out. Darkness closes in.', '#a08870'); } }
+  // v0.4.4: no auto-light from spares - the player presses F / USE (see interactables 'LIGHT SPARE')
   // take loose torches from wall sconces
   // dust motes around the player light
   const R = lightRadius();
@@ -1124,7 +1131,7 @@ function updateTorch(dt) {
   // reveal (and remember) only what the light actually shows
   if ((seenT -= dt) <= 0) { seenT = .12; markSeenByLight(); }
 }
-function giveTorch() { const p = player; if (p.torches >= TORCH_CAP) { flashMsg(`You can't carry more torches (${TORCH_CAP})`, '#aaa'); return false; } p.torches++; sfx('pick'); return true; }
+function giveTorch() { const p = player; if (p.torches >= TORCH_CAP) { flashMsg(`You can't carry more torches (${TORCH_CAP})`, '#aaa'); return false; } p.torches++; sfx('pick'); if (p.torchT <= 0) flashMsg(touchMode ? 'Torch picked up. Tap USE to light it.' : 'Torch picked up. Press F to light it.', '#ffb040'); return true; }
 function markSeenByLight() {
   const p = player, R = Math.max(26, lightRadius()), rt = Math.ceil(R / TS), ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
   for (let j = -rt; j <= rt; j++) for (let i = -rt; i <= rt; i++) { const x = ptx + i, y = pty + j; if (x < 0 || y < 0 || x >= MW || y >= MH) continue; const k = y * MW + x; if (seen[k]) continue;
@@ -1334,7 +1341,7 @@ function moveDir(e, ax, ay, s, dt) { if (e.T.ghost) { e.x += ax * s * dt; e.y +=
 function keepRange(e, ax, ay, d, lo, hi, s, dt) { const want = d < lo ? -1 : d > hi ? 1 : 0; if (want) moveDir(e, ax * want, ay * want, s, dt); else moveDir(e, -ay, ax, s * .4 * Math.sin(e.anim * .7), dt); }
 function mobAI(e, dt, d, ax, ay, spd) {
   const p = player, T = e.T, cdm = e.elite ? 1.35 : 1; e.cd -= dt * cdm;
-  const see = d < 220 && (T.ghost || los(e, p));
+  const see = d < 220 && los(e, p);
   switch (T.ai) {
     case 'chase': if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt); break;
     case 'bat': { const w = Math.sin(e.anim * 6) * .9; moveDir(e, ax - ay * w, ay + ax * w, spd, dt); break; }
@@ -1482,11 +1489,17 @@ function updateEnemies(dt) {
     if (e.kx || e.ky) { moveEnt(e, e.kx * dt, e.ky * dt); const f = Math.pow(.001, dt); e.kx *= f; e.ky *= f; if (Math.abs(e.kx) + Math.abs(e.ky) < 2) e.kx = e.ky = 0; }
     if (e.disg) { if (d < 26) wakeMimic(e); continue; }
     if (e.state === 'idle') {
-      if (d < e.T.aggro && (e.T.ghost || los(e, p))) aggro(e);
+      if (d < e.T.aggro && los(e, p)) aggro(e); // v0.4.4: every mob (ghosts too) needs line of sight
       e.wt -= dt; if (e.wt <= 0) { e.wt = rand(1, 3); const a = Math.random() * 6.28, m = Math.random() < .5 ? 0 : 1; e.wx = Math.cos(a) * m; e.wy = Math.sin(a) * m; }
       if (!e.T.boss) moveDir(e, e.wx, e.wy, spd * .35, dt); if (e.wx) e.face = e.wx > 0 ? 1 : -1;
     } else {
       if (d > 280 && !e.T.boss) { e.state = 'idle'; continue; }
+      if (e.T.ghost && !e.T.boss) { // phasers can drift through stone, but only toward where they last SAW you
+        if (los(e, p)) { e.seenX = p.x; e.seenY = p.y; e.seenT = time; }
+        else { if (e.seenT === undefined) { e.seenX = p.x; e.seenY = p.y; e.seenT = time; }
+          const lx = e.seenX - e.x, ly = e.seenY - e.y, ld = Math.hypot(lx, ly);
+          if (ld < 6 || time - e.seenT > 4) { e.state = 'idle'; e.seenT = undefined; continue; }
+          moveDir(e, lx / ld, ly / ld, spd * .8, dt); e.face = lx > 0 ? 1 : -1; continue; } }
       const ax = (p.x - e.x) / (d || 1), ay = (p.y - e.y) / (d || 1);
       if (!(e.mode === 'charge' || e.mode === 'leap')) e.face = ax > 0 ? 1 : -1;
       if (e.T.boss) bossAI(e, dt, d, ax, ay); else mobAI(e, dt, d, ax, ay, spd);
@@ -1633,7 +1646,7 @@ function continueGame() {
   // older saves have no found-list: seed it from uniques the player is carrying
   player.keys = Math.max(0, Math.floor(+player.keys || 0)); // old saves: 0 keys
   player.rpPot = Math.max(0, Math.floor(+s.p.rpPot || 0)); player.wearN = 0; // old saves: 0 repair potions
-  if (s.p.torches === undefined) { player.torches = 1; player.torchT = 0; } // old saves: one torch to start with
+  if (s.p.torches === undefined) { player.torches = 0; player.torchT = TORCH_TIME; } // old (pre-torch) saves: start with a lit torch (v0.4.4: spares never auto-light)
   player.torches = clamp(Math.floor(+player.torches || 0), 0, TORCH_CAP); player.torchT = clamp(+player.torchT || 0, 0, TORCH_TIME); player.torchWarn = player.torchT > 0 && player.torchT <= TORCH_WARN;
   for (const it of player.inv) if (it && it.isNew !== true) delete it.isNew; // old saves: nothing marked new
   player.found = Array.isArray(player.found) ? player.found.filter(n => typeof n === 'string') : [];
@@ -1816,7 +1829,7 @@ function walkTargetPoint(w) {
   if (w.kind === 'enemy') return { x: w.ref.x, y: w.ref.y };
   if (w.kind === 'chest') return { x: w.ref.x, y: w.ref.y + 2 };
   if (w.kind === 'item') return { x: w.ref.x, y: w.ref.y };
-  if (w.kind === 'secret') { const s = w.ref; if (s.kind === 'wall') return { x: (s.tx + .5) * TS, y: (s.ty + 1.5) * TS };
+  if (w.kind === 'secret') { const s = w.ref; if (s.kind === 'wall' && !s.passage) return { x: (s.tx + .5) * TS, y: (s.ty + 1.5) * TS };
     let best = null, bd = 1e9; for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) { const x = s.tx + dx, y = s.ty + dy; if (!walkable(x, y)) continue; const d = Math.hypot((x + .5) * TS - p.x, (y + .5) * TS - p.y); if (d < bd) { bd = d; best = { x: (x + .5) * TS, y: (y + .5) * TS }; } }
     return best || { x: (s.tx + .5) * TS, y: (s.ty + 1.5) * TS }; }
   return { x: w.x, y: w.y };
@@ -2400,10 +2413,10 @@ function castSkill(i) {
   } else if (i === 1) {
     effects.push({ kind: 'spin', x: p.x, y: p.y, t: 0, dur: .35, r: 32 });
     for (const e of enemies.slice()) { const d = dist(e, p); if (d < 32 + e.r) { const { d: dm, crit } = rollDmg(); const dd = dm * 1.4 + pw * .5; leech(dd); damageEnemy(e, dd, (e.x - p.x) / (d || 1) * 120, (e.y - p.y) / (d || 1) * 120, '#fff', crit); } }
-    sfx('swing'); addTrauma(.12); breakSecretsAt(p.x, p.y, 30, true);
+    sfx('swing'); addTrauma(.12); breakSecretsAt(p.x, p.y, 30, true); snuffTorchesNear(p.x, p.y, 34);
   } else {
     effects.push({ kind: 'nova', x: p.x, y: p.y, t: 0, dur: .45, r: 70 });
-    breakSecretsAt(p.x, p.y, 64, true);
+    breakSecretsAt(p.x, p.y, 64, true); snuffTorchesNear(p.x, p.y, 70);
     for (const e of enemies.slice()) { if (dist(e, p) < 70) { e.slow = 3.5; damageEnemy(e, 6 + pw * 1.1, 0, 0, '#80d0ff'); } }
     sfx('nova');
   }
@@ -2461,6 +2474,7 @@ function update(dt) {
     pr.x += pr.vx * dt; pr.y += pr.vy * dt;
     if (Math.random() < (pr.owner === 'p' ? .6 : .25)) parts.push({ x: pr.x, y: pr.y, vx: rand(-10, 10), vy: rand(-10, 10), life: .25, col: pick(PCOL[pr.kind] || PCOL.bolt) });
     let dead = pr.life <= 0 || solidAt(pr.x, pr.y), hitP = false;
+    if (pr.life > 0 && projHitsTorch(pr.x, pr.y, dead ? 4 : 0)) dead = true;
     if (!dead && pr.owner === 'p') { for (const e of enemies) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r) { dead = true; break; } }
     if (!dead && pr.owner === 'e' && p.roll <= 0 && Math.hypot(p.x - pr.x, p.y - pr.y) < p.r + pr.r) { dead = true; hitP = true; hurtPlayer(pr.dmg, pr); if (pr.kind === 'web') { p.slowT = Math.max(p.slowT || 0, 2.2); flashMsg('Webbed!', '#ddd'); } }
     if (dead && pr.kind === 'web' && !hitP) hazard(pr.x - pr.vx * dt, pr.y - pr.vy * dt, 10, 'web', 4);
@@ -2663,7 +2677,57 @@ function placeDecor() {
 function clearFloorExtras() { doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; annexes = []; } // tests / arenas
 function placeV04Pre() { doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; floorRevealed = false; annexes = [];
   placeShop(); placeVaults(); }
-function placeV04Post() { placeBloodDoor(); placeTraps(); placeProps(); placeDecor(); mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear(); }
+// v0.4.4: secret passages - real hidden shortcuts linking rooms that are far apart on the chain.
+// A straight 1-wide tunnel through solid rock, sealed by a cracked wall at BOTH ends (break either side).
+function placePassages() {
+  const want = depth <= 2 ? irand(1, 2) : irand(2, 3), out = [];
+  const isDoorT = (x, y) => doors.some(d => d.tiles.some(t => Math.abs(t.x - x) <= 1 && Math.abs(t.y - y) <= 1));
+  const rockOK = (x, y) => x > 1 && y > 1 && x < MW - 2 && y < MH - 2 && tileAt(x, y) === TILE.WALL && !isDoorT(x, y);
+  const nearSecret = (x, y) => secrets.some(s => Math.abs(s.tx - x) <= 1 && Math.abs(s.ty - y) <= 1);
+  const nearTorch = (x, y) => torches.some(t => Math.abs(t.x - (x + .5) * TS) < 14 && Math.abs(t.y - (y * TS + 6)) < 10);
+  // P = tunnel tiles from A's wall to B's wall (ends included). Every tile solid rock now; the tunnel only touches open floor at its two ends.
+  const valid = P => { if (P.length < 3 || P.length > 26) return false; const inP = new Set(P.map(([x, y]) => x + ',' + y));
+    for (let k = 0; k < P.length; k++) { const [x, y] = P[k]; if (!rockOK(x, y) || nearSecret(x, y)) return false;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; const nx = x + dx, ny = y + dy; if (inP.has(nx + ',' + ny) || tileAt(nx, ny) === TILE.WALL) continue;
+        if ((k === 0 || k === P.length - 1) && (dx === 0 || dy === 0)) continue; // the end's own room face
+        if ((k === 0 || k === P.length - 1)) { const [qx, qy] = k ? P[k - 1] : P[1]; if (nx === x * 2 - qx || ny === y * 2 - qy) continue; } // room-side diagonals
+        return false; } }
+    const [ax, ay] = P[0], [bx, by] = P[P.length - 1]; return !nearSecret(ax, ay) && !nearSecret(bx, by) && !nearTorch(ax, ay) && !nearTorch(bx, by); };
+  const line = (x0, y0, x1, y1, L) => { const dx = Math.sign(x1 - x0), dy = Math.sign(y1 - y0); let x = x0, y = y0; L.push([x, y]); while (x !== x1 || y !== y1) { x += dx; y += dy; L.push([x, y]); } return L; };
+  const cands = [], tries = (a, b) => Array.from({ length: Math.min(4, b - a + 1) }, () => irand(a, b));
+  for (let i = 0; i < rooms.length - 1; i++) for (let j = 0; j < rooms.length - 1; j++) { if (Math.abs(i - j) < 2) continue;
+    const A = rooms[i], B = rooms[j], add = P => { if (valid(P)) cands.push({ P, i, j, gap: Math.abs(i - j) }); };
+    if (A.y + A.h < B.y) { // B below A: straight down, or down-then-sideways into B's side wall
+      const x0 = Math.max(A.x + 1, B.x + 1), x1 = Math.min(A.x + A.w - 2, B.x + B.w - 2);
+      for (const x of x0 <= x1 ? tries(x0, x1) : []) add(line(x, A.y + A.h, x, B.y - 1, []));
+      for (const x of tries(A.x + 1, A.x + A.w - 2)) for (const y of tries(B.y + 1, B.y + B.h - 2)) { if (y <= A.y + A.h) continue;
+        const ex = x < B.x ? B.x - 1 : x >= B.x + B.w ? B.x + B.w : null; if (ex === null) continue;
+        const P = line(x, A.y + A.h, x, y, []); P.pop(); add(line(x, y, ex, y, P)); } }
+    if (A.x + A.w < B.x) { // B right of A: straight across, or across-then-vertical into B's top/bottom wall
+      const y0 = Math.max(A.y + 1, B.y + 1), y1 = Math.min(A.y + A.h - 2, B.y + B.h - 2);
+      for (const y of y0 <= y1 ? tries(y0, y1) : []) add(line(A.x + A.w, y, B.x - 1, y, []));
+      for (const y of tries(A.y + 1, A.y + A.h - 2)) for (const x of tries(B.x + 1, B.x + B.w - 2)) { if (x <= A.x + A.w) continue;
+        const ey = y < B.y ? B.y - 1 : y >= B.y + B.h ? B.y + B.h : null; if (ey === null) continue;
+        const P = line(A.x + A.w, y, x, y, []); P.pop(); add(line(x, y, x, ey, P)); } } }
+  // keep only real shortcuts: the walk between the two rooms must be much longer than the tunnel
+  const bfsC = new Map(), walkD = i => { if (bfsC.has(i)) return bfsC.get(i); const R = rooms[i], D = new Int32Array(MW * MH).fill(-1), q = [R.cy * MW + R.cx]; D[q[0]] = 0;
+    for (let h = 0; h < q.length; h++) { const k = q[h], x = k % MW, y = (k / MW) | 0; for (const K of [k + 1, k - 1, k + MW, k - MW]) { if (K < 0 || K >= MW * MH || D[K] >= 0 || map[K] === TILE.WALL) continue; D[K] = D[k] + 1; q.push(K); } } bfsC.set(i, D); return D; };
+  for (const c of cands) { const A = rooms[c.i], B = rooms[c.j], w = walkD(c.i)[B.cy * MW + B.cx], via = c.P.length + Math.abs(c.P[0][0] - A.cx) + Math.abs(c.P[0][1] - A.cy) + Math.abs(c.P[c.P.length - 1][0] - B.cx) + Math.abs(c.P[c.P.length - 1][1] - B.cy);
+    c.save = w > 0 ? w - via : -1; c.ratio = w > 0 ? via / w : 9; }
+  for (let k = cands.length - 1; k >= 0; k--) if (cands[k].save < 12 || cands[k].ratio > .65) cands.splice(k, 1);
+  cands.sort((a, b) => (b.save - a.save) * (.6 + Math.random() * .8));
+  const used = new Set();
+  for (const c of cands) { if (out.length >= want) break;
+    if (out.some(o => (o.i === c.i && o.j === c.j) || (o.i === c.j && o.j === c.i)) || used.has(c.i) && used.has(c.j)) continue;
+    if (!valid(c.P)) continue; // an earlier tunnel may have carved next to this one
+    const P = c.P; for (let k = 1; k < P.length - 1; k++) map[P[k][1] * MW + P[k][0]] = TILE.FLOOR;
+    const [ax, ay] = P[0], [bx, by] = P[P.length - 1];
+    const a = { tx: ax, ty: ay, kind: 'wall', v: irand(0, 2), loot: null, passage: true }, b = { tx: bx, ty: by, kind: 'wall', v: irand(0, 2), loot: null, passage: true };
+    Object.defineProperty(a, 'pair', { value: b, enumerable: false }); Object.defineProperty(b, 'pair', { value: a, enumerable: false }); secrets.push(a, b);
+    used.add(c.i); used.add(c.j); out.push({ i: c.i, j: c.j, gap: c.gap, len: P.length, a: [ax, ay], b: [bx, by] }); }
+  passages = out; return out;
+}
+function placeV04Post() { placeBloodDoor(); placePassages(); placeTraps(); placeProps(); placeDecor(); mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear(); }
 // ---- doors, puzzles, interactables ----
 function openDoor(d, quiet) {
   if (d.open) return; d.open = true;
@@ -2712,11 +2776,15 @@ function interactables() {
   for (const t of torches) { const x = t.x, y = t.y + 14; if (!close(x, y, 16)) continue;
     if (!t.out && !torchFull()) L.push({ x, y, r: 16, label: 'LIGHT TORCH', use: relightFrom, ref: t });
     else if (t.out && p.torchT > 0) L.push({ x, y, r: 16, label: 'RELIGHT SCONCE', use: () => { t.out = false; mapVer++; sfx('whoosh'); burst(t.x, t.y, '#ffb040', 8, 25); flashMsg('The sconce flares back to life.', '#ffb040'); }, ref: t }); }
+  for (const c of chests) if (!c.open && close(c.x, c.y, 16)) L.push({ x: c.x, y: c.y, r: 18, label: p.keys > 0 ? 'OPEN CHEST' : 'LOCKED CHEST', use: () => openChest(c), ref: c });
   if (shop && close(shop.x, shop.y, 20)) L.push({ x: shop.x, y: shop.y + 4, r: 22, label: 'TRADE', use: openShop, ref: shop });
   return L;
 }
 function nearestInteract() { const p = player; let best = null, bd = 1e9;
-  for (const o of interactables()) { const d = Math.hypot(o.x - p.x, o.y - p.y); if (d < o.r && d < bd) { bd = d; best = o; } } return best; }
+  for (const o of interactables()) { const d = Math.hypot(o.x - p.x, o.y - p.y); if (d < o.r && d < bd) { bd = d; best = o; } }
+  // dark with a spare: F lights a spare, unless a free flame (brazier / lit sconce) is right here
+  if (p.torchT <= 0 && p.torches > 0 && !(best && best.label === 'LIGHT TORCH')) return { x: p.x, y: p.y - 4, r: 1, label: 'LIGHT SPARE', use: () => { if (lightTorch()) flashMsg('You light a spare torch (' + p.torches + ' left).', '#ffb040'); }, ref: 'spare' };
+  return best; }
 function interactAt(wx, wy) { let best = null, bd = 1e9; for (const o of interactables()) { const d = Math.hypot(o.x - wx, o.y - wy); if (d < 10 && d < bd) { bd = d; best = o; } } return best; }
 function doInteract() { if (state !== 'play') return false; const o = nearestInteract(); if (!o) return false; o.use(); return true; }
 // melee near a lit wall torch snuffs it out (smoke + hiss)
@@ -2726,9 +2794,14 @@ function torchInReach(t) { // a lit wall torch the player can hit: adjacent (bel
 }
 function torchAtCursor() { const c = cursorWorld(); return torches.find(t => !t.out && Math.abs(c.x - t.x) < 8 && c.y > t.y - 10 && c.y < t.y + 12) || null; }
 function propAtCursor() { const c = cursorWorld(); return props.find(o => !o.broken && Math.abs(c.x - o.x) < 7 && c.y > o.y - 12 && c.y < o.y + 4) || null; }
+function snuffTorch(t, msg) { if (t.out) return false; t.out = true; mapVer++; burst(t.x, t.y, '#777', 12, 30); burst(t.x, t.y, '#ffa040', 4, 20); if (Math.hypot(t.x - player.x, t.y - player.y) < 220) sfx('hiss'); if (msg) flashMsg(msg, '#a09890'); return true; }
 function meleeWorld(x, y) {
-  for (const t of torches) if (!t.out && ((Math.abs(t.x - x) < 14 && y - t.y < 24 && y - t.y > -10) || torchInReach(t))) { t.out = true; mapVer++; burst(t.x, t.y, '#777', 12, 30); burst(t.x, t.y, '#ffa040', 4, 20); sfx('hiss'); flashMsg('You knock the torch out. Smoke curls up.', '#a09890'); break; }
+  for (const t of torches) if (!t.out && ((Math.abs(t.x - x) < 14 && y - t.y < 24 && y - t.y > -10) || torchInReach(t))) { snuffTorch(t, 'You knock the torch out. Smoke curls up.'); break; }
 }
+// v0.4.4: projectiles (player or enemy) that strike a lit sconce put it out; returns true if one was hit
+function projHitsTorch(x, y, pad) { pad = pad || 0; for (const t of torches) if (!t.out && Math.abs(t.x - x) < 6 + pad && y - t.y > -8 - pad && y - t.y < 12 + pad) { snuffTorch(t, Math.hypot(t.x - player.x, t.y - player.y) < 160 ? 'A wall torch gutters out.' : null); return true; } return false; }
+// area skills (Whirlwind / Frost Nova) snuff lit sconces in reach that the player can see
+function snuffTorchesNear(x, y, r) { let n = 0; for (const t of torches) if (!t.out && Math.hypot(t.x - x, t.y + 10 - y) < r && los({ x, y }, { x: t.x, y: t.y + 12 })) { snuffTorch(t, null); n++; } if (n) flashMsg(n > 1 ? 'Nearby torches gutter out.' : 'A wall torch gutters out.', '#a09890'); return n; }
 // ---- traps ----
 function trapDmg() { return 6 + depth * 1.6; }
 function updateTraps(dt) {
@@ -2995,7 +3068,7 @@ function ambientTick(dt) {
   if (amb.drip <= 0) { amb.drip = rand(3, 9) * (waters.length || decor.length > 12 ? .7 : 1); sfx('drip'); }
   if (amb.wind <= 0) { amb.wind = rand(9, 18); if (isCorridor(Math.floor(p.x / TS), Math.floor(p.y / TS))) sfx('wind'); }
 }
-function onAggroV04(e) { if (amb.growl <= 0 && !e.T.boss && dist(e, player) < 200) { amb.growl = 1.6; if (Math.random() < .5) sfx('growl'); } mobThought(e); }
+function onAggroV04(e) { if (player) { e.seenX = player.x; e.seenY = player.y; e.seenT = time; } if (amb.growl <= 0 && !e.T.boss && dist(e, player) < 200) { amb.growl = 1.6; if (Math.random() < .5) sfx('growl'); } mobThought(e); }
 // ---- drawing ----
 function drawFloorDecor() {
   for (const d of decor) { if (d.kind === 'puddle') { ctx.fillStyle = 'rgba(40,60,80,.55)'; ctx.fillRect(Math.round(d.x), Math.round(d.y), d.w, d.h); ctx.fillStyle = 'rgba(120,160,200,.25)'; ctx.fillRect(Math.round(d.x + 1 + (Math.sin(time * 1.3 + d.ph) + 1) * (d.w - 4) / 2), Math.round(d.y), 2, 1); }
@@ -3095,6 +3168,9 @@ $('mSkills').addEventListener('click', openSkills); $('skClose').addEventListene
 $('mBattle').addEventListener('click', () => { settings.battleMusic = !settings.battleMusic; saveSettings(); syncBattleBtn(); });
 function syncBattleBtn() { $('mBattle').textContent = 'BATTLE MUSIC: ' + (settings.battleMusic ? 'ON' : 'OFF'); }
 syncBattleBtn();
+$('mLight').addEventListener('click', () => { settings.lighting = lightingQ() === 'high' ? 'low' : 'high'; saveSettings(); syncLightBtn(); });
+function syncLightBtn() { $('mLight').textContent = 'LIGHTING: ' + lightingQ().toUpperCase(); }
+syncLightBtn();
 $('tMap').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'play') mapOpen = !mapOpen; });
 // ---------- render ----------
 function render() {
