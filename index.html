@@ -202,6 +202,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small" id="mMusic">MUSIC: ON</button>
     <button class="mbtn small" id="mBattle">BATTLE MUSIC: OFF</button>
     <button class="mbtn small" id="mLight">LIGHTING: HIGH</button>
+    <button class="mbtn small" id="mZoom">TEST ZOOM: 1X</button>
     <button class="mbtn small" id="mSkills">SKILL KEYS</button>
     <button class="mbtn small hidden" id="mTouch">TOUCH CONTROLS</button>
     <button class="mbtn small hidden" id="mRest">REST</button>
@@ -255,7 +256,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.3'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -635,7 +636,7 @@ const smpT = { st: null, map: false, pl: null, rooms: null, px: 0, py: 0, stepD:
 function smpLoop(key, id, vol, pan, want) { want.set(key, { id, vol, pan }); }
 function smpReconcile(want) {
   const now = actx.currentTime;
-  for (const [k, L] of SMP.loops) if (!want.has(k) || want.get(k).id !== L.id) { try { L.g.gain.cancelScheduledValues(now); L.g.gain.setTargetAtTime(0, now, .06); L.src.stop(now + .3); } catch (_) {} SMP.loops.delete(k); }
+  for (const [k, L] of SMP.loops) if (!want.has(k) || want.get(k).id !== L.id) { const am = L.id.startsWith('amb_'); try { L.g.gain.cancelScheduledValues(now); L.g.gain.setTargetAtTime(0, now, am ? .5 : .06); L.src.stop(now + (am ? 2.2 : .3)); } catch (_) {} SMP.loops.delete(k); } /* v0.7.3 §4: beds crossfade ~2s */
   for (const [k, w] of want) {
     let L = SMP.loops.get(k); const v = Math.max(0, w.vol * (SMP_MIX[w.id] || 1) * SMP_GAIN);
     if (!L) { const b = SMP.buf[w.id] && SMP.buf[w.id][0];
@@ -669,7 +670,7 @@ function smpTick(dt) {
     if (p && (state === 'play' || state === 'inv' || state === 'shop' || state === 'talk')) {
       // ambience bed (sparse, under everything; through the SFX bus)
       const B = music.bedObj || BEDS[0], boss = enemies.find(e => e.T.boss);
-      const bed = state === 'shop' ? 'amb_shop_loop_01' : boss && boss.state === 'idle' && dist(boss, p) < 320 ? 'amb_boss_arena_loop_01' : (B.id === 'drowned deep' || B.id === 'cistern' && (typeof basins !== 'undefined' && basins.length > 1)) ? 'amb_cave_wet_loop_01' : B.id === 'catacomb' ? 'amb_sewer_loop_01' : 'amb_crypt_stone_loop_01';
+      const bed = state === 'shop' ? 'amb_shop_loop_01' : boss && boss.state === 'idle' && dist(boss, p) < 320 ? 'amb_boss_arena_loop_01' : v073Bed(B); /* v0.7.3 §4: one primary bed per floor, rotated by depth; quiet_chamber in safe / puzzle rooms */
       smpLoop('amb', bed, .76, 0, want);
       smpAmbBus().gain.setTargetAtTime((music.mode === 'combat' ? .6 : 1) * (state === 'play' ? 1 : .6) * (MUS.cur && settings.music ? .75 : 1), actx.currentTime, .5); // sits under music
     }
@@ -700,7 +701,7 @@ function smpTick(dt) {
       if (bossNew >= 3 && time - S.bhT > .3) { S.bhT = time; const e = enemies.find(q => q.T.boss); cue('cbt_proj_bullet_hell_01', { vol: .8, pan: e ? (e.x - p.x) / 170 : 0 }); }
       let imp = 0; for (const [id, L] of S.live) if (!live.has(id)) { S.live.delete(id); if (imp < 2 && L.owner === 'e') { if (L.kind === 'arrow') { imp++; cueAt('cbt_proj_arrow_impact_01', L.x, L.y, 260); } else if (L.kind === 'bolt') { imp++; cueAt('cbt_proj_magic_bolt_impact_01', L.x, L.y, 260); } } }
     } else { S.live.clear(); if (p) { S.px = p.x; S.py = p.y; } }
-    smpReconcile(want);
+    v073Loops(want); smpReconcile(want); /* v0.7.3: door hum, prism beam, dark portal, rest snore */
   } catch (e) { SMP.err = String(e); }
 }
 // ---------- v0.6.2: Razz's music (assets/music/music.json): sample beds + stingers on the music bus ----------
@@ -1432,20 +1433,20 @@ function drawChests() { for (const c of chests) ctx.drawImage(c.open ? CHEST.ope
 //  Lighting: low-res colour lightmap (additive), multiplied over the scene,
 //  with tile-grid raycast occlusion. Torches burn out; magic 'light' mod adds a cold glow.
 // =====================================================================
-const TORCH_TIME = 85, TORCH_WARN = 15, TORCH_CAP = 5, BASE_LIGHT = 20, TORCH_LIGHT = 128;
+const TORCH_TIME = 85, TORCH_WARN = 15, TORCH_CAP = 5, BASE_LIGHT = 20, TORCH_LIGHT = 96; /* v0.7.3 §13: torch reach 128 -> 96 */
 // v0.4.5: a notch more saturated (warmer ambers, richer colds) at the same brightness, plus skill / glimmer tints
 const LCOL = { warm: [255, 190, 116], fire: [255, 128, 34], cold: [100, 136, 255], violet: [176, 96, 255], red: [255, 58, 38], dim: [110, 96, 110], teal: [72, 232, 204], white: [230, 230, 255],
-  amber: [255, 150, 36], steel: [228, 196, 124], ice: [84, 218, 255], storm: [214, 196, 255], venom: [140, 230, 68], shadow: [150, 80, 222], glimmer: [150, 242, 230] };
+  amber: [255, 150, 36], steel: [228, 196, 124], ice: [84, 218, 255], storm: [214, 196, 255], venom: [140, 230, 68], shadow: [150, 80, 222], glimmer: [150, 242, 230], lich: [150, 250, 165] }; /* v0.7.3: lich = prism beam */
 const LGRAD = {};
 for (const k in LCOL) { const [r, g, b] = LCOL[k], c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
-  const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(.45, `rgba(${r},${g},${b},.85)`); gr.addColorStop(.78, `rgba(${r},${g},${b},.36)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+  const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(.35, `rgba(${r},${g},${b},.92)`); gr.addColorStop(.68, `rgba(${r},${g},${b},.6)`); gr.addColorStop(.88, `rgba(${r},${g},${b},.22)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`); /* v0.7.3 §2: gentler shoulder (was .45 .85 / .78 .36) */
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64); LGRAD[k] = c; }
 const lcan = document.createElement('canvas'), lctx = lcan.getContext('2d');
 let vign = null, vignKey = '', mapVer = 0, polyCache = new Map(), braziers = [], motes = [], seenT = 0, frameLights = [];
 function visPoly(x, y, r, n) { // raycast on the tile grid; rays bite ~10px into the first wall so the wall faces are lit
   const pts = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) { const a = i / n * 6.2832, dx = Math.cos(a), dy = Math.sin(a); let d = 0;
-    while (d < r) { d += 3; if (solidAt(x + dx * d, y + dy * d)) { d = Math.min(r, d + 10); break; } }
+    while (d < r) { d += 3; if (solidAt(x + dx * d, y + dy * d)) { d = Math.min(r, d + (dy < -.35 ? 18 : 10)); break; } /* v0.7.3 §2: rays heading north light the whole wall face (WALL_BITE_N 18, was 10) */ }
     pts[i * 2] = x + dx * Math.min(d, r); pts[i * 2 + 1] = y + dy * Math.min(d, r); }
   return pts;
 }
@@ -1456,9 +1457,9 @@ const FLICK = { r: .075, a: .1 }; // relative radius / alpha wobble for wall tor
 function torchGlow(seed, baseR, baseA) { const f = flickN(time, seed); return { r: baseR * (1 + FLICK.r * f), a: Math.min(1, baseA * (1 + FLICK.a * f)) }; }
 function torchFade() { const t = player.torchT; if (t <= 0) return 0; if (t > TORCH_WARN) return 1; const k = t / TORCH_WARN; return (.45 + .55 * k) * (Math.random() < .12 * (1 - k) + .02 ? .55 : 1); }
 function playerLights() { // [{r, col, a}] — exposed for tests
-  const p = player, L = [{ r: BASE_LIGHT, col: 'dim', a: .55 }];
+  const p = player, L = [{ r: BASE_LIGHT, col: 'dim', a: p.fatigue <= 0 ? 0 : .55 }]; /* v0.7.3 §11: exhausted = no personal glow */
   const tf = torchFade(); if (tf > 0) { const sp = p.torchT <= TORCH_WARN ? 1 + 1.6 * (1 - p.torchT / TORCH_WARN) : 1, f = flickN(time * 1.15, 1.7) * sp; // sputtering: stronger wobble
-    L.push({ r: TORCH_LIGHT * (.7 + .3 * tf) * (1 + .055 * f), col: 'warm', a: Math.min(1, .95 * tf * (1 + .06 * f)) }); }
+    L.push({ r: TORCH_LIGHT * (.7 + .3 * tf) * (1 + .055 * f), col: 'warm', a: Math.min(1, .82 * tf * (1 + .06 * f)) }); /* v0.7.3 §13: a .95 -> .82 */ }
   const ml = (p.st && p.st.light) || 0; if (ml > 0) L.push({ r: 24 + ml * 2.6, col: 'cold', a: .8 });
   return L;
 }
@@ -1469,10 +1470,10 @@ function gatherLights(sx, sy) {
   const polys = bandPolys(p.x, p.y - 2, pr, pr > 60 ? 140 : 48), poly = polys[0]; // v0.7.2 §3: banded soft shadow edges
   for (const l of pl) L.push({ x: p.x, y: p.y - 2, r: l.r, col: l.col, a: l.a, poly, polys: l.r > 30 ? polys : null });
   const statics = [];
-  for (let i = 0; i < torches.length; i++) { const t = torches[i]; if (t.out) continue; const lx = t.x, ly = t.y + 11; if (view(lx, ly, 80)) { const g = torchGlow(t.x * .37 + t.y * .11, 74, .85); statics.push({ x: lx, y: ly, r: g.r, col: 'fire', a: g.a, key: 't' + i, sx: t.x, sy: t.y + 1, f: g.a / .85 }); } }
-  for (let i = 0; i < braziers.length; i++) { const b = braziers[i]; if (view(b.x, b.y, 90)) { const g = torchGlow(b.x * .29 + b.y * .17 + 3, 84, .9); statics.push({ x: b.x, y: b.y - 4, r: g.r, col: 'fire', a: g.a, key: 'b' + i, sx: b.x, sy: b.y - 10, f: g.a / .9 }); } }
+  for (let i = 0; i < torches.length; i++) { const t = torches[i]; if (t.out) continue; const lx = t.x, ly = t.y + 11; if (view(lx, ly, 80)) { const g = torchGlow(t.x * .37 + t.y * .11, 58, .72); statics.push({ x: lx, y: ly, r: g.r, col: 'fire', a: g.a, key: 't' + i, sx: t.x, sy: t.y + 1, f: g.a / .72 }); /* v0.7.3 §13: 74 / .85 -> 58 / .72 */ } }
+  for (let i = 0; i < braziers.length; i++) { const b = braziers[i]; if (view(b.x, b.y, 90)) { const g = torchGlow(b.x * .29 + b.y * .17 + 3, 66, .78); statics.push({ x: b.x, y: b.y - 4, r: g.r, col: 'fire', a: g.a, key: 'b' + i, sx: b.x, sy: b.y - 10, f: g.a / .78 }); /* v0.7.3 §13: 84 / .9 -> 66 / .78 */ } }
   statics.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
-  for (const s of statics.slice(0, 10)) { s.polys = bandPolys(s.x, s.y, 92, 72, s.key); s.poly = s.polys[0]; L.push(s); L.push({ x: s.sx, y: s.sy, r: 18 * (.9 + .1 * s.f), col: 'amber', a: .42 * s.f, glow: 1 }); } // small hot glow on the flame itself
+  for (const s of statics.slice(0, 10)) { s.polys = bandPolys(s.x, s.y, 72, 64, s.key); s.poly = s.polys[0]; L.push(s); L.push({ x: s.sx, y: s.sy, r: 18 * (.9 + .1 * s.f), col: 'amber', a: .42 * s.f, glow: 1 }); } // small hot glow on the flame itself
   let n = 0;
   for (const q of projs) { if (++n > 28) break; if (!view(q.x, q.y, 40)) continue;
     if (q.skill !== undefined && SKILLS[q.skill]) { const c = SKILLS[q.skill].light; L.push({ x: q.x, y: q.y, r: 62 + Math.sin(time * 21 + q.x) * 2, col: c, a: .95, skill: q.skill }); L.push({ x: q.x, y: q.y, r: 16, col: 'fire', a: .5, skill: q.skill }); continue; }
@@ -1486,7 +1487,7 @@ function gatherLights(sx, sy) {
   for (const e of enemies) if (e.T.boss && !e.hidden && view(e.x, e.y, 70)) L.push({ x: e.x, y: e.y, r: 64, col: e.phase >= 2 ? 'red' : 'violet', a: .45 });
   for (const g of ground) if ((g.torch || g.key || (g.item && g.item.rarity >= 2)) && view(g.x, g.y, 20)) L.push({ x: g.x, y: g.y - 3, r: g.torch ? 16 : 12, col: g.torch ? 'fire' : g.key ? 'warm' : 'white', a: .5 });
   for (const c of chests) if (!c.open && view(c.x, c.y, 20)) L.push({ x: c.x, y: c.y - 4, r: 14, col: 'warm', a: .35 });
-  extraLights(L, view); entranceLights(L, view); critterLights(L, view); v071Lights(L, view); v072Lights(L, view);
+  extraLights(L, view); entranceLights(L, view); critterLights(L, view); v071Lights(L, view); v072Lights(L, view); v073Lights(L, view);
   return L;
 }
 function inPoly(poly, x, y) { let c = false; const n = poly.length / 2; for (let i = 0, j = n - 1; i < n; j = i++) { const xi = poly[i * 2], yi = poly[i * 2 + 1], xj = poly[j * 2], yj = poly[j * 2 + 1];
@@ -1515,7 +1516,7 @@ function renderLighting(sx, sy) {
       lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); }
     else lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); }
   lctx.globalAlpha = 1; lctx.globalCompositeOperation = 'source-over'; lctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingEnabled = true; ctx.drawImage(lcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
+  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingEnabled = true; zoomApply(ctx, sx, sy); ctx.drawImage(lcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
 }
 function drawEmissive(sx, sy) { // things that glow on their own, drawn above the darkness
   const p = player, tf = Math.floor(time * 8);
@@ -1682,7 +1683,7 @@ function bossForDepth(d) { if (d < 5 || d % 5) return null; const k = d / 5 - 1;
 
 function spawnEnemy(type, x, y, elite, opt) {
   const T = ETYPES[type], d = depth; opt = opt || {};
-  let hp = Math.round(T.hp[0] + T.hp[1] * (d - 1)), dmg = (T.dmg[0] + T.dmg[1] * (d - 1)) * dmgBump(d); // v0.6.0 modest early bump
+  let hp = Math.round(T.hp[0] + T.hp[1] * (d - 1)), dmg = (T.dmg[0] + T.dmg[1] * (d - 1)) * dmgBump(d) * mobDmgMul(d); // v0.6.0 modest early bump; v0.7.3 §6 post-density-cap damage ramp
   if (elite) { hp = Math.round(hp * 2.2); dmg *= 1.4; }
   const e = { id: ++entId, type, T, x, y, r: T.r, hp, maxHp: hp, dmg, spd: T.spd * (elite ? 1.15 : 1), elite, state: 'idle',
     wx: 0, wy: 0, wt: 0, atkCd: rand(.5, 1.2), flash: 0, slow: 0, kx: 0, ky: 0, face: 1, cd: rand(1, 2.5), anim: Math.random() * 10, t: 0, mode: '', fa: 0, enr: 1,
@@ -1691,7 +1692,7 @@ function spawnEnemy(type, x, y, elite, opt) {
   if (T.ai === 'eel') { e.hidden = true; e.mode = 'under'; e.t = 2; }
   if (T.disguise) e.disg = true;
   if (T.ai === 'crab') { e.mode = 'shell'; e.t = 2.6; }
-  enemies.push(e); return e;
+  enemies.push(e); v073SpawnGuard(e); return e; /* v0.7.3 §9: never into a sinking-floor room */
 }
 function spawnBoss(x, y) {
   const bf = bossForDepth(depth); if (!bf) return null;
@@ -1729,7 +1730,7 @@ function populate() {
     if (boss && i === rooms.length - 1) return; // boss room is the boss's alone
     const early = depth <= 3;
     if (!(early && i <= 2) && Math.random() < (early ? .08 : .22)) return; // bigger floors: some rooms are quiet (rarely on depth 1-3; never the first 2 rooms there)
-    const n = Math.min(4 * MOB_DENSITY, MOB_DENSITY * (irand(1, 2) + Math.floor(depth / 5) + (Math.random() < (early ? .55 : .3) ? 1 : 0))); // v0.7.2 §0: x2 density
+    const n = roomBudget(depth, irand(1, 2) + Math.floor(depth / 5) + (Math.random() < (early ? .55 : .3) ? 1 : 0)); /* v0.7.3 §6: depth density curve (v0.7.2: 2 x base everywhere) */
     const eliteRoom = Math.random() < .12 + Math.min(depth, 40) * .008;
     for (let k = 0; k < n && enemies.length < MAX_ENEMIES - 12; k++) {
       const type = pick(floorPool), T = ETYPES[type], cnt = T.pack ? irand(T.pack[0], T.pack[1]) : 1, s = freeSpot(r);
@@ -2112,7 +2113,7 @@ function bestiary() { // test/contact-sheet helper
     bosses: BOSSES.map(B => ({ floor: B.floor, name: B.n, title: B.t, mech: B.m, img: big(B.img.r, 3) })) };
 }
 function startFloor(d, fresh) {
-  depth = d; genDungeon(depth); populate(); setFloorEntrance(d); genV071(d); genV072(d); populateCritters(); climb = null; applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
+  depth = d; V73 = v073Empty(); DPLANE = null; genDungeon(depth); populate(); setFloorEntrance(d); genV071(d); genV072(d); genV073(d); populateCritters(); climb = null; applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
   const r = rooms[0]; player.x = (r.cx + .5) * TS; player.y = (r.cy + .5) * TS;
   computeStats(); if (fresh) { player.hp = player.st.maxHp; player.mp = player.st.maxMp; }
   debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
@@ -2120,10 +2121,10 @@ function startFloor(d, fresh) {
 }
 function save() {
   if (!player || player.hp <= 0) return; // v0.6.3: never resurrect a finished run
-  try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId, world: worldSnap(),
+  try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId, world: DPLANE ? DPLANE.home : worldSnap(), /* v0.7.3 §7: never save the temporary plane */
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
       gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0),
-      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10 } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
+      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73 } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
 }
 // ---- v0.6.3 B10: full save state. The whole live floor (layout, explored tiles, doors, puzzles, chests, secrets, loot, enemies, props...)
 // plus your position is packed into the save; Continue drops you back on the same spot. Older saves (no world) start the floor fresh as before.
@@ -2153,7 +2154,7 @@ function worldSnap() { if (!player || !map.length || !rooms.length) return null;
   return { v: WORLD_V, depth, MW, MH, time: Math.round(time * 100) / 100, map: tileStr(map), seen: seen.map(b => b ? 1 : 0).join(''), mapVar: tileStr(mapVar),
     px: Math.round(p.x * 10) / 10, py: Math.round(p.y * 10) / 10, fx: p.fx, fy: p.fy,
     s: { champKeysFloor, entId, floorTheme, floorRevealed: !!floorRevealed, vineBurnN, floorEnt, entPrev },
-    g: wPack({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, motes, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool, debris, critters, v071: v071Snap(), v072: v072Snap() }) }; }
+    g: wPack({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, motes, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool, debris, critters, v071: v071Snap(), v072: v072Snap(), v073: v073Snap() }) }; }
 function worldRestore(w, sd) { // -> true when the saved floor was restored
   if (!w || w.v !== WORLD_V || w.depth !== sd || !w.g || !w.MW || !w.MH) return false;
   const G = wUnpack(w.g), m = strTiles(w.map), mv = strTiles(w.mapVar); if (!G || !Array.isArray(G.rooms) || !G.rooms.length || m.length !== w.MW * w.MH) return false;
@@ -2164,7 +2165,8 @@ function worldRestore(w, sd) { // -> true when the saved floor was restored
   ({ champKeysFloor, entId, floorTheme, floorRevealed, vineBurnN, floorEnt, entPrev } = Object.assign({ champKeysFloor: 0, entId: 0, floorTheme: 'drowned', floorRevealed: false, vineBurnN: 0, floorEnt: null, entPrev: null }, w.s || {}));
   if (!floorEnt || !ENT_BY[floorEnt.id]) setFloorEntrance(depth); // v0.7.0: pre-0.7 saves get an entrance now
   v071Restore(G.v071); // v0.7.1: pits / hazards / fire pits (older saves: none)
-  v072Restore(G.v072); // v0.7.2: biome, levers / platforms, secret rooms (older saves: biome from depth)
+  v072Restore(G.v072); /* v0.7.2: biome, levers / platforms, secret rooms (older saves: biome from depth) */
+  v073Restore(G.v073); // v0.7.3: prism hall, dark portal, gilt chests, ambience bed
   projs = []; parts = []; texts = []; effects = []; teles = []; hazards = []; timers = []; vfx6 = []; introBoss = null; talkBoss = null;
   if (Number.isFinite(w.time)) time = w.time;
   setVineGrid(); mapVer++; polyCache.clear();
@@ -2278,7 +2280,7 @@ function showTip(it, cx, cy, cmp = true) {
   gtip.style.left = x + 'px'; gtip.style.top = y + 'px';
 }
 function hideTip() { smpT.tip = null; if (tipItem || !gtip.classList.contains('hidden')) { gtip.classList.add('hidden'); tipItem = null; } }
-function clientToWorld(cx, cy) { const r = canvas.getBoundingClientRect(); return { x: cam.x + (cx - r.left) / (r.width || 1) * VW, y: cam.y + (cy - r.top) / (r.height || 1) * VH }; }
+function clientToWorld(cx, cy) { const r = canvas.getBoundingClientRect(), mx = (cx - r.left) / (r.width || 1) * VW, my = (cy - r.top) / (r.height || 1) * VH, z = scr2w(mx, my); return z || { x: cam.x + mx, y: cam.y + my }; } /* v0.7.3 §1: zoom-aware */
 function labelShown(g) { const d = Math.hypot(g.x - player.x, g.y - player.y); if (!touchMode && keys.Alt) return d < 400; return (g.item.rarity >= 1 || d < 40 || touchMode) && d < 130; }
 function groundItemAt(cx, cy, pad) { // hit-test icon + name label in world space; pad = extra slack (bigger for fingers)
   if (!player) return null; const w = clientToWorld(cx, cy); let best = null, bd = 1e9;
@@ -2435,7 +2437,7 @@ function updateClickWalk(dt, mv, sp) { // returns true while the click-walk owns
 }
 function losWide(a, b, r) { const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1, nx = -dy / l * r, ny = dx / l * r;
   return los(a, b) && los({ x: a.x + nx, y: a.y + ny }, { x: b.x + nx, y: b.y + ny }) && los({ x: a.x - nx, y: a.y - ny }, { x: b.x - nx, y: b.y - ny }); }
-function cursorWorld() { return { x: cam.x + mouse.x, y: cam.y + mouse.y }; }
+function cursorWorld() { return scr2w(mouse.x, mouse.y) || { x: cam.x + mouse.x, y: cam.y + mouse.y }; }
 function enemyAtCursor() {
   const c = cursorWorld(); let best = null, bd = 1e9;
   for (const e of enemies) { if (e.hidden || e.downT) continue; const img = enemyImg(e), top = e.y - img.height + e.r - (e.z || 0);
@@ -2839,7 +2841,7 @@ function dropItem(it) { if (!it) return; if (state === 'inv') cue('ui_item_drop_
 // ---------- combat ----------
 function addText(x, y, t, col, big) { texts.push({ x, y, t: String(t), col, life: big ? 1.6 : .9, vy: big ? -12 : -24 }); }
 function burst(x, y, col, n = 8, sp = 60) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, s = rand(sp * .3, sp); parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.2, .5), col }); } }
-function flashMsg(t, col = '#fff') { msg = { t, life: 2.2, col }; }
+function flashMsg(t, col = '#fff') { msg = { t, life: 3.7, col }; } /* v0.7.3 §14: +1.5s (MSG_DWELL) */
 function los(a, b) { const d = dist(a, b), n = Math.ceil(d / 6); for (let i = 1; i < n; i++) { const t = i / n; if (solidAt(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)) return false; } return true; }
 function nearestEnemy(range) { let best = null, bd = range; for (const e of enemies) { if (!targetable(e)) continue; const d = dist(e, player); if (d < bd && los(player, e)) { bd = d; best = e; } } return best; }
 function moveEnt(e, dx, dy) {
@@ -2913,6 +2915,7 @@ function killEnemy(e) {
     if (B.oswin && !e.cycle) flashMsg('OSWIN HOLLOWMERE FALLS. VAELMOOR SLEEPS.', '#d8a040');
     else flashMsg(e.name + ' FALLS. THE WAY DOWN IS OPEN.', '#d8a040');
     music.combatUntil = time + 2; sfx('lvl', { cue: [['wld_loot_rare_drop_01', { delay: 1.4 }]] });
+    darkPortalRoll(e); /* v0.7.3 §7 */
     return;
   }
   regularDrops(e, depth);
@@ -2979,13 +2982,13 @@ function doAttack(fixed) {
 }
 // desktop mouse aiming (logical canvas coords)
 const mouse = { x: 0, y: 0, active: false };
-function mouseAim() { if (touchMode || !mouse.active || !player) return null; const dx = cam.x + mouse.x - player.x, dy = cam.y + mouse.y - player.y, l = Math.hypot(dx, dy); return l > 2 ? { x: dx / l, y: dy / l } : null; }
+function mouseAim() { if (touchMode || !mouse.active || !player) return null; const cw = cursorWorld(), dx = cw.x - player.x, dy = cw.y - player.y, l = Math.hypot(dx, dy); return l > 2 ? { x: dx / l, y: dy / l } : null; }
 function castSkill(i) {
   const p = player, S = SKILLS[i], hk = 's' + (i + 1);
   if (skillLocked(i)) { lockedSkillMsg(i); held[hk] = false; tapQ[hk] = 0; return; }
   if (p.cds[i] > 0) return;
-  if (p.mp < S.mana) { flashMsg('Not enough mana', '#88f'); if (time - smpT.failT > .6) { smpT.failT = time; cue('player_cast_fail_01'); } held[hk] = false; tapQ[hk] = 0; return; }
-  p.mp -= S.mana; p.cds[i] = S.cd;
+  const mc = manaCost(S); if (p.mp < mc) { flashMsg(mc > S.mana ? 'Not enough mana (parched / exhausted: spells cost more)' : 'Not enough mana', '#88f'); if (time - smpT.failT > .6) { smpT.failT = time; cue('player_cast_fail_01'); } held[hk] = false; tapQ[hk] = 0; return; }
+  p.mp -= mc; p.cds[i] = S.cd; /* v0.7.3 §11: thirst / rest raise the mana cost */
   const pw = p.st.fire + p.lvl * 2, amp = 1 + skillAmp(i) / 100;
   if (i === 0) {
     let ax = p.fx, ay = p.fy; const t = nearestEnemy(160), ma = mouseAim();
@@ -3047,7 +3050,7 @@ function update(dt) {
   if (v04Update(dt) || state !== 'play') return;
   const ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
   // v0.7.1 §6: no auto-descend - walking onto the entrance does nothing; Examine / USE it, then USE again to confirm (entUse -> startClimb)
-  v072Update(dt);
+  v072Update(dt); if (v073Update(dt) || state !== 'play') return;
   if (v071Update(dt, mv) || state !== 'play') return;
   updateEnemies(dt); if (state !== 'play') return;
   if (enemies.some(e => e.state === 'chase' && dist(e, p) < 170) || projs.some(q => q.owner === 'e')) music.combatUntil = time + 4;
@@ -3284,7 +3287,7 @@ function buffText() { const p = player; if (!p || !(p.xpBuffT > 0)) return ''; c
 function drawBuffHUD(x, y) { const s = buffText(); if (!s) return; const p = player, low = p.xpBuffT < 20 && Math.floor(time * 3) % 2;
   ctx.fillStyle = '#0a1818'; ctx.fillRect(x, y - 1, 7, 7); ctx.fillStyle = low ? '#407070' : '#a0fff0'; ctx.fillRect(x + 3, y, 1, 5); ctx.fillRect(x + 1, y + 2, 5, 1); ctx.fillStyle = '#fff'; ctx.fillRect(x + 3, y + 2, 1, 1);
   drawText(s, x + 9, y, low ? '#5a9090' : '#a0fff0'); }
-function clearFloorExtras() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; annexes = []; clearV05(); clearV06(); if (typeof V72 !== 'undefined') { V72 = v072Empty(); padIndex(); } } // tests / arenas (v0.7.2: + levers / platforms / squeeze gaps)
+function clearFloorExtras() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; annexes = []; clearV05(); clearV06(); if (typeof V72 !== 'undefined') { V72 = v072Empty(); padIndex(); } if (typeof V73 !== 'undefined') { V73 = v073Empty(); DPLANE = null; } } // tests / arenas (v0.7.2: + levers / platforms / squeeze gaps)
 function placeV04Pre() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; floorRevealed = false; annexes = []; clearV05(); clearV06();
   placeShop(); placeVaults(); placeBookVault(); }
 // v0.4.4: secret passages - real hidden shortcuts linking rooms that are far apart on the chain.
@@ -3400,7 +3403,7 @@ function interactables() {
     else if (t.out && p.torchT > 0) L.push({ x, y, r: 16, label: 'RELIGHT SCONCE', use: () => { t.out = false; mapVer++; sfx('whoosh'); burst(t.x, t.y, '#ffb040', 8, 25); flashMsg('The sconce flares back to life.', '#ffb040'); }, ref: t }); }
   for (const c of chests) if (!c.open && close(c.x, c.y, 16)) L.push({ x: c.x, y: c.y, r: 18, label: c.free || p.keys > 0 ? 'OPEN CHEST' : 'LOCKED CHEST', use: () => openChest(c), ref: c });
   if (shop && close(shop.x, shop.y, 20)) L.push({ x: shop.x, y: shop.y + 4, r: 22, label: 'TRADE', use: openShop, ref: shop });
-  v06Interact(L, close); v071Interact(L, close); v072Interact(L, close);
+  v06Interact(L, close); v071Interact(L, close); v072Interact(L, close); v073Interact(L, close);
   return L;
 }
 function nearestInteract() { const p = player; let best = null, bd = 1e9;
@@ -3474,13 +3477,13 @@ function updateSurvival(dt) {
   const p = player; if (p.hunger === undefined) return;
   const busy = enemies.some(e => e.state === 'chase' && dist(e, p) < 170) ? 1.25 : 1;
   p.hunger = Math.max(0, p.hunger - SURV.hunger * dt); p.thirst = Math.max(0, p.thirst - SURV.thirst * dt); p.fatigue = Math.max(0, p.fatigue - SURV.fatigue * dt * busy);
-  let drip = 0; for (const k of ['hunger', 'thirst', 'fatigue']) if (p[k] <= 0) drip += k === 'fatigue' ? .5 : 1;
+  const drip = survDrip(p); /* v0.7.3 §11: hunger 1, thirst 1, rest 1.5 (was .5) units, stacking */
   if (drip && p.hp > 1) p.hp = Math.max(1, p.hp - p.st.maxHp * .006 * drip * dt); // harsh: slow life drain (never the killing blow on its own)
   const warn = (k, lvl, txt) => { const f = k + lvl; if (p[k] < lvl && !p.sw[f]) { p.sw[f] = 1; flashMsg(txt, '#d0a060'); } else if (p[k] > lvl + 10) p.sw[f] = 0; };
   if (!p.sw) p.sw = {};
   warn('hunger', 25, 'Your stomach growls. Eat a ration (bag).'); warn('hunger', 1, 'You are starving! Life is draining away.');
-  warn('thirst', 25, 'Your throat is dry. Drink from a basin or running water.'); warn('thirst', 1, 'You are parched! Life is draining away.');
-  warn('fatigue', 25, 'You are tired. Rest in a quiet room (REST).'); warn('fatigue', 1, 'You are exhausted. Find a safe room and sleep.');
+  warn('thirst', 25, 'Your throat is dry. Drink from a basin or running water.'); warn('thirst', 1, 'You are parched! Life drains and spells cost more mana.');
+  warn('fatigue', 25, 'You are tired. Rest in a quiet room (REST).'); warn('fatigue', 1, 'Exhausted: your inner light fades, spells cost more, life drains. Sleep!');
 }
 function eatRation() {
   const p = player; if (!(p.rations > 0)) { flashMsg('No rations left.', '#a08870'); return false; }
@@ -3941,7 +3944,7 @@ function sleepAlpha() { if (!sleep) return 0; const s = sleep, t = s.t; if (t < 
 function updateSleep(dt) { const s = sleep; if (!s) { if (state === 'sleep') setState('play'); return; } s.t += dt;
   const ht = s.t - SLEEP_OUT; if (ht > 0 && s.hr < s.h) { const want = Math.min(s.h, Math.floor(ht / s.hold * s.h) + 1); while (s.hr < want) { s.hr++; sfx('sleeptick', { wet: .4 }); } }
   if (!s.applied && s.t >= SLEEP_OUT + s.hold * .5) { s.applied = true; doRest(s.h); save(); }
-  if (s.t >= SLEEP_OUT + s.hold + SLEEP_IN) { sleep = null; setState('play'); } }
+  if (s.t >= SLEEP_OUT + s.hold + SLEEP_IN) { sleep = null; setState('play'); v073Rested(s); } } /* v0.7.3 §11: refreshed thought + cue */
 function drawSleep() { const a = sleepAlpha(); if (a <= 0) return; ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH);
   if (sleep && a > .6) { const z = 'z'.repeat(1 + Math.floor(time * 2) % 3); drawTextC(z, VW / 2, VH / 2 - 10, '#8090c0'); drawTextC(`${sleep.hr} / ${sleep.h} h`, VW / 2, VH / 2 + 4, '#606a90'); }
   ctx.restore(); }
@@ -4551,7 +4554,7 @@ function genRarityIcon(it) { const base = ICONS[it.icon], W = base.width, H = ba
 function itemIcon(it) { if (!it || !ICONS[it.icon]) return ICONS.ring; const art = artIcon(it); if (art) return art; if (!it.rarity) return ICONS[it.icon];
   const k = iconKey(it); let c = ICON_CACHE.get(k); if (!c) { if (ICON_CACHE.size > 400) { ICON_CACHE.clear(); ICON_URL6.clear(); } c = genRarityIcon(it); ICON_CACHE.set(k, c); } return c; }
 // ---- §7 custom art loader: drop PNGs into assets/ and list them in assets/manifest.json ({"files": [...]}); missing = procedural ----
-const ART = {}, ART_TILES = { floor: [], wall: [] }; let artReady = false; const BIOME_RX = /_(ice|bloody|demonic|lava)_\d\d$/; // v0.7.2 §4: biome tiles are per-floor sets, never mixed into every floor
+const ART = {}, ART_TILES = { floor: [], wall: [] }; let artReady = false; const BIOME_RX = /_(ice|bloody|demonic|lava|castle)_\d\d$|^(floor_damp|wall_face|wall_top)_\d\d$|^floor_arrow_mark$/; /* v0.7.3: + castle / classic env tiles (castle floors only); prism arrow mark is not a floor variant */ // v0.7.2 §4: biome tiles are per-floor sets, never mixed into every floor
 const RAR_SLUG = ['normal', 'magic', 'rare', 'unique'];
 function slugify(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''); }
 function to12(img) { const c = document.createElement('canvas'); c.width = c.height = 12; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(img, 0, 0, 12, 12); return c; }
@@ -4562,7 +4565,7 @@ function registerArt(name, img) { name = name.toLowerCase(); if (/^icon_/.test(n
   else if (/^floor_/.test(name) && !BIOME_RX.test(name) && img.width === TS && img.height === TS) ART_TILES.floor.push(img); else if (/^wall_face_/.test(name) && !BIOME_RX.test(name) && img.width === TS && img.height === TS) ART_TILES.wall.push(img);
   else ART[name] = img; artReady = true; ICON_CACHE.clear(); ICON_URL6.clear(); }
 async function loadArt() { if (location.protocol === 'file:') return 0; try { const r = await fetch('assets/manifest.json', { cache: 'no-store' }); if (!r.ok) return 0; const j = await r.json();
-  const files = (j && Array.isArray(j.files) ? j.files : []).filter(f => typeof f === 'string' && /^[a-z0-9_\-]+\.png$/i.test(f)).slice(0, 800); // v0.7.2: biomes + levers + squeeze art (was 400)
+  const files = (j && Array.isArray(j.files) ? j.files : []).filter(f => typeof f === 'string' && /^[a-z0-9_\-]+\.png$/i.test(f)).slice(0, 1200); /* v0.7.3: + castle / prism / dark-portal art (v0.7.2: 800) */
   await Promise.all(files.map(f => new Promise(res => { const im = new Image(); im.onload = () => { registerArt(f.replace(/\.png$/i, ''), im); res(); }; im.onerror = res; im.src = 'assets/' + f; }))); return files.length; } catch (e) { return 0; } }
 // ---- §18 puzzle glints / §19 slow puzzle doors, distant echo, map blink ----
 const PUZZLE_SLIDE = 3.2, MAP_BLINK = 15, MAP_ALPHA = .72, MAP_BG = .3;
@@ -4712,7 +4715,7 @@ function render() {
   if (!player) { drawMenuBg(); return; }
   const so = shakeOffset(), sx = Math.round(cam.x + so.x), sy = Math.round(cam.y + so.y);
   const p = player;
-  ctx.save(); ctx.translate(-sx, -sy);
+  ctx.save(); zoomApply(ctx, sx, sy); ctx.translate(-sx, -sy);
   const t0x = Math.floor(sx / TS) - 1, t0y = Math.floor(sy / TS) - 1, t1x = t0x + Math.ceil(VW / TS) + 2, t1y = t0y + Math.ceil(VH / TS) + 2;
   for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) {
     const t = tileAt(tx, ty), X = tx * TS, Y = ty * TS, v = mapVar[ty * MW + tx] || 0;
@@ -4725,7 +4728,7 @@ function render() {
     else { ctx.drawImage(texFloor(tx, ty), X, Y);
       if (tileAt(tx, ty - 1) === TILE.WALL) { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(X, Y, TS, 3); } }
   }
-  drawV071Floor(t0x, t0y, t1x, t1y); drawV072Floor(t0x, t0y, t1x, t1y); drawFloorDecor(); drawV05Floor(); drawV06Floor(); drawDebris(); drawCritters(false); drawSecrets(); drawSecretSense(); drawHazards(); drawChests(); drawProps(); drawDoors(); drawV05Upper(); drawV06World();
+  drawV071Floor(t0x, t0y, t1x, t1y); drawV072Floor(t0x, t0y, t1x, t1y); drawV073Floor(t0x, t0y, t1x, t1y); drawFloorDecor(); drawV05Floor(); drawV06Floor(); drawDebris(); drawCritters(false); drawSecrets(); drawSecretSense(); drawHazards(); drawChests(); drawProps(); drawDoors(); drawV05Upper(); drawV06World();
   for (const g of ground) {
     const by = Math.round(Math.sin(time * 3 + g.bob));
     if (g.item) { if (g.item.rarity >= 2) { ctx.fillStyle = g.item.rarity === 3 ? 'rgba(216,160,64,.3)' : 'rgba(240,240,96,.2)'; ctx.fillRect(Math.round(g.x) - 1, Math.round(g.y) - 22, 2, 18); }
@@ -4736,10 +4739,10 @@ function render() {
     else if (g.torch) ctx.drawImage(TORCH_ICON, Math.round(g.x - 2), Math.round(g.y - 8 + by));
     else if (g.key) { if (Math.floor(time * 3 + g.bob) % 4 === 0) { ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(g.x + 2), Math.round(g.y - 6 + by), 1, 1); } ctx.drawImage(KEY_ICON, Math.round(g.x - 4), Math.round(g.y - 4 + by)); }
   }
-  const ents = enemies.slice(); ents.push(p); ents.sort((a, b) => a.y - b.y);
+  const ents = enemies.slice(); ents.push(p); v073Ents(ents); ents.sort((a, b) => a.y - b.y); /* v0.7.3: prism + dark portals y-sort with everyone */
   for (const e of ents) {
     ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(Math.round(e.x - e.r), Math.round(e.y + e.r - 1), e.r * 2, 2);
-    if (e === p) { if (climb) drawClimb(); else if (pitAct || teeter()) drawPitAct(); else { drawPlayer(); drawWard(); } drawBurn(); } else drawEnemy(e);
+    if (e === p) { if (climb) drawClimb(); else if (pitAct || teeter()) drawPitAct(); else { drawPlayer(); drawWard(); } drawBurn(); } else if (e.v73draw) e.v73draw(); else drawEnemy(e);
   }
   for (const f of effects) {
     const k = f.t / f.dur;
@@ -4755,8 +4758,8 @@ function render() {
   // lighting (occluded colour lightmap, multiplied)
   renderLighting(sx, sy);
   // emissive + labels drawn above the darkness
-  ctx.save(); ctx.translate(-sx, -sy);
-  drawEmissive(sx, sy); drawBloom(); drawV06Emissive(); drawCritters(true);
+  ctx.save(); zoomApply(ctx, sx, sy); ctx.translate(-sx, -sy);
+  drawEmissive(sx, sy); v073Emissive(); drawBloom(); drawV06Emissive(); drawCritters(true);
   for (const g of ground) { if (!g.item) continue; const d = Math.hypot(g.x - p.x, g.y - p.y);
     if (labelShown(g)) { const nm = g.item.name.toUpperCase(), w = textW(nm);
       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 17), w + 3, 7); drawTextC(nm, g.x, g.y - 16, RCOL[g.item.rarity], false); } }
@@ -4772,8 +4775,8 @@ function render() {
   drawInteractPrompt(); drawThought();
   for (const q of texts) drawTextC(q.t, q.x, q.y, q.col);
   ctx.restore();
-  drawVignette();
-  UIA = uiAlpha(); ctx.globalAlpha = UIA; drawHUD(); ctx.globalAlpha = 1; drawSleep(); // v0.6.0 dim UI
+  drawVignette(); drawPlaneFX(); /* v0.7.3 §7 plane screen FX + timer */
+  UIA = uiAlpha(); ctx.globalAlpha = UIA; drawHUD(); drawZoomTag(); ctx.globalAlpha = 1; drawSleep(); // v0.6.0 dim UI
 }
 function drawPlayer() {
   const p = player, flick = p.inv0 > 0 && Math.floor(time * 20) % 2;
@@ -4846,7 +4849,7 @@ function drawHUD() {
   if (hoverEnemy && hoverEnemy !== bo && !touchMode) { hy = drawHoverBar(hoverEnemy, hy); my2 = Math.max(my2, hy + 2); }
   if (bo) my2 = Math.max(40, drawBossBar(bo, hy) + 2);
   if (bannerT > 0) my2 = Math.max(my2, bannerBottom() + 3);
-  if (msg.life > 0) { const w = textW(msg.t); msgDraw = { x: Math.round(VW / 2 - w / 2 - 3), y: my2, w: w + 6, h: 9 }; ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(VW / 2 - w / 2 - 3), my2, w + 6, 9); drawTextC(msg.t, VW / 2, my2 + 2, msg.col); }
+  if (msg.life > 0) { const w = textW(msg.t), my3 = Math.round(Math.min(VH * .68, VH - 62)); ctx.save(); ctx.globalAlpha *= Math.min(1, msg.life * 2); msgDraw = { x: Math.round(VW / 2 - w / 2 - 3), y: my3, w: w + 6, h: 9 }; ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(VW / 2 - w / 2 - 3), my3, w + 6, 9); drawTextC(msg.t, VW / 2, my3 + 2, msg.col); ctx.restore(); } /* v0.7.3 §14: low band, clear of thought bubbles (was under the top HUD) */
   const bf = bossForDepth(depth);
   if (bannerT > 0) drawDepthBanner(); // v0.6.0: longer, larger, higher
   else if (bossIntro > 0 && introBoss) { const a = clamp(Math.min(bossIntro, 2.8 - bossIntro) * 3, 0, 1), y = Math.round(VH * .62);
@@ -4864,7 +4867,7 @@ function updateTouchHUD() {
   const p = player;
   $('nHP').textContent = p.hpPot; $('nMP').textContent = p.mpPot;
   for (let i = 0; i < 3; i++) { const b = $('bS' + (i + 1)), S = SKILLS[i], locked = skillLocked(i);
-    b.classList.toggle('locked', locked); b.classList.toggle('nomana', !locked && p.mp < S.mana);
+    b.classList.toggle('locked', locked); b.classList.toggle('nomana', !locked && p.mp < manaCost(S));
     b.querySelector('.cd').style.height = (locked ? 0 : (p.cds[i] / S.cd * 100)) + '%';
     b.querySelector('.sub').textContent = locked ? 'BOOK' : ['FIRE', 'SPIN', 'NOVA'][i]; }
   $('bRoll').querySelector('.cd').style.height = (p.rollCd / ROLL_CD * 100) + '%';
@@ -4979,7 +4982,7 @@ const HAZ = { 1: 'water', 2: 'acid', 3: 'lava', 4: 'spikes' }, HAZ_ID = { water:
 const HAZ_MAP = { 1: 'rgba(60,110,200,.8)', 2: 'rgba(110,210,60,.8)', 3: 'rgba(240,90,30,.85)', 4: 'rgba(170,170,185,.75)' }, HAZ_COL = { water: '#24489a', acid: '#4a9a20', lava: '#c83a10', spikes: '#6a6a74' };
 const HAZ_DPS = { water: .015, acid: .06, lava: .12 }, HAZ_LETHAL = { water: false, acid: true, lava: true, spikes: true };
 const HAZ_FPS = 9, SPIKE_CYCLE = 2.4, SPIKE_UP = 1.0, SPIKE_HIT = .10, WATER_SLOW = .55, HAZ_TICK = .5;
-const SINK_AFTER = 1.5, SINK_MID = .35, REEMERGE_T = 3.2;
+const SINK_AFTER = .8, SINK_MID = .2, REEMERGE_T = 3.2; /* v0.7.3 §10: was 1.5 / .35 */
 const BURN_VFX = 3, BURN_DOT = 4, BURN_PCT = .08, FIRE_FPS = 11, FIREPIT_MIN = 6, FIREPIT_HUGE = 10;
 const WALL_DOOR = { E4: 'iron', E5: 'demon', E6: 'bloody', E7: 'rusty', E8: 'wood', E11: 'bone', E13: 'rune' }, WALL_DOOR_P = .5, DOOR_OPEN_T = .48;
 const HAZ_KEEP_SETP = ['pool', 'statue', 'coffin', 'niche', 'bowl', 'window'];
@@ -5125,7 +5128,7 @@ function updatePitAct(dt) { const a = pitAct, p = player; a.t += dt; p.walkT = 0
 function inchFrame() { const a = pitAct; return a && a.kind === 'ledge' ? Math.floor(Math.max(0, a.t - LEDGE_GRAB_T) * INCH_FPS) % 6 : -1; }
 function fallFrame() { const a = pitAct; return a && a.kind === 'fall' ? Math.min(4, Math.floor(a.t / .15)) : -1; }
 function teeter() { return !!player && (player.pitPush || 0) > PIT_TEETER && !climb; }
-function drawPitAct() { const p = player, a = pitAct, s = a ? a.sex : climbSex(); let img = null, flip = false; if (a && a.kind === 'squeeze') { drawSqueeze(); return; }
+function drawPitActV071() { const p = player, a = pitAct, s = a ? a.sex : climbSex(); let img = null, flip = false; if (a && a.kind === 'squeeze') { drawSqueeze(); return; }
   if (!a) { img = ART['player_' + s + '_pit_fall_01']; flip = p.fx < 0; }
   else if (a.kind === 'ledge') { img = a.t < LEDGE_GRAB_T ? ART['player_' + s + '_ledge_grab'] : ART['player_' + s + '_ledge_inch_0' + (inchFrame() + 1)]; flip = a.flip; }
   else img = ART['player_' + s + '_pit_fall_0' + (fallFrame() + 1)];
@@ -5205,7 +5208,7 @@ const VOC = { idle: ['enm_voc_moan_01', 'enm_voc_groan_01'], alert: 'enm_voc_gro
 let V72 = v072Empty(); const v072Stats = { pulls: 0, sledRides: 0, padRaises: 0, wrongOrder: 0, squeezes: 0, secretChests: 0, relights: 0, vocals: { idle: 0, alert: 0, hurt: 0, effort: 0 }, dismiss: 0 };
 function v072Empty() { return { biome: null, bprops: [], levers: [], sleds: [], pads: [], islands: [], gaps: [], srooms: [], schests: [] }; }
 function v072Snap() { return { biome: V72.biome, bprops: V72.bprops, levers: V72.levers, sleds: V72.sleds, pads: V72.pads, islands: V72.islands, gaps: V72.gaps, srooms: V72.srooms, schests: V72.schests }; }
-function v072Restore(o) { V72 = v072Empty(); if (o && typeof o === 'object') { for (const k of ['bprops', 'levers', 'sleds', 'pads', 'islands', 'gaps', 'srooms', 'schests']) if (Array.isArray(o[k])) V72[k] = o[k]; V72.biome = BIOMES.includes(o.biome) ? o.biome : null; }
+function v072Restore(o) { V72 = v072Empty(); if (o && typeof o === 'object') { for (const k of ['bprops', 'levers', 'sleds', 'pads', 'islands', 'gaps', 'srooms', 'schests']) if (Array.isArray(o[k])) V72[k] = o[k]; V72.biome = o.biome === 'castle' || o.biome === 'ice' ? o.biome : biomeFor(depth); } /* v0.7.3 §3: bloody / demonic / lava never come back as a normal floor */
   else V72.biome = biomeFor(depth); padIndex(); }
 // ---------- §2 line of sight for detection ----------
 function tileSolidT(tx, ty) { return solidAt((tx + .5) * TS, (ty + .5) * TS); }
@@ -5226,22 +5229,22 @@ function bandPolys(x, y, r, rays, key) { const n = shadowBands(); return bandOri
 function drawLightPolys(l) { const P0 = l.polys, n = P0.length, a = Math.min(1, l.a); for (const P of P0) { lctx.save(); lctx.globalAlpha = a / n; lctx.beginPath(); lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
     lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); } }
 // ---------- §4 biomes ----------
-function biomeFor(d) { return d < 4 ? null : BIOMES[Math.floor((d - 4) / 4) % 4]; }
-function biomeBands() { return { classic: '1-3', ice: '4-7', bloody: '8-11', demonic: '12-15', lava: '16-19', repeat: '20+' }; }
-const BTILE = {}; function biomeTiles() { const b = V72.biome; if (!b || !artReady) return null; let T = BTILE[b];
+function biomeForV072(d) { return d < 4 ? null : BIOMES[Math.floor((d - 4) / 4) % 4]; } /* v0.7.2 cycle (v0.7.3 §3: replaced, see biomeFor) */
+function biomeBandsV072() { return { classic: '1-3', ice: '4-7', bloody: '8-11', demonic: '12-15', lava: '16-19', repeat: '20+' }; }
+const BTILE = {}; function biomeTiles() { const b = V72.biome; if (!b || !artReady) return null; if (b === 'castle') { const C = castleTiles(); return C.floor.length ? C : null; } /* v0.7.3 §3 */ let T = BTILE[b];
   if (!T || T.floor.length < 5) { const g = k => [1, 2, 3, 4, 5].map(i => ART[k + '_' + b + '_0' + i]).filter(Boolean); T = BTILE[b] = { floor: g('floor'), face: g('wall_face'), top: g('wall_top') }; }
   return T.floor.length ? T : null; }
 function bPick(L, h) { return h % 100 < 45 ? L[0] : L[1 + (h >>> 8) % (L.length - 1)] || L[0]; } // Trinity: _01 is the base (~45%), 02-05 accents
-function biomeFloor(tx, ty) { const T = biomeTiles(); return T ? bPick(T.floor, texHash(tx, ty)) : null; }
-function biomeWall(tx, ty) { const T = biomeTiles(); return T && T.face.length ? bPick(T.face, texHash(tx, ty)) : null; }
-function wallTopImg(tx, ty) { const T = biomeTiles(); return T && T.top.length ? bPick(T.top, texHash(tx, ty)) : tileImgs.wallTop; }
+function biomeFloor(tx, ty) { const T = biomeTiles(); if (T && T.floor.wt) return castleFloor(tx, ty, T); return T ? bPick(T.floor, texHash(tx, ty)) : null; }
+function biomeWall(tx, ty) { const T = biomeTiles(); if (T && T.face.wt && T.face.length) return castleWall(tx, ty, T); return T && T.face.length ? bPick(T.face, texHash(tx, ty)) : null; }
+function wallTopImg(tx, ty) { const T = biomeTiles(); if (T && T.top.wt && T.top.length) return T.top[(texHash(tx, ty) >>> 8) % T.top.length]; return T && T.top.length ? bPick(T.top, texHash(tx, ty)) : tileImgs.wallTop; }
 function v072BannerName() { return V72.biome ? BIOME_NAME[V72.biome] : null; }
 function placeBiomeProps(d) { const b = V72.biome; if (!b) return; const P = BIOME_PROPS[b], { all: B } = v071Busy(), used = new Set();
   const free = (x, y) => tileAt(x, y) === TILE.FLOOR && !hazAt(x, y) && !B.has(y * MW + x) && !used.has(y * MW + x) && !firepitAt((x + .5) * TS, (y + .5) * TS - 2) && !nearDoorT(x, y, 1);
   rooms.forEach((r, ri) => { let n = irand(2, 3) + (r.w * r.h > 60 ? 1 : 0) + (ri === 0 ? -1 : 0);
     for (let tries = 0; tries < 30 && n > 0; tries++) { const anim = Math.random() < .7, k = anim ? pick(P.anim) : pick(P.stat);
-      if (BPROP_HANG[k]) { const x = irand(r.x, r.x + r.w - 1), y = r.y; if (!free(x, y) || tileAt(x, y - 1) !== TILE.WALL || torches.some(t => Math.abs(t.x - (x * TS + 8)) < 12 && Math.floor(t.y / TS) === y - 1)) continue;
-        used.add(y * MW + x); V72.bprops.push({ k, tx: x, ty: y, hang: 1, ph: irand(0, 3), anim: 1 }); n--; continue; }
+      if (BPROP_HANG[k] || BPROP_BASE[k]) { const x = irand(r.x, r.x + r.w - 1), y = r.y; if (!free(x, y) || tileAt(x, y - 1) !== TILE.WALL || torches.some(t => Math.abs(t.x - (x * TS + 8)) < 12 && Math.floor(t.y / TS) === y - 1)) continue;
+        used.add(y * MW + x); V72.bprops.push({ k, tx: x, ty: y, hang: BPROP_BASE[k] ? 0 : 1, ph: irand(0, 3), anim: CASTLE_PROPS.stat.includes(k) ? 0 : 1 }); n--; continue; }
       const x = irand(r.x, r.x + r.w - 1), y = irand(r.y, r.y + r.h - 1); if (!free(x, y) || (x === r.cx && y === r.cy)) continue;
       used.add(y * MW + x); V72.bprops.push({ k, tx: x, ty: y, floor: BPROP_FLOOR[k] ? 1 : 0, ph: irand(0, 3), anim: anim ? 1 : 0 }); n--; } }); }
 function nearDoorT(x, y, rr) { for (const d of doors) for (const t of d.tiles) if (Math.abs(t.x - x) <= rr && Math.abs(t.y - y) <= rr) return true; const s = entStairs(); return !!(s && Math.abs(s.tx - x) <= rr + 1 && Math.abs(s.ty - y) <= rr + 1); }
@@ -5342,7 +5345,7 @@ function updateSqueeze(a, dt) { const p = player, T = squeezeT(); // a.t advance
   if (a.dust >= 0) a.dust += dt; }
 function squeezeFrame(a) { const T = squeezeT(); if (a.t < T.enter) return { k: 'squeeze_0' + (Math.min(5, Math.floor(a.t * SQ_FPS)) + 1), off: SQ_ENTER[Math.min(5, Math.floor(a.t * SQ_FPS))] * (a.out ? -1 : 1) };
   if (a.t < T.enter + SQ_HIDE) return null; const i = Math.min(2, Math.floor((a.t - T.enter - SQ_HIDE) * SQ_FPS)); return { k: 'squeeze_exit_0' + (i + 1), off: SQ_EXIT[i] * (a.out ? 1 : -1) }; }
-function drawSqueeze() { const p = player, a = pitAct, f = squeezeFrame(a); if (!f) return; const img = ART['player_' + a.sex + '_' + f.k], X = Math.round(p.x - 6), Y = Math.round(p.y - 9 + f.off);
+function drawSqueezeV072() { const p = player, a = pitAct, f = squeezeFrame(a); if (!f) return; const img = ART['player_' + a.sex + '_' + f.k], X = Math.round(p.x - 6), Y = Math.round(p.y - 9 + f.off);
   if (img) ctx.drawImage(img, X, Y); else { const WS = wardSprites(p), im = WS.a.r; ctx.save(); ctx.globalAlpha = .7; ctx.drawImage(im, X, Y); ctx.restore(); } }
 function drawSqueezeDust() { const a = pitAct; if (!a || a.kind !== 'squeeze' || a.dust < 0) return; const i = Math.floor(a.dust * SQ_FPS); if (i > 3) return; const im = ART['squeeze_dust_0' + (i + 1)]; if (!im) return;
   ctx.drawImage(im, a.g.tx * TS, a.g.ty * TS + 6); }
@@ -5369,7 +5372,7 @@ function nearDoorZone() { const p = player; if (!p) return false; for (const d o
   const s = entStairs(); if (s && Math.hypot((s.tx + .5) * TS - p.x, (s.ty + .5) * TS - p.y) < 56) return true;
   for (const g of V72.gaps) if (Math.hypot((g.tx + .5) * TS - p.x, (g.ty + .5) * TS - p.y) < 40) return true; return false; }
 function bubbleHit(cx, cy) { // canvas px -> true if a bubble / examine text sits under the tap; dismisses it (tap != USE)
-  const so = shakeOffset(), wx = Math.round(cam.x + so.x) + cx, wy = Math.round(cam.y + so.y) + cy, b = bubbleDraw;
+  const so = shakeOffset(), zw = scr2w(cx, cy), wx = zw ? zw.x : Math.round(cam.x + so.x) + cx, wy = zw ? zw.y : Math.round(cam.y + so.y) + cy, b = bubbleDraw;
   if (b && thought.life > 0 && wx >= b.x - 3 && wx <= b.x + b.w + 3 && wy >= b.y - 3 && wy <= b.y + b.h + 5) { thought.life = 0; thought.ent = null; bubbleDraw = null; v072Stats.dismiss++; return true; }
   // (status toasts are left alone: they are 2.2s and sit where the world is clicked; only bubbles / Examine text eat a tap)
   return false; }
@@ -5385,8 +5388,8 @@ function v072Interact(L, close) { if (climb || pitAct) return; const p = player;
     if (close(x, yo, 14) && p.y > (g.ty + 1) * TS - 2) L.push({ x, y: yo, r: 14, label: g.exam ? 'SQUEEZE THROUGH' : 'EXAMINE GAP', use: () => gapUse(g, false), ref: g, tier: 2, gp: 1 });
     if (close(x, yi, 14) && p.y < g.top * TS) L.push({ x, y: yi, r: 14, label: 'SQUEEZE OUT', use: () => gapUse(g, true), ref: g, tier: 2, gp: 1 }); }
   for (const c of V72.schests) if (!c.open) { const x = (c.tx + .5) * TS, y = (c.ty + .5) * TS + 2; if (close(x, y, 18)) L.push({ x, y, r: 18, label: 'OPEN CHEST', use: () => openSecretChest(c), ref: c, tier: 3, gp: 1 }); }
-  if (!torchFull()) for (const f of V71.firepits) { const X = f.tx * TS, Y = f.ty * TS, S = f.n * TS, x = clamp(p.x, X + 4, X + S - 4), y = clamp(p.y, Y + 4, Y + S - 4); if (!close(x, y, 18)) continue;
-    if (Math.hypot(x - p.x, y - p.y) < 18 && !firepitFlameAt(p.x, p.y)) L.push({ x, y, r: 18, label: 'LIGHT TORCH', use: () => { v072Stats.relights++; relightFrom(); }, ref: f, tier: 1, gp: 1 }); } }
+  if (!torchFull()) for (const f of V71.firepits) { const F = FIREPIT_FLAME[f.n] || FIREPIT_FLAME[2], X = f.tx * TS, Y = f.ty * TS, x = clamp(p.x, X + F.x0, X + F.x1), y = clamp(p.y + 2, Y + F.y0, Y + F.y1) - 2; if (!close(x, y, 18)) continue; /* v0.7.3 §12: measured to the flames */
+    if (Math.hypot(x - p.x, y - p.y) < FIRE_RELIGHT_R && !firepitFlameAt(p.x, p.y)) L.push({ x, y, r: FIRE_RELIGHT_R, label: 'LIGHT TORCH', use: () => { v072Stats.relights++; relightFrom(); }, ref: f, tier: 1, gp: 1 }); } }
 function v072Lights(L, view) {
   for (const o of V72.bprops) { const Lt = BPROP_LIGHT[o.k] || (o.lit ? ['amber', 20, .55] : null); if (!Lt) continue; const x = (o.tx + .5) * TS, y = (o.ty + .5) * TS - (o.hang ? 14 : 4); if (!view(x, y, Lt[1])) continue;
     const f = flickN(time * 1.1, o.tx * .7 + o.ty), r = Lt[1] * (1 + .06 * f), a = Lt[2] * (1 + .08 * f); if (Lt[1] >= 40) { const polys = bandPolys(x, y, Lt[1] + 4, 56, 'bp' + o.tx + ',' + o.ty); L.push({ x, y, r, col: Lt[0], a, polys, poly: polys[0] }); } else L.push({ x, y, r, col: Lt[0], a }); }
@@ -5429,6 +5432,270 @@ function invDragEnd(e) { const D = invDrag; if (D.id === null || e.pointerId !==
   if (!D.moved) { if (e.type === 'pointerup' && D.act) D.act(); D.act = null; return; } D.n++; D.act = null; const g = $('grid'); let v = -D.vy * 16; // px per frame
   const step = () => { if (Math.abs(v) < .3) return; g.scrollTop += v; v *= .92; invDrag.raf = requestAnimationFrame(step); }; if (Math.abs(v) > 1) invDrag.raf = requestAnimationFrame(step); }
 ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, invDragEnd));
+// ---- v0.7.3: test zoom (§1), softer wall-height light falloff (§2), castle floors + busy biomes out of the depth cycle (§3), ambience variety (§4),
+//      Lich-light prism puzzle (§5), depth density curve + post-cap damage (§6), dark-portal reward planes (§7), ledge / squeeze keep your gear (§8),
+//      no mobs in sinking-floor rooms (§9), quicker sinking stones (§10), survival teeth (§11), tighter fire-pit relight (§12), smaller torches (§13),
+//      longer + relocated interact text (§14), dungeon-door hum + glow (§15) ----
+// Tunables (call-outs in CHANGELOG / playtest focus):
+//  §1 ZOOMS 1 / 1.5 / 2 / 2.5: pause menu TEST ZOOM button, or the - / = / 0 keys. Camera pinned on the player; HUD is never scaled.
+//  §2 light gradient stops 0:1 .45:.85 .78:.36 1:0 -> 0:1 .35:.92 .68:.6 .88:.22 1:0 (gentler shoulder); rays heading north bite WALL_BITE_N = 18px
+//     into a wall (was 10px; a wall face is 16px tall) so the whole face + the rim of the top reads under a light
+//  §3 biome by depth: 1-3 classic, 4-7 ice, 8-15 castle, 16-19 ice, then bands of 4: castle, castle, ice (repeat). Bloody / demonic / lava = dark-portal planes only
+//     castle floors: weighted Trinity floor_castle_01-08 + classic env floor_damp_01-05; walls wall_face/top_castle_01-08 + env wall_face/top_01-05
+//  §6 MOB density multiplier D(d): d<=3 1.0, 4-6 1.25, 7-10 1.5, d>10 1.5 + 0.5 x (d - 10), clamped at MOB_DENSITY_MAX 2.5 (reached at depth 12)
+//     per-room budget = min(round(4D), round(D x base)), base = 1-2 + floor(d/5) (+1 sometimes) as before; MAX_ENEMIES 120 stays the hard cap
+//     past the cap depth (12): mob damage x (1 + MOB_DMG_STEP 0.08 x (d - 12)), max x MOB_DMG_MAX 2.5 (depth 13 x1.08, 15 x1.24, 20 x1.64, 31+ x2.5)
+//  §7 dark portal: depth > 10, DP_CHANCE 20% per boss kill; plane timer DP_TIME 60s, warnings at 30% / 15% / 5% left (18 / 9 / 3 s); no mobs in the plane
+//  §10 SINK_AFTER 1.5 -> 0.8s, SINK_MID 0.35 -> 0.2s (re-emerge unchanged 3.2s)
+//  §11 empty meters (life drain unit = 0.6% max life/s, never the killing blow): hunger 1 unit, thirst 1 unit (unchanged), rest 1.5 units (was 0.5; stacks)
+//      mana: thirst empty x1.6, rest empty +1.0 (both empty = x2.6); rest empty also removes your personal glow (torch / magic light still work)
+//  §12 LIGHT TORCH at a fire pit only within FIRE_RELIGHT_R = 10px of the flames (was 18px from the pit rim)
+//  §13 held torch r 128 -> 96, a .95 -> .82; wall torch r 74 -> 58, a .85 -> .72; brazier r 84 -> 66, a .9 -> .78; their shadow reach 92 -> 72
+//  §14 flash text 2.2 -> 3.7s on screen, drawn low (68% of the screen height) instead of under the top HUD, clear of thought bubbles
+//  §15 door hum: silent + no glow past DOOR_HUM_R = 150px; k = (1 - (d - 16) / 134)^1.5; hum gain 0.9k, glow r 16 + 30k, a 0.75k (same k)
+const ZOOMS = [1, 1.5, 2, 2.5]; let ZOOM = 1;
+const WALL_BITE_N = 18, MOB_DENSITY_MAX = 2.5, MOB_DMG_STEP = .08, MOB_DMG_MAX = 2.5;
+const DP_MIN_DEPTH = 10, DP_CHANCE = .2, DP_TIME = 60, DP_WARN = [.3, .15, .05], DP_FPS = 8, DP_BIOMES = ['bloody', 'demonic', 'lava'];
+const SURV_MANA = { thirst: .6, fatigue: 1 }, SURV_DRAIN = { hunger: 1, thirst: 1, fatigue: 1.5 }, FIRE_RELIGHT_R = 10, DOOR_HUM_R = 150, MSG_DWELL = 3.7;
+const PRISM_STOPS = 8, PRISM_DWELL = .6, PRISM_TURN = .5, PRISM_P = .3, PRISM_FPS = 8;
+const PRISM_POOL = ['A_eye', 'B_trident', 'C_tri', 'D_hourglass', 'E_gate', 'F_anchor', 'G_moon', 'H_lozenge', 'I_ladder', 'J_chevron', 'K_sun', 'L_bolt'];
+const PRISM_THINK = "There's something behind here...", RESTED_THINK = 'refreshed and rested';
+const AMB_ROT = ['amb_crypt_stone_loop_01', 'amb_hall_stone_loop_01', 'amb_corridor_wind_loop_01', 'amb_deep_crypt_loop_01', 'amb_cave_wet_loop_01'];
+const AMB_ONE = [['amb_drip_echo_01', .5], ['amb_stone_rumble_01', .2], ['amb_corridor_gust_01', .2], ['amb_creature_murmur_01', .1]], AMB_ONE_VOL = .3, AMB_ONE_GAP = [8, 30];
+const CASTLE_PROPS = { anim: ['wall_torch_iron', 'brazier_iron', 'banner_sway', 'chain_hang', 'moss_drip', 'candle_cluster'], stat: ['banner_tattered', 'crate', 'pillar_stub', 'shield_wall', 'table_broken', 'candle_stand', 'rubble_pile', 'barrel_iron', 'urn_cracked'] };
+BIOME_PROPS.castle = CASTLE_PROPS; BIOME_NAME.castle = 'THE CASTLE DUNGEON'; Object.assign(BPROP_HANG, { wall_torch_iron: 1, banner_sway: 1, chain_hang: 1, banner_tattered: 1, shield_wall: 1 });
+const BPROP_BASE = { moss_drip: 1 }; // sits on the floor tile right under a wall face (drip falls onto the floor)
+Object.assign(BPROP_LIGHT, { wall_torch_iron: ['fire', 40, .7], brazier_iron: ['fire', 46, .78], candle_stand: ['amber', 20, .5], candle_cluster: ['amber', 22, .55] });
+let V73 = v073Empty(), DPLANE = null, exitFlashAt = -99;
+const v073Stats = { zoom: 0, prismTurns: 0, prismRight: 0, prismWrong: 0, prismSolved: 0, prismPlaced: 0, vinesBurned: 0, portals: 0, planes: 0, returns: 0, warns: 0, ambOne: {}, removedSink: 0, guardMoved: 0, rested: 0 };
+function v073Empty() { return { prism: null, dp: null, exit: null, chests: [], noSpawn: [], bed: null }; }
+function v073Snap() { return { prism: V73.prism, dp: V73.dp, exit: V73.exit, chests: V73.chests, noSpawn: V73.noSpawn, bed: V73.bed }; }
+function v073Restore(o) { V73 = v073Empty(); if (o && typeof o === 'object') { for (const k of ['prism', 'dp', 'exit']) if (o[k] && typeof o[k] === 'object') V73[k] = o[k]; for (const k of ['chests', 'noSpawn']) if (Array.isArray(o[k])) V73[k] = o[k]; if (typeof o.bed === 'string') V73.bed = o.bed; }
+  if (!V73.bed) V73.bed = ambBedFor(depth); const P = V73.prism; if (P) { P.turnT = -1; if (P.plaque.burnT >= 0) { P.plaque.burnT = -1; P.plaque.clear = 1; } if (P.slideT >= 0) { P.slideT = -1; prismOpenWall(P); } }
+  if (V73.dp) { if (V73.dp.st === 'opening') V73.dp.st = 'idle'; V73.dp.enterAt = null; } DPLANE = null; }
+// ---------- §1 test zoom ----------
+function zoomApply(c, sx, sy) { if (ZOOM === 1 || !player) return; c.translate(VW / 2, VH / 2); c.scale(ZOOM, ZOOM); c.translate(-(player.x - sx), -(player.y - 4 - sy)); }
+function scr2w(cx, cy) { if (ZOOM === 1 || !player) return null; return { x: player.x + (cx - VW / 2) / ZOOM, y: player.y - 4 + (cy - VH / 2) / ZOOM }; }
+function setZoom(z) { ZOOM = ZOOMS.includes(z) ? z : 1; v073Stats.zoom++; syncZoomBtn(); }
+function cycleZoom(dir) { const i = ZOOMS.indexOf(ZOOM); setZoom(ZOOMS[(i + (dir || 1) + ZOOMS.length) % ZOOMS.length]); }
+function syncZoomBtn() { const b = $('mZoom'); if (b) b.textContent = 'TEST ZOOM: ' + ZOOM + 'X'; }
+function drawZoomTag() { if (ZOOM === 1 || !player) return; const t = 'ZOOM ' + ZOOM + 'X (TEST)'; drawTextC(t, VW / 2, VH - 8, '#8a90a8'); }
+if ($('mZoom')) $('mZoom').addEventListener('click', () => cycleZoom(1));
+window.addEventListener('keydown', e => { if (e.repeat || state !== 'play' || UPD.shown) return; const k = e.key;
+  if (k === '=' || k === '+') cycleZoom(ZOOM === ZOOMS[ZOOMS.length - 1] ? 0 : 1); else if (k === '-' || k === '_') { if (ZOOM !== 1) cycleZoom(-1); } else if (k === '0') setZoom(1); });
+// ---------- §3 castle floors ----------
+function biomeFor(d) { if (d < 4) return null; if (d < 8) return 'ice'; return ['castle', 'castle', 'ice'][Math.floor((d - 8) / 4) % 3]; }
+function biomeBands() { return { classic: '1-3', ice: '4-7, 16-19, 28-31...', castle: '8-15, 20-27, 32-39...', planes: 'bloody / demonic / lava (dark portals only)' }; }
+const CASTLE_W = { floor: [['floor_castle_01', 4], ['floor_castle_02', 4], ['floor_castle_03', 3], ['floor_castle_04', 3], ['floor_castle_05', 2], ['floor_castle_06', 2], ['floor_castle_07', 3], ['floor_castle_08', 1],
+    ['floor_damp_01', 2], ['floor_damp_02', 2], ['floor_damp_03', 2], ['floor_damp_04', 1], ['floor_damp_05', 1]],
+  face: [['wall_face_castle_01', 4], ['wall_face_castle_02', 4], ['wall_face_castle_03', 3], ['wall_face_castle_04', 2], ['wall_face_castle_05', 2], ['wall_face_castle_07', 3], ['wall_face_castle_08', 1],
+    ['wall_face_01', 2], ['wall_face_02', 2], ['wall_face_03', 2], ['wall_face_04', 1], ['wall_face_05', 1]],
+  top: [['wall_top_castle_01', 3], ['wall_top_castle_02', 3], ['wall_top_castle_03', 2], ['wall_top_castle_04', 2], ['wall_top_castle_05', 2], ['wall_top_castle_06', 2], ['wall_top_castle_07', 2], ['wall_top_castle_08', 2],
+    ['wall_top_01', 2], ['wall_top_02', 2], ['wall_top_03', 2], ['wall_top_04', 1], ['wall_top_05', 1]] };
+function castleTiles() { if (BTILE.castle && BTILE.castle.floor.length > 20) return BTILE.castle; const g = W => { const L = []; for (const [k, n] of W) { const im = ART[k]; if (im) for (let i = 0; i < n; i++) L.push(im); } L.wt = 1; return L; };
+  const T = BTILE.castle = { floor: g(CASTLE_W.floor), face: g(CASTLE_W.face), top: g(CASTLE_W.top), path: ART.floor_castle_06 || null, arch: ART.wall_face_castle_06 || null }; return T; }
+function castleFloor(tx, ty, T) { const h = texHash(tx, ty); if (T.path && h % 100 < 40 && isCorridor(tx, ty)) return T.path; return T.floor[(h >>> 8) % T.floor.length]; }
+function castleWall(tx, ty, T) { const h = texHash(tx, ty); if (T.arch && h % 1000 < 8) return T.arch; return T.face[(h >>> 8) % T.face.length]; } // arch alcove kept rare (~0.8%)
+// ---------- §6 density curve + post-cap damage ----------
+function mobDensity(d) { return d <= 3 ? 1 : d <= 6 ? 1.25 : d <= 10 ? 1.5 : Math.min(MOB_DENSITY_MAX, 1.5 + .5 * (d - 10)); }
+function densityCapDepth() { return 10 + Math.ceil((MOB_DENSITY_MAX - 1.5) / .5); }
+function mobDmgMul(d) { const c = densityCapDepth(); return d > c ? Math.min(MOB_DMG_MAX, 1 + MOB_DMG_STEP * (d - c)) : 1; }
+function roomBudget(d, base) { const D = mobDensity(d); return Math.min(Math.round(4 * D), Math.max(1, Math.round(D * base))); }
+// ---------- §9 no mobs in sinking-floor rooms ----------
+function noSpawnAt(x, y) { const tx = Math.floor(x / TS), ty = Math.floor(y / TS); for (const R of V73.noSpawn) if (tx >= R.x0 && tx <= R.x1 && ty >= R.y0 && ty <= R.y1) return true; return false; }
+function v073SpawnGuard(e) { if (!e || !V73.noSpawn.length || e.T.boss || !noSpawnAt(e.x, e.y)) return;
+  for (let k = 0; k < 16; k++) { const q = freeNear(e.x, e.y, 40, 60 + k * 14); if (q && !noSpawnAt(q.x, q.y) && !solidAt(q.x, q.y) && !pitHitAt(q.x, q.y, 4)) { e.x = q.x; e.y = q.y; v073Stats.guardMoved++; return; } }
+  const i = enemies.indexOf(e); if (i >= 0) enemies.splice(i, 1); v073Stats.guardMoved++; }
+// ---------- floor generation ----------
+function prismHist() { const p = player; if (!p.v73 || typeof p.v73 !== 'object') p.v73 = { run: 0, debut: 0, n: 0 }; return p.v73; }
+function genV073(d) { V73 = v073Empty(); V73.bed = ambBedFor(d); DPLANE = null;
+  V73.noSpawn = V71.hrooms.filter(h => V71.stones.some(s => s.tx >= h.x0 && s.tx <= h.x1 && s.ty >= h.y0 && s.ty <= h.y1)).map(h => ({ x0: h.x0 - 1, y0: h.y0 - 1, x1: h.x1 + 1, y1: h.y1 + 1 }));
+  if (V73.noSpawn.length) { const n0 = enemies.length; enemies = enemies.filter(e => e.T.boss || !noSpawnAt(e.x, e.y)); v073Stats.removedSink += n0 - enemies.length; }
+  const H = prismHist(); let placed = false; if (prismWant(d, H)) placed = placePrism(d); H.run = placed ? H.run + 1 : 0; if (placed) { H.debut = 1; H.n++; v073Stats.prismPlaced++; } }
+// ---------- §5 Lich-light prism puzzle ----------
+function prismWant(d, H) { if (window.__prismForce !== undefined) return !!window.__prismForce && d >= 3; if (d < 3 || H.run >= 2) return false; if (!H.debut) return d >= 5 || Math.random() < (d === 3 ? .4 : .6); return Math.random() < PRISM_P; }
+function prismRay(ox, oy, k) { const a = k / PRISM_STOPS * 6.2832, dx = Math.cos(a), dy = Math.sin(a);
+  for (let d = 1; d < 420; d++) { const x = ox + dx * d, y = oy + dy * d, tx = Math.floor(x / TS), ty = Math.floor(y / TS); if (tileAt(tx, ty) === TILE.WALL) return { x: Math.round(x), y: Math.round(y), tx, ty }; } return null; }
+function placePrism(d) { const boss = bossForDepth(d), s = entStairs(), cand = shuf(rooms.slice(1, boss ? -1 : rooms.length).filter(r => r.w >= 9 && r.h >= 4));
+  for (const r of cand) {
+    if (s && s.tx >= r.x - 2 && s.tx <= r.x + r.w + 1 && s.ty >= r.y - 2 && s.ty <= r.y + r.h + 1) continue;
+    let ok = true; for (let y = r.y; y < r.y + r.h && ok; y++) for (let x = r.x; x < r.x + r.w && ok; x++) ok = tileAt(x, y) === TILE.FLOOR && !hazAt(x, y) && !firepitAt((x + .5) * TS, (y + .5) * TS - 2);
+    if (ok && waters.some(w => w.y >= r.y - 1 && w.y <= r.y + 3 && w.x1 >= r.x - 1 && w.x0 <= r.x + r.w)) ok = false; // keep water channels off the dais rows
+    if (!ok || V72.levers.some(L => L.tx >= r.x - 1 && L.tx <= r.x + r.w && L.ty >= r.y - 1 && L.ty <= r.y + r.h)) continue;
+    if (chests.some(c => c.tx >= r.x && c.tx < r.x + r.w && c.ty >= r.y && c.ty < r.y + r.h) || doors.some(D => D.tiles.some(t => t.x >= r.x - 1 && t.x <= r.x + r.w && t.y >= r.y - 2 && t.y <= r.y))) continue;
+    const fy = r.y - 1, face = x => x >= r.x && x < r.x + r.w && tileAt(x, fy) === TILE.WALL && tileAt(x, fy - 1) === TILE.WALL && tileAt(x, r.y) === TILE.FLOOR && !V72.gaps.some(g => Math.abs(g.tx - x) <= 1 && Math.abs(g.ty - fy) <= 1);
+    const lays = []; for (let cx = r.x + 1; cx <= r.x + r.w - 2; cx++) { const L = [], R = []; for (let x = r.x; x < cx - 1; x++) L.push(x); for (let x = cx + 2; x < r.x + r.w; x++) R.push(x);
+      if (![cx - 1, cx, cx + 1].every(face)) continue; const four = xs => xs.length >= 4 && xs.slice(-4).every(face) ? xs.slice(-4) : null, fourR = xs => xs.length >= 4 && xs.slice(0, 4).every(face) ? xs.slice(0, 4) : null;
+      const two = xs => { for (let i = 0; i + 1 < xs.length; i++) if (face(xs[i]) && face(xs[i + 1])) return [xs[i], xs[i + 1]]; return null; };
+      const pl = fourR(R), wl = two(L.slice(0, Math.max(0, L.length))); if (pl && wl) lays.push({ cx, pc: pl, crank: pl[3], plq: pl[0], sx: wl[0] }); // plaque by the glyphs, crank at the far end
+      const pr = four(L), wr = two(R); if (pr && wr) lays.push({ cx, pc: pr, crank: pr[0], plq: pr[1], sx: wr[0] }); }
+    if (!lays.length) continue; const Ly = pick(lays), cx = Ly.cx, ox = cx * TS + 8, oy = r.y * TS + 21;
+    const hits = []; for (let k = 0; k < PRISM_STOPS; k++) hits.push(prismRay(ox, oy, k));
+    const north = [5, 6, 7].map(k => ({ k, h: hits[k] })).filter(q => q.h && q.h.ty === fy && q.h.tx >= cx - 1 && q.h.tx <= cx + 1);
+    if (north.length < 3 || new Set(north.map(q => q.h.tx)).size < 3) continue;
+    const side = [0, 4].map(k => ({ k, h: hits[k] })).filter(q => q.h && q.h.ty === Math.floor(oy / TS) && (q.h.tx === r.x - 1 || q.h.tx === r.x + r.w));
+    const N = d >= 8 && side.length ? 4 : 3, ids = shuf(PRISM_POOL.slice()).slice(0, N), cells = north.slice(); if (N === 4) cells.push(pick(side));
+    const glyphs = shuf(cells.slice()).map((q, i) => ({ tx: q.h.tx, ty: q.h.ty, k: q.k, id: ids[i], st: 0, face: q.h.ty === fy ? 1 : 0 }));
+    const seq = shuf(ids.slice()), used = new Set([cx - 1, cx, cx + 1, ...Ly.pc, Ly.sx, Ly.sx + 1]), decoy = [];
+    for (let x = r.x; x < r.x + r.w; x++) if (!used.has(x) && face(x) && Math.random() < .35 && decoy.length < 2) decoy.push(x);
+    V73.prism = { r: { x: r.x, y: r.y, w: r.w, h: r.h }, fy, cx, ox, oy, stop: 6, turnT: -1, dwell: 0, done: 0, prog: 0, solved: 0, slideT: -1, hits, glyphs, seq, decoy,
+      crank: { tx: Ly.crank, t: -1 }, plaque: { x0: Ly.plq, exam: 0, burnT: -1, clear: 0 }, wall: { sx: Ly.sx, open: 0 }, fx: [] };
+    // clear flavour clutter off the dais / mounts; wall torches on the mount cells move off (the hall is lit by the prism)
+    for (let i = torches.length - 1; i >= 0; i--) { const T = torches[i]; if (Math.floor(T.y / TS) <= fy && Math.floor(T.y / TS) >= fy - 1 && (used.has(Math.floor(T.x / TS)) || decoy.includes(Math.floor(T.x / TS)))) torches.splice(i, 1); }
+    const busyT = (x, y) => (y >= r.y + 1 && y <= r.y + 3 && x >= cx - 1 && x <= cx + 1) || (y === r.y && used.has(x));
+    dropDecorOn(busyT); setp = setp.filter(o => !SETP_SOFT(o) || !busyT(Number.isFinite(o.tx) ? o.tx : Math.floor(o.x / TS), Number.isFinite(o.ty) ? o.ty : Math.floor(o.y / TS)));
+    V72.bprops = V72.bprops.filter(o => !(o.tx >= r.x - 1 && o.tx <= r.x + r.w && (o.ty === r.y || busyT(o.tx, o.ty))));
+    return true; }
+  return false; }
+function prismAt(P, k) { const h = P.hits[k]; return h ? P.glyphs.find(q => q.tx === h.tx && q.ty === h.ty) || null : null; }
+function prismOpenWall(P) { if (P.wall.open) return; P.wall.open = 1; const sx = P.wall.sx; for (const x of [sx, sx + 1]) map[P.fy * MW + x] = TILE.FLOOR; mapVer++; polyCache.clear();
+  if (!V73.chests.some(c => c.prism)) V73.chests.push({ tx: sx, ty: P.fy, open: 0, prism: 1 }); }
+function prismCrank(P) { if (P.turnT >= 0 || climb || pitAct) return; const g = prismAt(P, P.stop); if (g && g.st === 1 && !P.solved) cueAt('wld_prism_inactive_01', (g.tx + .5) * TS, (g.ty + .5) * TS, 320, .7);
+  P.turnT = 0; P.done = 1; P.crank.t = 0; v073Stats.prismTurns++; cueAt('wld_prism_crank_01', (P.crank.tx + .5) * TS, (P.fy + 1) * TS, 320, 1); }
+function prismHit(P) { const g = prismAt(P, P.stop); if (!g || P.solved || g.st === 2) return; const x = (g.tx + .5) * TS, y = (g.ty + .5) * TS;
+  if (P.seq[P.prog] === g.id) { g.st = 2; P.prog++; v073Stats.prismRight++; P.fx.push({ k: 'ok', tx: g.tx, ty: g.ty, t: 0 }); burst(x, y, '#a0faaa', 10, 30);
+    if (P.prog >= P.seq.length) { P.solved = 1; v073Stats.prismSolved++; cueAt('wld_prism_activate_03', P.ox, P.oy, 420, 1); sfx('secret'); P.slideT = 0; addTrauma(.15); flashMsg('The glyphs blaze... a wall grinds aside!', '#b0ffc0'); }
+    else { cueAt('wld_prism_activate_01', x, y, 360, .9); flashMsg('The glyph locks alight. (' + P.prog + ' / ' + P.seq.length + ')', '#b0ffc0'); } }
+  else { if (g.st < 1) g.st = 1; v073Stats.prismWrong++; P.fx.push({ k: 'bad', tx: g.tx, ty: g.ty, t: 0 }); cueAt('wld_prism_incorrect_01', x, y, 360, .9); flashMsg('The glyph sputters out. Not that one... not yet.', '#a0b0a0'); } }
+function prismBurn(P) { const p = player, Q = P.plaque; if (Q.clear || Q.burnT >= 0) return;
+  if (!(p.torchT > 0)) { flashMsg('The vines are thick. Hold a lit torch to them.', '#c8b8a0'); return; }
+  Q.burnT = 0; sfx('whoosh'); cue('wld_torch_light_01', { vol: .7 }); burst((Q.x0 + 1.5) * TS, (P.fy + 1) * TS, '#ffa040', 12, 30); }
+function updatePrism(dt) { const P = V73.prism; if (!P) return;
+  if (P.crank.t >= 0) { P.crank.t += dt; if (P.crank.t >= 4 / PRISM_FPS) P.crank.t = -1; }
+  if (P.turnT >= 0) { P.turnT += dt; if (P.turnT >= PRISM_TURN) { P.turnT = -1; P.stop = (P.stop + 1) % PRISM_STOPS; P.dwell = 0; P.done = 0; } }
+  else if (!P.done) { P.dwell += dt; const g = prismAt(P, P.stop); if (g && g.st === 0) g.st = 1; if (P.dwell >= PRISM_DWELL) { P.done = 1; prismHit(P); } }
+  const Q = P.plaque; if (Q.burnT >= 0) { Q.burnT += dt; if (Q.burnT >= 6 / 8) { Q.burnT = -1; Q.clear = 1; v073Stats.vinesBurned++; cueAt('wld_prism_discover_01', (Q.x0 + 1.5) * TS, (P.fy + .5) * TS, 360, 1); flashMsg('Glyphs carved in order beneath the vines...', '#b0ffc0'); } }
+  if (P.slideT >= 0) { P.slideT += dt; if (P.slideT >= 4 / 8) { P.slideT = -1; prismOpenWall(P); } }
+  for (let i = P.fx.length - 1; i >= 0; i--) { P.fx[i].t += dt; if (P.fx[i].t > .4) P.fx.splice(i, 1); } }
+function prismBeamOn(P) { return !!P && P.turnT < 0; }
+function prismBeamEnd(P) { const g = prismAt(P, P.stop), h = P.hits[P.stop]; if (!h) return null; return g ? { x: (g.tx + .5) * TS, y: g.face ? (g.ty + .6) * TS : (g.ty + .5) * TS, g } : { x: h.x, y: h.y, g: null }; }
+function inPrismHall(p) { const P = V73.prism; if (!P || !p) return false; const tx = Math.floor(p.x / TS), ty = Math.floor(p.y / TS); return tx >= P.r.x && tx < P.r.x + P.r.w && ty >= P.r.y && ty < P.r.y + P.r.h; }
+function drawPrismFloor(inV) { const P = V73.prism; if (!P || !inV(P.cx, P.r.y + 1, 6)) return; const f8 = Math.floor(time * PRISM_FPS) % 4 + 1, dx = P.ox - 16, dy = P.oy + 11, fy = P.fy;
+  const ring = ART.dais_ring_marks || ART.dais_ring_marks_12; if (ring) ctx.drawImage(ring, dx - 8, dy - 2);
+  const dais = P.turnT >= 0 ? ART['dais_turn_0' + f8] || ART.dais_stone : ART.dais_stone; if (dais) ctx.drawImage(dais, dx, dy); else { ctx.fillStyle = '#4a4650'; ctx.fillRect(dx + 4, dy + 8, 24, 18); }
+  // wall mounts: sockets + glyphs, decoys, plaque, crank + chain, slide wall
+  for (const x of P.decoy) if (ART.glyph_socket_stone) ctx.drawImage(ART.glyph_socket_stone, x * TS, fy * TS);
+  const end = prismBeamOn(P) ? prismBeamEnd(P) : null;
+  for (const g of P.glyphs) { const X = g.tx * TS, Y = g.ty * TS; if (g.face && ART.glyph_socket_stone) ctx.drawImage(ART.glyph_socket_stone, X, Y);
+    const lit = g.st === 2 || (end && end.g === g); const im = ART[('glyph_' + g.id + '_' + (lit ? 'on' : g.st >= 1 ? 'dim' : 'off')).toLowerCase()]; if (im) ctx.drawImage(im, X, Y); }
+  const Q = P.plaque, PX = Q.x0 * TS, PY = fy * TS;
+  if (!Q.clear && Q.burnT < 0) { if (ART.plaque_vines_covered) ctx.drawImage(ART.plaque_vines_covered, PX, PY); else { ctx.fillStyle = '#3a5a2a'; ctx.fillRect(PX + 2, PY + 3, 44, 10); } }
+  else { const n = P.seq.length, base = n === 3 ? ART.plaque_sequence_cleared_3 : ART.plaque_sequence_cleared, slots = n === 3 ? [[8, 3], [20, 3], [32, 3]] : [[3, 3], [14, 3], [25, 3], [36, 3]];
+    if (base) ctx.drawImage(base, PX, PY); P.seq.forEach((id, i) => { const ic = ART[('glyph_icon_' + id).toLowerCase()]; if (ic) ctx.drawImage(ic, PX + slots[i][0], PY + slots[i][1]); else drawText(id[0], PX + slots[i][0] + 2, PY + slots[i][1] + 1, '#a0faaa', false); });
+    if (Q.burnT >= 0) { const b = ART['vines_burn_0' + (Math.min(5, Math.floor(Q.burnT * 8)) + 1)]; if (b) ctx.drawImage(b, PX, PY); } }
+  const K = P.crank, KX = K.tx * TS, KY = fy * TS, kf = K.t >= 0 ? Math.min(3, Math.floor(K.t * PRISM_FPS)) + 1 : 0;
+  if (ART.iron_wall_plate) ctx.drawImage(ART.iron_wall_plate, KX, KY); const cr = kf ? ART['crank_turn_0' + kf] : ART.crank_wall; if (cr) ctx.drawImage(cr, KX, KY); const ch = kf ? ART['crank_chain_0' + kf] : ART.crank_chain; if (ch) ctx.drawImage(ch, KX, KY);
+  if (!cr) { ctx.fillStyle = '#6a6470'; ctx.fillRect(KX + 4, KY + 4, 8, 8); }
+  const W = P.wall, WX = W.sx * TS, WY = (fy - 1) * TS; let wi = W.open ? ART.secret_wall_open : P.slideT >= 0 ? ART['secret_wall_slide_0' + (Math.min(3, Math.floor(P.slideT * 8)) + 1)] : ART.secret_wall_closed; if (wi) ctx.drawImage(wi, WX, WY);
+  for (const f of P.fx) { const im = f.k === 'ok' ? ART['glyph_flare_burst_0' + (Math.min(3, Math.floor(f.t * 12)) + 1)] : ART['glyph_wrong_flash_0' + (Math.min(1, Math.floor(f.t * 10)) + 1)]; if (im) ctx.drawImage(im, f.tx * TS, f.ty * TS); } }
+function drawPrism() { const P = V73.prism, f8 = Math.floor(time * PRISM_FPS) % 4 + 1, im = P.turnT >= 0 ? ART['prism_rotate_0' + f8] || ART.prism_idle : ART.prism_idle_beam_on || ART.prism_idle;
+  if (im) ctx.drawImage(im, P.ox - 8, P.oy - 24); else { ctx.fillStyle = '#9070c0'; ctx.fillRect(P.ox - 3, P.oy - 20, 6, 30); } }
+function drawPrismBeam() { const P = V73.prism; if (!prismBeamOn(P)) return; const E = prismBeamEnd(P); if (!E) return; const pulse = .85 + .15 * Math.sin(time * 9);
+  ctx.save(); ctx.lineCap = 'round'; for (const [w, c, a] of [[4, '#3EAC62', .28], [3, '#60D67E', .45], [2, '#A0FAAA', .7], [1, '#E4FFE4', .95]]) { ctx.globalAlpha = a * pulse; ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(P.ox, P.oy); ctx.lineTo(E.x, E.y); ctx.stroke(); }
+  ctx.restore(); const f10 = Math.floor(time * 10) % 4 + 1, fl = ART['beam_origin_flare_0' + f10], bl = ART['beam_contact_bloom_0' + f10];
+  if (fl) ctx.drawImage(fl, P.ox - 8, P.oy - 8); if (bl) ctx.drawImage(bl, Math.round(E.x) - 8, Math.round(E.y) - 8); }
+// ---------- §7 dark portals ----------
+function darkPortalRoll(e) { if (depth <= DP_MIN_DEPTH || DPLANE) return false; const f = window.__dpForce; if (f !== undefined ? !f : Math.random() >= DP_CHANCE) return false;
+  let tx = Math.floor(e.x / TS), ty = Math.floor(e.y / TS); const ok = (x, y) => tileAt(x, y) === TILE.FLOOR && tileAt(x, y - 1) !== undefined && !pitAtPx((x + .5) * TS, (y + .5) * TS) && !hazAt(x, y);
+  if (!ok(tx, ty)) { let best = null; for (let r = 1; r < 6 && !best; r++) for (let j = -r; j <= r && !best; j++) for (let i = -r; i <= r; i++) if (ok(tx + i, ty + j)) { best = [tx + i, ty + j]; break; } if (!best) return false; [tx, ty] = best; }
+  V73.dp = { tx, ty, st: 'opening', t: 0, enterAt: null }; v073Stats.portals++; cueAt('wld_dark_portal_open_01', (tx + .5) * TS, (ty + .5) * TS, 500, 1);
+  later(1.6, () => flashMsg('A dark portal tears open where it fell...', '#c8a0ff')); return true; }
+function dpEnter() { const D = V73.dp; if (!D || D.st !== 'idle' || DPLANE || D.enterAt != null) return; D.enterAt = time; player.walk = null; cue('wld_dark_portal_enter_01', { vol: 1 }); addTrauma(.2); }
+function planeGo() { const D = V73.dp; D.st = 'closed'; D.enterAt = null; const home = worldSnap(), b = window.__dpBiome && DP_BIOMES.includes(window.__dpBiome) ? window.__dpBiome : pick(DP_BIOMES);
+  genPlane(b); DPLANE = { b, home, t: DP_TIME, dur: DP_TIME, warned: 0, at: time }; v073Stats.planes++; flashMsg('A plane between planes. Grab what you can before it closes!', '#e0a0ff'); }
+function genPlane(b) { const p = player; genDungeon(depth); populate(); enemies = []; projs = []; teles = []; hazards = []; timers = []; bossIntro = 0; if (typeof introBoss !== 'undefined') introBoss = null;
+  const s = entStairs(); if (s) map[s.ty * MW + s.tx] = TILE.FLOOR; floorEnt = null; critters = [];
+  V71 = v071Empty(); V71.haz = new Uint8Array(MW * MH); V72 = v072Empty(); V72.biome = b; padIndex(); placeBiomeProps(depth); padIndex(); V73 = v073Empty(); V73.bed = 'amb_deep_crypt_loop_01';
+  const r0 = rooms[0]; V73.exit = { tx: r0.cx + 1 < r0.x + r0.w ? r0.cx + 1 : r0.cx, ty: r0.y }; let nc = 0;
+  shuf(rooms.slice(1)).forEach((r, i) => { const at = () => freeSpot(r); for (let k = irand(2, 3); k > 0; k--) { const q = at(); dropAt(ground, q.x, q.y, { gold: irand(18, 34) * depth }); }
+    if (Math.random() < .55) { const q = at(); dropAt(ground, q.x, q.y, { pot: 'hp' }); } if (Math.random() < .55) { const q = at(); dropAt(ground, q.x, q.y, { pot: 'mp' }); }
+    if (nc < 4 && i % 3 === 0) { const tx = irand(r.x, r.x + r.w - 1), ty = r.y; if (tileAt(tx, ty) === TILE.FLOOR) { V73.chests.push({ tx, ty, open: 0 }); nc++; } } });
+  mapVer++; polyCache.clear(); if (typeof setVineGrid === 'function') setVineGrid(); p.x = (r0.cx + .5) * TS; p.y = (r0.cy + .5) * TS; p.walk = null; p.safeX = p.x; p.safeY = p.y;
+  cam.x = p.x - VW / 2; cam.y = p.y - VH / 2; bannerT = BANNER_T; trauma = 0; }
+function dpReturn(early) { if (!DPLANE) return; const h = DPLANE.home; DPLANE = null; cue('wld_dark_portal_close_01', { vol: 1 }); let ok = false; try { ok = worldRestore(h, h.depth); } catch (e) { ok = false; }
+  if (!ok) startFloor(depth + 1); v073Stats.returns++; exitFlashAt = time; cue('wld_dark_portal_return_01', { vol: .9, delay: .25 });
+  flashMsg(early ? 'You step back through the tear.' : 'The plane collapses. You are back where the boss fell.', '#c8a0ff'); save(); }
+function updateDark(dt) { const D = V73.dp; if (D) { D.t += dt; if (D.st === 'opening' && D.t >= 4 / DP_FPS) D.st = 'idle'; if (D.enterAt != null && time - D.enterAt >= .34) planeGo(); }
+  if (!DPLANE) return; const P = DPLANE; P.t -= dt; const left = P.t / P.dur;
+  for (let i = 0; i < DP_WARN.length; i++) if (P.warned <= i && left <= DP_WARN[i]) { P.warned = i + 1; v073Stats.warns++; cue('wld_dark_portal_warn_0' + (i + 1), { vol: 1 }); flashMsg(['The plane shudders... the portal is fading.', 'The edges are tearing! Hurry back!', 'IT IS CLOSING!'][i], i === 2 ? '#ff6060' : '#e0a0ff'); }
+  if (P.t <= 0) dpReturn(false); }
+function drawDarkPortal() { const D = V73.dp; if (!D) return; const X = D.tx * TS, Y = D.ty * TS - 16, f = Math.floor(D.t * DP_FPS); let im;
+  if (D.st === 'opening') im = ART['dark_portal_opening_0' + (Math.min(3, f) + 1)]; else if (D.st === 'idle') im = ART['dark_portal_idle_0' + (Math.floor(time * DP_FPS) % 4 + 1)]; else im = ART.dark_portal_closed;
+  if (im) ctx.drawImage(im, X, Y); else { ctx.fillStyle = D.st === 'closed' ? '#20102a' : '#4a1868'; ctx.fillRect(X + 3, Y + 6, 10, 24); }
+  if (D.enterAt != null) { const e = ART['dark_portal_enter_flash_0' + (Math.min(3, Math.floor((time - D.enterAt) * 12)) + 1)]; if (e) ctx.drawImage(e, X - 8, Y); } }
+function drawExitPortal() { const E = V73.exit; if (!E) return; const im = ART['dark_portal_idle_0' + (Math.floor(time * DP_FPS) % 4 + 1)]; if (im) ctx.drawImage(im, E.tx * TS, E.ty * TS - 16); }
+function drawPlaneFX() { const fx = time - exitFlashAt; if (fx >= 0 && fx < .4) { const im = ART['fx_plane_exit_flash_0' + (Math.floor(fx * 10) + 1)]; if (im) { ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(im, 0, 0, VW, VH); ctx.restore(); } }
+  if (!DPLANE) return; const b = DPLANE.b, f6 = Math.floor(time * 6) % 4 + 1, low = DPLANE.t / DPLANE.dur <= .15; ctx.save(); ctx.imageSmoothingEnabled = false;
+  const g = ART['fx_plane_grade_' + b] || ART.fx_plane_grade_generic; if (g) ctx.drawImage(g, 0, 0, VW, VH); else { ctx.fillStyle = 'rgba(80,10,40,.25)'; ctx.fillRect(0, 0, VW, VH); }
+  const tile = (im, sy) => { if (!im) return; const ox = -(((Math.round(cam.x) % 128) + 128) % 128), oy = -(((Math.round(cam.y + sy) % 128) + 128) % 128); for (let y = oy; y < VH; y += 128) for (let x = ox; x < VW; x += 128) ctx.drawImage(im, x, y); };
+  tile(ART['fx_plane_shimmer_0' + f6], time * 10); tile(ART['fx_plane_drift_' + b + '_0' + f6] || ART['fx_plane_drift_0' + f6], b === 'bloody' ? -time * 6 : time * 8);
+  const v = ART['fx_plane_vignette_pulse_0' + (Math.floor(time * (low ? 8 : 4)) % 4 + 1)] || ART.fx_plane_vignette; if (v) ctx.drawImage(v, 0, 0, VW, VH);
+  const et = ART['fx_plane_edge_tear_0' + f6]; if (et) ctx.drawImage(et, 0, 0, VW, VH); ctx.restore();
+  const s = Math.max(0, Math.ceil(DPLANE.t)), txt = 'THE PORTAL CLOSES IN ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'), w = textW(txt), y = touchMode ? 44 : 30;
+  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(VW / 2 - w / 2 - 3), y - 2, w + 6, 9); drawTextC(txt, VW / 2, y, low && Math.floor(time * 4) % 2 ? '#ff5050' : '#e0a0ff'); }
+// ---------- gilt chests (prism reward alcove + plane loot) ----------
+function drawV073Chests(inV) { for (const c of V73.chests) { if (!inV(c.tx, c.ty, 1) || !seen[c.ty * MW + c.tx]) continue; const im = ART.secret_prop_chest_special, X = c.tx * TS, Y = c.ty * TS;
+  if (im) ctx.drawImage(im, X, Y); else ctx.drawImage(c.open ? CHEST.open : CHEST.free, X + 2, Y); if (c.open) { ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(X + 3, Y + 4, 10, 3); } } }
+// ---------- §8 ledges / squeeze / teeter keep the layered player (equipped wardrobe) ----------
+function drawLayeredPose(o) { const p = player, WS = wardSprites(p), fr = o.step ? WS.b : WS.a, side = o.side >= 0 ? 1 : -1, X = Math.round(p.x - 6 + (o.dx || 0)), Y = Math.round(p.y - 9 + (o.dy || 0));
+  ctx.save(); if (o.alpha !== undefined) ctx.globalAlpha = o.alpha;
+  if (o.sqx && o.sqx !== 1) { ctx.translate(X + 6, Y); ctx.scale(o.sqx, 1); ctx.translate(-(X + 6), -Y); }
+  if (o.cut) { const im = fr[side > 0 ? 'r' : 'l']; ctx.drawImage(im, 0, 0, im.width, Math.max(1, im.height - o.cut), X, Y + o.cut, im.width, Math.max(1, im.height - o.cut)); }
+  else { ctx.drawImage(fr[side > 0 ? 'r' : 'l'], X, Y); drawWardOverlays(p, X, Y, side); } ctx.restore(); }
+function drawPitAct() { const p = player, a = pitAct; if (a && a.kind === 'squeeze') { drawSqueeze(); return; }
+  if (!a) { drawLayeredPose({ side: p.fx >= 0 ? 1 : -1, dx: Math.round(Math.sin(time * 22)), dy: 0 }); return; } // teetering on the edge
+  if (a.kind === 'ledge') { const f = inchFrame(), grab = a.t < LEDGE_GRAB_T; const side = a.dir === 'h' ? (a.flip ? -1 : 1) : -1; // vertical ledges hug the west wall
+    drawLayeredPose({ side, step: !grab && f % 2 === 1, dy: grab ? -1 : (f % 3 === 1 ? -1 : 0), sqx: a.dir === 'v' ? .9 : 1 }); return; }
+  const cut = Math.min(12, Math.round(12 * a.t / .75)); if (cut < 12) drawLayeredPose({ side: p.fx >= 0 ? 1 : -1, cut }); } // falling: your own sprite sinks into the dark
+function drawSqueeze() { const a = pitAct, T = squeezeT(); if (a.t >= T.enter && a.t < T.enter + SQ_HIDE) return;
+  const into = a.t < T.enter, i = into ? Math.min(5, Math.floor(a.t * SQ_FPS)) : Math.min(2, Math.floor((a.t - T.enter - SQ_HIDE) * SQ_FPS)), off = into ? SQ_ENTER[i] * (a.out ? -1 : 1) : SQ_EXIT[i] * (a.out ? 1 : -1);
+  drawLayeredPose({ side: i % 2 ? 1 : -1, step: i % 2 === 1, dy: off, sqx: .72, alpha: into && i >= 4 ? .75 : 1 }); }
+// ---------- §11 survival ----------
+function manaCost(S) { const p = player; let m = 1; if (p && p.thirst <= 0) m += SURV_MANA.thirst; if (p && p.fatigue <= 0) m += SURV_MANA.fatigue; return Math.ceil(S.mana * m); }
+function survDrip(p) { let d = 0; for (const k of ['hunger', 'thirst', 'fatigue']) if (p[k] <= 0) d += SURV_DRAIN[k]; return d; }
+function v073Rested(s) { if (!player || player.hp <= 0) return; v073Stats.rested++; sayThought(player, RESTED_THINK, PLAYER_BUBBLE); thought.next = Math.max(thought.next || 0, 12); cue('player_rest_refreshed_01', { vol: 1 }); }
+// ---------- §4 ambience ----------
+function ambBedFor(d) { return AMB_ROT[(d * 3 + 2) % AMB_ROT.length]; } // consecutive floors never share a bed; fire_hall never used on classic / castle floors
+function quietHere() { const p = player; if (!p || DPLANE) return false; if (inSecret(p) || inPrismHall(p)) return true; const r = rooms[0]; if (!r) return false; const tx = Math.floor(p.x / TS), ty = Math.floor(p.y / TS);
+  return tx >= r.x && tx < r.x + r.w && ty >= r.y && ty < r.y + r.h && !enemies.some(e => e.state === 'chase'); }
+function v073Bed(B) { if (DPLANE) return 'amb_deep_crypt_loop_01'; if (quietHere()) return 'amb_quiet_chamber_loop_01'; const b = V73.bed || ambBedFor(depth); return b === 'amb_cave_wet_loop_01' && B && B.id === 'catacomb' ? 'amb_sewer_loop_01' : b; }
+const ambOne = { t: 12, last: null, live: [], log: [] };
+function ambOneTick(dt) { if (!smpOn() || !settings.sound) return; ambOne.t -= dt; if (ambOne.t > 0) return; ambOne.t = rand(AMB_ONE_GAP[0], AMB_ONE_GAP[1]);
+  ambOne.live = ambOne.live.filter(e => e > time); if (ambOne.live.length >= 2) return; let r = Math.random(), id = AMB_ONE[0][0]; for (const [k, w] of AMB_ONE) { if (r < w) { id = k; break; } r -= w; }
+  if (id === ambOne.last && id !== AMB_ONE[0][0]) id = AMB_ONE[0][0];
+  if (cue(id, { vol: AMB_ONE_VOL * (id === 'amb_corridor_gust_01' && isCorridor(Math.floor(player.x / TS), Math.floor(player.y / TS)) ? 1.25 : 1), pan: rand(-.6, .6), rate: 1 + rand(-.03, .03), wet: .3 })) {
+    ambOne.last = id; ambOne.live.push(time + 4); ambOne.log.push(id); if (ambOne.log.length > 20) ambOne.log.shift(); v073Stats.ambOne[id] = (v073Stats.ambOne[id] || 0) + 1; } }
+// ---------- §15 door hum ----------
+function doorHumK() { const s = entStairs(), p = player; if (!s || !p || climb || DPLANE) return 0; const x = (s.tx + .5) * TS, y = (s.ty + .5) * TS - (floorEnt && floorEnt.wall ? 8 : 0), d = Math.hypot(x - p.x, y - p.y);
+  return d >= DOOR_HUM_R ? 0 : Math.pow(clamp(1 - (d - 16) / (DOOR_HUM_R - 16), 0, 1), 1.5); }
+function doorHumId() { return 'wld_door_hum_loop_0' + (1 + hashStr('hum|' + depth + '|' + (floorEnt && floorEnt.id)) % 3); }
+// ---------- per-frame hooks ----------
+function v073Loops(want) { const p = player; if (!p) return;
+  if (state === 'sleep' && sleep) smpLoop('snore', 'player_rest_snore_loop_01', .5, 0, want);
+  if (state !== 'play') return; const s = entStairs(), k = doorHumK();
+  if (k > .005 && s) smpLoop('doorhum', doorHumId(), .9 * k, ((s.tx + .5) * TS - p.x) / 170, want);
+  const P = V73.prism; if (P && prismBeamOn(P)) { const d = Math.hypot(P.ox - p.x, P.oy - p.y), q = Math.max(0, 1 - d / 220); if (q > 0) smpLoop('prism', 'wld_prism_beam_loop_01', .55 * q, (P.ox - p.x) / 170, want); }
+  const D = V73.dp; if (D && D.st !== 'closed') { const x = (D.tx + .5) * TS, d = Math.hypot(x - p.x, (D.ty + .5) * TS - p.y), q = Math.max(0, 1 - d / 240); if (q > 0) smpLoop('dportal', 'wld_dark_portal_loop_01', .6 * q, (x - p.x) / 170, want); }
+  if (DPLANE) smpLoop('dplane', 'wld_dark_portal_loop_01', .22, 0, want); }
+function v073Update(dt) { if (climb || pitAct) return false; updatePrism(dt); updateDark(dt); ambOneTick(dt); return state !== 'play'; }
+function v073Interact(L, close) { if (climb || pitAct) return; const P = V73.prism, p = player;
+  if (P) { const kx = (P.crank.tx + .5) * TS, ky = (P.fy + 1) * TS + 4; if (close(kx, ky, 16)) L.push({ x: kx, y: ky, r: 16, label: 'TURN CRANK', use: () => prismCrank(P), ref: P.crank, tier: 2, gp: 1 });
+    const Q = P.plaque, qx = (Q.x0 + 1.5) * TS, qy = (P.fy + 1) * TS + 4; if (!Q.clear && Q.burnT < 0 && close(qx, qy, 22)) L.push({ x: qx, y: qy, r: 22, label: Q.exam ? 'BURN VINES' : 'EXAMINE VINES', use: () => { if (!Q.exam) { Q.exam = 1; examineSay(PRISM_THINK); } else prismBurn(P); }, ref: Q, tier: 2, gp: 1 }); }
+  for (const c of V73.chests) if (!c.open) { const x = (c.tx + .5) * TS, y = (c.ty + .5) * TS + 2; if (close(x, y, 18)) L.push({ x, y, r: 18, label: 'OPEN CHEST', use: () => openSecretChest(c), ref: c, tier: 3, gp: 1 }); }
+  const D = V73.dp; if (D && D.st === 'idle' && D.enterAt == null) { const x = (D.tx + .5) * TS, y = (D.ty + .5) * TS; if (close(x, y, 18)) L.push({ x, y, r: 18, label: 'ENTER DARK PORTAL', use: dpEnter, ref: D, tier: 3 }); }
+  const E = V73.exit; if (E && DPLANE) { const x = (E.tx + .5) * TS, y = (E.ty + .5) * TS; if (close(x, y, 18)) L.push({ x, y, r: 18, label: 'RETURN THROUGH PORTAL', use: () => dpReturn(true), ref: E, tier: 3 }); } }
+function v073Lights(L, view) { const k = doorHumK(), s = entStairs(); if (k > .005 && s) { const x = (s.tx + .5) * TS, y = (s.ty + .5) * TS - (floorEnt && floorEnt.wall ? 10 : 2); L.push({ x, y, r: 16 + 30 * k, col: 'shadow', a: .75 * k * (.92 + .08 * Math.sin(time * 2.1)) }); }
+  const P = V73.prism; if (P && view(P.ox, P.oy, 200)) { L.push({ x: P.ox, y: P.oy - 4, r: 22, col: 'lich', a: .45 }); const E = prismBeamOn(P) && prismBeamEnd(P);
+    if (E) { const dx = E.x - P.ox, dy = E.y - P.oy, n = Math.max(1, Math.floor(Math.hypot(dx, dy) / 22)); for (let i = 1; i < n; i++) L.push({ x: P.ox + dx * i / n, y: P.oy + dy * i / n, r: 14, col: 'lich', a: .3 }); L.push({ x: E.x, y: E.y + 4, r: 28, col: 'lich', a: .75 }); } }
+  const D = V73.dp; if (D && view((D.tx + .5) * TS, D.ty * TS, 60)) L.push({ x: (D.tx + .5) * TS, y: D.ty * TS, r: D.st === 'closed' ? 12 : 30 + Math.sin(time * 3) * 2, col: 'shadow', a: D.st === 'closed' ? .2 : .6 });
+  const E = V73.exit; if (E && view((E.tx + .5) * TS, E.ty * TS, 60)) L.push({ x: (E.tx + .5) * TS, y: E.ty * TS, r: 32, col: 'shadow', a: .65 }); }
+function v073Ents(ents) { const P = V73.prism; if (P) ents.push({ x: P.ox, y: P.oy + 24, r: 0, v73draw: drawPrism }); const D = V73.dp; if (D) ents.push({ x: (D.tx + .5) * TS, y: (D.ty + 1) * TS - 1, r: 0, v73draw: drawDarkPortal });
+  if (V73.exit && DPLANE) ents.push({ x: (V73.exit.tx + .5) * TS, y: (V73.exit.ty + 1) * TS - 1, r: 0, v73draw: drawExitPortal }); }
+function drawV073Floor(t0x, t0y, t1x, t1y) { const inV = (tx, ty, m) => tx >= t0x - m && tx <= t1x + m && ty >= t0y - m && ty <= t1y + m;
+  const D = V73.dp; if (D && inV(D.tx, D.ty, 1) && ART.dark_portal_floor_ring) ctx.drawImage(ART.dark_portal_floor_ring, D.tx * TS, D.ty * TS);
+  drawPrismFloor(inV); drawV073Chests(inV); }
+function v073Emissive() { if (V73.prism) drawPrismBeam(); const k = doorHumK(), s = entStairs(); if (k > .05 && s && LGRAD.shadow) { const x = (s.tx + .5) * TS, y = (s.ty + .5) * TS - (floorEnt && floorEnt.wall ? 10 : 2), r = 8 + 14 * k;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .35 * k; ctx.drawImage(LGRAD.shadow, x - r, y - r, r * 2, r * 2); ctx.restore(); } }
 // ---------- main loop ----------
 let last = performance.now();
 function loop(now) {

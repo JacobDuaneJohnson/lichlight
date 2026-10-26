@@ -4,6 +4,62 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.3] - 2026-10-26
+
+_Zoom, castle floors, prism puzzle, dark portals, survival and softer light_
+
+### Added
+- **Test zoom**: open the pause menu and tap **TEST ZOOM** to step through 1x, 1.5x, 2x, 2.5x and back to 1x. On desktop, **=** zooms in, **-** zooms out and **0** resets. The camera stays centred on you and the HUD is never scaled. A small "ZOOM 2X (TEST)" tag shows at the bottom while zoomed. This is a test setting for judging pixel scale.
+- **Castle dungeon floors**: a new stone-castle look from depth 8. It mixes Trinity's castle floors, walls and wall tops with the classic damp crypt tiles, and corridors often get worn path stones. Rooms get iron wall torches, iron braziers, swaying banners, hanging chains, moss drips, candle clusters, crates, barrels, pillars, shields and urns. Its floor banner reads THE CASTLE DUNGEON.
+- **Lich-light prism puzzle**: from depth 3, some long halls hold a tall crystal prism on a stone dais.
+  - **Examine** the vine-covered plaque on the north wall ("There's something behind here..."). Then hold a lit torch to it and **BURN VINES** to reveal the glyph order.
+  - **TURN CRANK** rotates the dais, and the green Lich-light beam sweeps the walls. When the beam rests on a glyph, it lights it.
+  - Light the glyphs in the plaque's order. A wrong glyph sputters with an "incorrect" cue, but you keep the progress you have made. When the last glyph locks, the wall slides open on a gilt chest.
+  - The puzzle uses 3 glyphs, or 4 from depth 8 (one of them on a side wall). It first appears between depths 3 and 5 and never shows up on more than two floors in a row.
+- **Dark portals**: past depth 10, killing a boss sometimes (20%) tears open a **dark portal** where it fell.
+  - Step through to reach a short-lived reward plane with bloody, demonic or molten-lava tiles. It has no enemies, and every room holds gold, potions and up to 4 gilt chests.
+  - A timer shows how long you have (60s). The plane shudders at 30%, tears at 15% and screams at 5%.
+  - Return early through the exit portal, or get thrown back to the boss floor when it closes. Saving while inside saves the boss floor.
+- **Ambience variety**: each floor now has one ambience bed that changes from floor to floor (stone crypt, stone hall, corridor wind, deep crypt or wet cave).
+  - Safe rooms (the start room with no one chasing you, hidden rooms and prism halls) crossfade to a quiet chamber bed.
+  - Occasional one-shots play every 8-30s: echoing drips, distant stone rumbles, corridor gusts and, rarely, a creature murmur. Each one varies its pitch and stereo position slightly.
+- **Dungeon-door hum**: the way down hums and glows faintly as you get close. The sound and the glow fade in together, with one shared falloff.
+- **Resting**: you snore while you sleep, and you wake up "refreshed and rested".
+
+### Changed
+- **Enemy density follows depth** (replaces the flat x2 from 0.7.2):
+  - Depths 1-3 are back to 1x, 4-6 are 1.25x and 7-10 are 1.5x.
+  - Past depth 10, density goes up by +0.5x per floor up to a cap of 2.5x, which is reached at depth 12.
+  - Past the cap, enemy damage rises by +8% per floor instead, up to 2.5x.
+  - The enemy cap stays at 120.
+- **Softer light falloff**: light now fades more gently, so more of each lit wall face shows its full height instead of just a sliver.
+- **Smaller torches**:
+  - Your torch reach goes from 128 to 96 px and its brightness drops slightly.
+  - Wall torch reach goes from 74 to 58 px and brazier reach from 84 to 66 px.
+- **Biome cycle**: normal floors now use the classic, ice and castle looks:
+  - Depths 1-3 classic.
+  - Depths 4-7 ice.
+  - Depths 8-15 castle.
+  - Depths 16-19 ice.
+  - After that, bands of 4 floors cycle castle, castle, ice.
+  - The bloody, demonic and lava looks only appear in dark-portal planes.
+- **Survival has teeth**:
+  - An empty **food** meter drains your life.
+  - An empty **water** meter also makes spells cost 1.6x mana.
+  - An empty **rest** meter drains life harder (3x the old rate), adds +1x to mana costs (2.6x if you are also parched), and puts out your own faint light. Your torch and magic light still work.
+- **Sinking stones fall faster**: a stone starts to sink 0.8s after you step on it (was 1.5s), and it drops quicker once it starts.
+- **Ledge traverse, squeeze-through, teetering and falling** now draw your own layered character with all your equipped gear, instead of a generic sprite.
+- **Fire-pit relight**: LIGHT TORCH now only shows when you are right up against the flames, instead of anywhere near the pit.
+- **Interact and notice text** stays on screen 1.5s longer (3.7s). It now sits low on the screen so it no longer overlaps thought bubbles.
+
+### Fixed
+- **Enemies no longer spawn in sinking-floor rooms**, either when the floor is generated or when they are summoned later.
+- Older saves made on a bloody, demonic or lava floor load as that depth's new biome.
+
+### Credits
+- Castle dungeon tiles and props, the Lich-light prism puzzle art (prism, dais, glyphs, plaque and vines, crank, beam and slide wall), and the dark portal and plane FX art by **Trinity**.
+- Ambience beds and one-shots, prism cues (`wld_prism_*`), dark portal cues (`wld_dark_portal_*`), door hum loops (`wld_door_hum_loop_01-03`), and the rest snore and refreshed cues by **Razz**.
+
 ## [0.7.2] - 2026-10-25
 
 _Biomes, levers and platforms, secret squeezes, double mobs and soft shadows_
@@ -450,6 +506,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3
 [0.7.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.2
 [0.7.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.1
 [0.7.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.0
