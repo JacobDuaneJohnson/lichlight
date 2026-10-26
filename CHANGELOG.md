@@ -4,6 +4,51 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.2] - 2026-10-25
+
+_Biomes, levers and platforms, secret squeezes, double mobs and soft shadows_
+
+### Added
+- **Four biomes**: from depth 4 the dungeon changes look every 4 floors. Each biome has its own floor, wall-face and wall-top tiles, plus 2-4 props per room: animated ones (4 frames at 8-10 fps) and static ones. Hanging props sit just under the wall face, and the braziers, crystals, soul flames and vents give off their own coloured light. Each biome also has its own floor banner.
+  - **Depths 1-3**: the classic crypt (unchanged).
+  - **Depths 4-7**: the Frozen Crypt (ice).
+  - **Depths 8-11**: the Bleeding Vaults (bloody).
+  - **Depths 12-15**: the Demon Halls (demonic).
+  - **Depths 16-19**: the Molten Deep (lava).
+  - **Depths 20+**: the cycle repeats (20 ice, 24 bloody, and so on).
+- **Levers and moving platforms**: from depth 3, some rooms are split by a **3-tile chasm**. A stone sled sits in the chasm, with a **lever on each bank**. Pull the lever on your side to call the sled or send it back. Stand on the sled and pull the lever to ride it across (the trip takes about 2 seconds, with chains and dust). The sled is solid ground.
+- **Rising-platform puzzles**: from depth 2, some rooms have a 5x5 pit with a small **island** in the middle that holds loot (an item plus gold). Two stone pads under the south bridge are **lowered** into the dark. Pull the lever and the pads rise (lowered, then mid, then raised), and you can walk out to the island.
+  - From depth 6 there are **two levers marked I and II**. You must pull them in order. Pulling them in the wrong order clanks both back.
+- **Secret squeeze rooms**: from depth 2, look for a **broken gap in a wall**. USE it from the south to examine it ("A narrow gap... I could squeeze through"), then USE it again to **squeeze through**. Your character edges sideways through the gap and dust falls. Behind it is a small hidden chamber with a **gilt chest** (a guaranteed rare item with a 20% chance of a unique, gold, and sometimes a repair potion), a gold urn and candles. Squeeze back out the same way. Deeper floors can have two of these rooms.
+- **Relight your torch at a fire pit**: stand at the rim of a fire pit (not in the flames) and USE "LIGHT TORCH".
+- **Enemy vocals**: enemies now **moan or groan while idle** (moan for undead, groan for beasts), **growl** when they spot you, **groan** the first time they drop below half life, and **grunt** as they attack or lunge. These are separate from the existing attack grunts, and they are throttled so packs don't drown each other out.
+- **Burning sound**: catching fire plays an ignite cue, and a crackle loops for **as long as you burn**. It stops when the burn ends, when you roll the fire out, or when water puts you out.
+
+### Changed
+- **Twice as many enemies**: the per-room spawn budget is doubled and the enemy cap is raised from 60 to 120. Expect roughly 70-110 enemies per floor, where v0.7.1 had about 36-49. This is meant as a deliberately chaotic experiment and will be tuned after playtesting.
+- **Gold and life drops ~45% rarer**:
+  - Kill gold: 24% to 13%.
+  - Kill life potion: 8% to 4.5%.
+  - Room floor drop: 25% to 14%.
+  - Minion gold: 12% to 7%.
+  - Champion potion: 50% to 28%.
+  - Pots and barrels: gold 18% to 10%, potion 5% to 2.8%.
+  - Chests are unchanged.
+  - Because there are twice as many enemies, gold and life per floor from kills comes out roughly the same as before. Per kill, it is about half.
+- **Torch shadows**: shadow edges now fade to black in **4 steps on High** lighting and **3 steps on Low**, instead of a single hard edge. This applies to your torch, fire pits and the big biome lights.
+- **Brighter fire pits**: the light radius of a large pit grows from 46 to 80 px, and a huge pit from 54 to 116 px. Both have a hotter core.
+- **Examine is for gameplay only**: statues, coffins, ritual sites and other flavour props no longer show an EXAMINE prompt or a thought bubble. Examine still works on doors and ways down, levers, wall gaps and similar things. Ambient bubbles are suppressed near doors and ways down.
+- **Tap or click a bubble to close it**: tapping or clicking a thought or Examine bubble closes it. That tap does nothing else, so it never attacks, walks or uses anything.
+- **Inventory scrolling on touch**: drag anywhere on the bag grid to scroll, including when you start the drag on an item, and the scroll keeps some momentum after you let go. An item is selected only when you lift your finger without dragging. Double-tap still equips. Desktop mouse and wheel work as before.
+
+### Fixed
+- **Enemies seeing through walls and around corners**: detection now needs true line of sight. Three tile rays must be clear, so enemies can't spot you through the touching corners of two walls or past the edge of a wall. Ghosts and other wall-phasing enemies can still move through walls, but they can't **see** through them. A chaser that loses sight of you goes to where it **last saw** you, then gives up after 4 seconds.
+- **Fire pits**: catching fire now uses the **flames themselves** as the hitbox. Before, it used the whole pit square, so stepping on the rim or a corner set you alight.
+
+### Credits
+- Biome tiles and props (ice, bloody, demonic, lava), lever and platform art, and the squeeze-through animation, wall-gap and secret-room art by **Trinity**.
+- Enemy vocals (`enm_voc_groan`, `growl`, `moan` and `grunt`, 3 variants each) and the burn ignite / crackle-loop cues (`cbt_status_burn_apply`, `cbt_status_burn_loop`) by **Razz**.
+
 ## [0.7.1] - 2026-10-25
 
 _Pits, hazard rooms, fire pits, wall doors and examine-to-descend_
@@ -405,6 +450,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.2
 [0.7.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.1
 [0.7.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.0
 [0.6.4]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.4
