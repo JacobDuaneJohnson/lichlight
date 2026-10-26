@@ -2291,11 +2291,25 @@ function groundItemAt(cx, cy, pad) { // hit-test icon + name label in world spac
   return best;
 }
 function pickupItem(g) {
-  const p = player, s = p.inv.indexOf(null);
-  if (s < 0) { flashMsg('Backpack full', '#f88'); sfx('hurt', { cue: 'ui_error_01' }); return false; }
+  const p = player, it = g && g.item; if (!it) return false;
+  // B3: empty weapon / armor (helm, body, boots, shield) / jewelry (ring, amulet) wears on pickup. A full bag still accepts it when that slot can take it.
+  const auto = SLOTS.includes(it.slot) && !p.equip[it.slot] && canWear(it);
+  const s = p.inv.indexOf(null);
+  if (s < 0 && !auto) { flashMsg('Backpack full', '#f88'); sfx('hurt', { cue: 'ui_error_01' }); return false; }
   const i = ground.indexOf(g); if (i < 0) return false;
-  ground.splice(i, 1); g.item.isNew = true; p.inv[s] = g.item; const fresh = markFound(g.item); if (g.rusty || g.item.rusty) { p.gotRusty = true; if (!p.equip.weapon) p.autoRusty = true; }
-  flashMsg((fresh ? 'New unique! ' : 'Picked up ') + g.item.name, RCOL[g.item.rarity]); sfx(fresh ? 'lvl' : 'pick', { cue: fresh || g.item.rarity >= 2 ? 'wld_pickup_rare_01' : 'wld_pickup_item_01' }); updateNewBadge(); return true;
+  ground.splice(i, 1); it.isNew = true; if (s >= 0) p.inv[s] = it; const fresh = markFound(it); if (g.rusty || it.rusty) p.gotRusty = true;
+  flashMsg((fresh ? 'New unique! ' : 'Picked up ') + it.name, RCOL[it.rarity]); sfx(fresh ? 'lvl' : 'pick', { cue: fresh || it.rarity >= 2 ? 'wld_pickup_rare_01' : 'wld_pickup_item_01' });
+  if (auto) autoEquipPickup(it, s);
+  updateNewBadge(); return true;
+}
+// Wear a just-picked item into an empty slot. fromIdx is its bag index, or -1 when the bag had no room (the slot itself is the destination). Never swaps out gear.
+function autoEquipPickup(it, fromIdx) {
+  const p = player, rusty = !!it.rusty, st = state;
+  commitEquip(it, fromIdx);
+  if (state !== st) setState(st);
+  sel = null;
+  if (rusty && p.equip[it.slot] === it) flashMsg('You take up the Rusty Sword. Better than knuckles.', '#d8c8a0');
+  return p.equip[it.slot] === it;
 }
 const PICK_REACH = 14;
 function requestPickup(g) { // walk to it (D2-style) or grab it if already within reach
@@ -2834,7 +2848,10 @@ function equipFrom(i) {
   if (!canWear(it)) { const t = `Requires level ${reqOf(it)}`; flashMsg(t, '#f66'); sfx('fail'); buzz(40);
     const dt = $('dtext'); if (dt && state === 'inv') { let w = dt.querySelector('.reqwarn'); if (!w) { w = document.createElement('div'); w.className = 'cbad reqwarn'; dt.prepend(w); } w.textContent = t + ' (you are level ' + p.lvl + ')'; }
     return false; }
-  const old = p.equip[it.slot]; it.isNew = false; p.equip[it.slot] = it; p.inv[i] = old || null; firstEquipCheck(it.slot, old); WARD_CACHE.size > 40 && WARD_CACHE.clear();
+  commitEquip(it, i);
+}
+function commitEquip(it, fromIdx) { // fromIdx < 0: item was not sitting in the bag (empty-slot pickup with a full backpack)
+  const p = player, old = p.equip[it.slot]; it.isNew = false; p.equip[it.slot] = it; if (fromIdx >= 0) p.inv[fromIdx] = old || null; firstEquipCheck(it.slot, old); WARD_CACHE.size > 40 && WARD_CACHE.clear();
   sel = { where: 'eq', slot: it.slot }; sfx('pick', { cue: it.slot === 'weapon' ? 'ui_equip_weapon_01' : it.slot === 'ring' || it.slot === 'amulet' ? 'ui_equip_trinket_01' : 'ui_equip_armor_01' }); computeStats(); renderInv();
 }
 function dropItem(it) { if (!it) return; if (state === 'inv') cue('ui_item_drop_ground_01'); dropAt(ground, player.x, player.y + 2, { item: it }); ground[ground.length - 1].lock = true; }
@@ -4602,7 +4619,7 @@ function v06Interact(L, close) { const p = player;
   /* v0.7.2 §9a: no EXAMINE on flavour set pieces (statues, coffins, ritual sites, bowls, niches) - Examine is for gameplay only */ }
 function v06Update(dt) { const p = player; updateVines(dt);
   for (let i = vfx6.length - 1; i >= 0; i--) { const f = vfx6[i]; f.t += dt; if (f.t >= f.dur) vfx6.splice(i, 1); }
-  if (p.autoRusty) { p.autoRusty = false; const i = p.inv.findIndex(it => it && it.rusty); if (!p.equip.weapon && i >= 0 && canWear(p.inv[i])) { /* v0.6.3 B7: once, on pickup (it used to re-equip itself after UNEQUIP) */ p.gotRusty = true; const st = state; equipFrom(i); if (state !== st) setState(st); sel = null;
+  if (p.autoRusty) { p.autoRusty = false; const i = p.inv.findIndex(it => it && it.rusty); if (!p.equip.weapon && i >= 0 && canWear(p.inv[i])) { /* v0.6.3 B7: once, on pickup (it used to re-equip itself after UNEQUIP). B3 does not arm this flag. */ p.gotRusty = true; const st = state; equipFrom(i); if (state !== st) setState(st); sel = null;
       flashMsg('You take up the Rusty Sword. Better than knuckles.', '#d8c8a0'); } }
   if (mapOpen) for (const d of doors) if (d.blinkUntil > time && d.blinkUntil - time < .5) d.blinkUntil = time + .5; }
 function v06Lights(L, view) { const hi = lightingQ() !== 'low'; let ns = 0;
