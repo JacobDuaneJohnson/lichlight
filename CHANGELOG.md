@@ -4,6 +4,32 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.1] - 2026-10-25
+
+_Pits, hazard rooms, fire pits, wall doors and examine-to-descend_
+
+### Added
+- **Bottomless pits**: from depth 2, some corridors have a bottomless pit 2-3 tiles across, and bigger rooms on depth 3 and below can have a small hole in the floor. You can't walk across a pit, and click-walk routes go around holes. To cross, stand at the edge and **USE the wall ledge** ("CLIMB LEDGE"). Your character grabs the ledge and inches across the wall on their own. You can't steer while crossing, it takes about 2 seconds, and it works in both directions (the inch frames are mirrored for the way back). Holes in rooms you just walk around.
+- **Falling in**: if you push into a pit's edge for about 1 second (you teeter first), or dodge-roll into one, you fall. The fall takes **50% of your max life** but **never kills you** (at worst it leaves you on 1 HP). You drop out of sight, Razz's pit-fall scare plays (a whoosh and a low shudder, 3 variants, mixed +2 dB because it's bass-heavy), and you climb back out on the **last safe tile you stood on**, usually the edge you fell from. You get 1 second of invulnerability afterwards. Pits are saved with the floor.
+- **Hazard rooms**: from depth 3, some rooms are flooded with **water**, **acid** or **lava**, or set with **spikes**. A stone path runs from every way into the room to the middle.
+  - **Water**: 1.5% of max life per second and 45% slower movement. It can't kill you, and it puts out fire.
+  - **Acid** (depth 4+): 6% of max life per second.
+  - **Lava** (depth 7+): 12% of max life per second, and it sets you on fire.
+  - **Spikes**: up for 1 second out of every 2.4. They hit for 10% of max life each time they rise while you're on them.
+  - Dodge-rolling skips hazard contact while you're mid-roll. Floor themes have favourites: water in the Sunken Streets, acid in the Rotting Warrens, spikes in the Ossuary, lava or spikes in the Pale Choir.
+- **Sinking stones**: path stones sink if you stand on one too long. After **1.5 s** on a stone it sinks (risen, then wet, then sunken over 0.35 s). A sunken stone counts as the hazard, so standing on it hurts. It comes back up **3.2 s** later (sunken, then wet, then risen over 0.35 s). Keep moving.
+- **Fire pits**: large burning pits (2x2) appear from depth 6, and huge ones (3x3) can appear from depth 10. They give off embers and warm light. Stepping in sets you **on fire**: the flames show for **3 s** and you take **8% of max life over 4 s**. **Each dodge roll cuts 1 s** off both the flames and the burn, so each roll saves 2% of your life, and two rolls put the fire out after 2 s. Water puts you out too.
+- **Wall doors**: some door-type ways down are now set into the room's back wall, with a doorframe and steps (wood, iron, demon, bloody, bone, rune and rusty styles). About half of the matching entrances (gate, demon, bloody, rusty, wooden, bone and rune) use the wall version. When you go in, the door swings open (closed, ajar, half, open) and then the climb-down plays.
+
+### Changed
+- **Examine to descend**: walking onto the way down no longer takes you down. **USE it** (F, the USE button, or click it) to examine it, then **USE it again** within 8 seconds ("DESCEND" / "ENTER DOOR") to climb down. Boss floors still need the boss dead first. The help text is updated.
+- **Footsteps 40% quieter**: the walking sound plays at 60% of its old volume (mixer change only, the sample is the same).
+- **HUD buttons (touch)**: the **sound button is gone** from the HUD. Sound is now only a toggle in the pause menu (SOUND: ON/OFF). **Pause** has moved to the **lower left** and **Map** to the **lower right**. Fullscreen stays at the top. On desktop, ESC still pauses and M / TAB opens the map.
+
+### Credits
+- Pit, ledge-traversal, hazard, sinking-stone, fire-pit, burn and wall-door art by **Trinity**.
+- Pit-fall scare SFX (`wld_pit_fall_scare_01`-`03`) by **Razz**.
+
 ## [0.7.0] - 2026-10-25
 
 _Varied entrances, climb-down, critters and empty chests_
@@ -379,6 +405,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.1
 [0.7.0]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.0
 [0.6.4]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.4
 [0.6.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.6.3

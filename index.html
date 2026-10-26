@@ -70,6 +70,8 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .mbtn.small{min-width:0;padding:8px 12px;font-size:13px;margin:0}
 @media (max-height:460px){.mbtn{padding:8px 14px;margin:4px;font-size:16px}.subt{margin-bottom:8px}.help{margin-top:6px}}
 #topbar{position:absolute;top:calc(6px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:auto;z-index:5}
+#cornerbar{position:absolute;inset:0;pointer-events:none;z-index:6}#cornerbar.hidden,#topbar.hidden{display:none}#cornerbar .tbtn{position:absolute;pointer-events:auto;width:34px;height:28px}
+#tPause{left:calc(4px + env(safe-area-inset-left));bottom:calc(4px + env(safe-area-inset-bottom))}#tMap{right:calc(4px + env(safe-area-inset-right));bottom:calc(4px + env(safe-area-inset-bottom))}
 .tbtn{width:36px;height:30px;border-radius:6px;border:2px solid rgba(255,255,255,.35);background:rgba(20,20,30,.6);color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;touch-action:none}
 .overlay{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;flex-direction:column;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
@@ -176,10 +178,11 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 </div>
 <div id="tlEdit" class="hidden"><div class="tlhint">DRAG BUTTONS TO MOVE THEM</div><div class="tlbtns"><button class="mbtn small" id="tlSwap">SWAP SIDES</button><button class="mbtn small" id="tlReset">RESET</button><button class="mbtn small" id="tlDone">DONE</button></div></div>
 <div id="topbar" class="hidden">
-  <div class="tbtn" id="tPause">❚❚</div>
   <div class="tbtn" id="tFull">⛶</div>
-  <div class="tbtn" id="tSnd">♪</div>
-  <div class="tbtn" id="tMap">⌗</div>
+</div>
+<div id="cornerbar" class="hidden">
+  <div class="tbtn" id="tPause" title="Pause">❚❚</div>
+  <div class="tbtn" id="tMap" title="Map">⌗</div>
 </div>
 <div id="gtip" class="hidden"></div>
 <div id="inv" class="hidden">
@@ -252,7 +255,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.0'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.1'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -387,7 +390,7 @@ const ICONS = {
 };
 
 // ---------- tiles ----------
-const TILE = { WALL: 0, FLOOR: 1, STAIRS: 2 };
+const TILE = { WALL: 0, FLOOR: 1, STAIRS: 2, PIT: 3 }; // v0.7.1 §3: PIT = bottomless pit (blocks walking, not sight / projectiles)
 function makeTile(fn) { const c = document.createElement('canvas'); c.width = c.height = TS; fn(c.getContext('2d')); return c; }
 const tileImgs = { floor: [], wallTop: null, wallFace: [], stairs: null, torch: [] };
 for (let v = 0; v < 4; v++) tileImgs.floor.push(makeTile(x => {
@@ -510,7 +513,7 @@ function sfx(type, o) {
   const S = { swing: ['triangle', 300, 120, .08, .06], hit: ['square', 180, 60, .1, .08], hurt: ['sawtooth', 140, 50, .18, .1],
     fire: ['sawtooth', 500, 150, .15, .05], pick: ['square', 600, 1200, .08, .05], gold: ['square', 900, 1400, .06, .04],
     lvl: ['square', 400, 1000, .4, .07], drink: ['sine', 300, 700, .2, .1], nova: ['triangle', 1200, 200, .3, .08], stairs: ['sine', 500, 100, .5, .1],
-    die: ['sawtooth', 300, 40, .8, .1], roll: ['triangle', 200, 90, .18, .07], sort: ['square', 500, 900, .1, .04], fail: ['square', 160, 90, .16, .06], break: ['sawtooth', 700, 60, .45, .1], repair: ['triangle', 500, 1300, .25, .07] }[type];
+    die: ['sawtooth', 300, 40, .8, .1], roll: ['triangle', 200, 90, .18, .07], sort: ['square', 500, 900, .1, .04], fail: ['square', 160, 90, .16, .06], break: ['sawtooth', 700, 60, .45, .1], repair: ['triangle', 500, 1300, .25, .07], pitfall: ['sawtooth', 260, 28, .9, .16] }[type];
   if (!S) return;
   const t = actx.currentTime, osc = actx.createOscillator(), g = actx.createGain();
   osc.connect(g); g.connect(bus.sx);
@@ -532,7 +535,7 @@ function sfxAt(type, x, y, range = 260, vol = 1, wet = 0) {
 // Pools: cue_01..cue_N = random variant, never the same file twice in a row. ui_toggle_01 = ON, ui_toggle_02 = OFF (separate cues).
 const SMP = { state: 'idle', man: null, buf: {}, fail: {}, last: {}, voices: [], loops: new Map(), err: null, pend: {}, played: 0, log: [], fmt: '' };
 const SMP_GAIN = .42; // samples peak at -1 dBFS; this sits them next to the old procedural mix
-const SMP_MIX = { player_step_stone_01: .32, cbt_miss_01: .8, ui_slider_tick_01: .8, wld_pickup_gold_01: .8, cbt_kill_confirm_01: .7, enm_grunt_hurt_01: .7, enm_ranged_hurt_01: .7,
+const SMP_MIX = { player_step_stone_01: .192 /* v0.7.1 §1: 60% of .32 */, wld_pit_fall_scare_01: 1.26 /* +2 dB, low-heavy */, cbt_miss_01: .8, ui_slider_tick_01: .8, wld_pickup_gold_01: .8, cbt_kill_confirm_01: .7, enm_grunt_hurt_01: .7, enm_ranged_hurt_01: .7,
   player_hurt_01: 1.15, player_death_01: 1.1, enm_boss_intro_sting_01: .9, meta_floor_enter_01: .7, meta_gameover_01: .85, cbt_proj_arrow_impact_01: .6, cbt_proj_magic_bolt_impact_01: .7,
   ui_hover_01: .7, ui_menu_open_01: .8, ui_menu_close_01: .8, enm_grunt_alert_01: .75, enm_ranged_alert_01: .75, enm_skeleton_rattle_01: .7, enm_ghost_wail_01: .7, wld_mechanism_loop_01: .8 };
 // big stingers duck the music 3-6 dB for their length; player hurt ducks music + ambience ~150 ms so the hit reads
@@ -599,7 +602,7 @@ function swingCue() { return heavyWeapon() ? 'player_swing_heavy_01' : 'player_s
 const SFX_CUE = {
   swing: 'player_swing_light_01', hurt: 'player_hurt_01', fire: 'wld_torch_light_01', pick: () => 'wld_pickup_item_01', lvl: 'player_levelup_01',
   drink: 'wld_potion_drink_01', stairs: 'wld_stairs_down_01', die: () => ['player_death_01'].concat(musSting('mus_gameover_01', { delay: 1.5 }) ? [] : [['meta_gameover_01', { delay: 1.5 }]]),
-  drip: 'wld_water_drip_01', wind: 'amb_wind_gust_01', mob: 'amb_creepy_distant_01', /* P2 ambient one-shots (ambience slider) */ roll: 'player_dash_01', fail: 'ui_error_01',
+  pitfall: 'wld_pit_fall_scare_01', /* v0.7.1 §3 Razz pit-fall scare (3 variants) */ drip: 'wld_water_drip_01', wind: 'amb_wind_gust_01', mob: 'amb_creepy_distant_01', /* P2 ambient one-shots (ambience slider) */ roll: 'player_dash_01', fail: 'ui_error_01',
   break: 'wld_breakable_crate_01', shatter: 'wld_breakable_pot_01', nova: 'player_cast_release_01',
   fbcast: 'player_cast_release_01', fbboom: 'cbt_proj_fireball_impact_01', whirl: 'player_swing_heavy_01', frost: ['player_cast_release_01', 'cbt_status_freeze_apply_01'],
   whiff: () => [swingCue(), ['cbt_miss_01', { delay: .03 }]],
@@ -1482,7 +1485,7 @@ function gatherLights(sx, sy) {
   for (const e of enemies) if (e.T.boss && !e.hidden && view(e.x, e.y, 70)) L.push({ x: e.x, y: e.y, r: 64, col: e.phase >= 2 ? 'red' : 'violet', a: .45 });
   for (const g of ground) if ((g.torch || g.key || (g.item && g.item.rarity >= 2)) && view(g.x, g.y, 20)) L.push({ x: g.x, y: g.y - 3, r: g.torch ? 16 : 12, col: g.torch ? 'fire' : g.key ? 'warm' : 'white', a: .5 });
   for (const c of chests) if (!c.open && view(c.x, c.y, 20)) L.push({ x: c.x, y: c.y - 4, r: 14, col: 'warm', a: .35 });
-  extraLights(L, view); entranceLights(L, view); critterLights(L, view);
+  extraLights(L, view); entranceLights(L, view); critterLights(L, view); v071Lights(L, view);
   return L;
 }
 function inPoly(poly, x, y) { let c = false; const n = poly.length / 2; for (let i = 0, j = n - 1; i < n; j = i++) { const xi = poly[i * 2], yi = poly[i * 2 + 1], xj = poly[j * 2], yj = poly[j * 2 + 1];
@@ -2107,7 +2110,7 @@ function bestiary() { // test/contact-sheet helper
     bosses: BOSSES.map(B => ({ floor: B.floor, name: B.n, title: B.t, mech: B.m, img: big(B.img.r, 3) })) };
 }
 function startFloor(d, fresh) {
-  depth = d; genDungeon(depth); populate(); setFloorEntrance(d); populateCritters(); climb = null; applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
+  depth = d; genDungeon(depth); populate(); setFloorEntrance(d); genV071(d); populateCritters(); climb = null; applyBed(d); sleep = null; player.barrier = 0; player.pcd = {}; v05Last.torch = player.torchT; v05Last.hpPot = player.hpPot;
   const r = rooms[0]; player.x = (r.cx + .5) * TS; player.y = (r.cy + .5) * TS;
   computeStats(); if (fresh) { player.hp = player.st.maxHp; player.mp = player.st.maxMp; }
   debris = []; cam.x = player.x - VW / 2; cam.y = player.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; player.slowT = 0; player.walk = null; player.pickT = null; player.useT = null; if (typeof clickMark !== "undefined") clickMark = null;
@@ -2148,7 +2151,7 @@ function worldSnap() { if (!player || !map.length || !rooms.length) return null;
   return { v: WORLD_V, depth, MW, MH, time: Math.round(time * 100) / 100, map: tileStr(map), seen: seen.map(b => b ? 1 : 0).join(''), mapVar: tileStr(mapVar),
     px: Math.round(p.x * 10) / 10, py: Math.round(p.y * 10) / 10, fx: p.fx, fy: p.fy,
     s: { champKeysFloor, entId, floorTheme, floorRevealed: !!floorRevealed, vineBurnN, floorEnt, entPrev },
-    g: wPack({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, motes, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool, debris, critters }) }; }
+    g: wPack({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, motes, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool, debris, critters, v071: v071Snap() }) }; }
 function worldRestore(w, sd) { // -> true when the saved floor was restored
   if (!w || w.v !== WORLD_V || w.depth !== sd || !w.g || !w.MW || !w.MH) return false;
   const G = wUnpack(w.g), m = strTiles(w.map), mv = strTiles(w.mapVar); if (!G || !Array.isArray(G.rooms) || !G.rooms.length || m.length !== w.MW * w.MH) return false;
@@ -2158,12 +2161,13 @@ function worldRestore(w, sd) { // -> true when the saved floor was restored
   v05Flags = v05Flags || {}; floorPool = floorPool || [];
   ({ champKeysFloor, entId, floorTheme, floorRevealed, vineBurnN, floorEnt, entPrev } = Object.assign({ champKeysFloor: 0, entId: 0, floorTheme: 'drowned', floorRevealed: false, vineBurnN: 0, floorEnt: null, entPrev: null }, w.s || {}));
   if (!floorEnt || !ENT_BY[floorEnt.id]) setFloorEntrance(depth); // v0.7.0: pre-0.7 saves get an entrance now
+  v071Restore(G.v071); // v0.7.1: pits / hazards / fire pits (older saves: none)
   projs = []; parts = []; texts = []; effects = []; teles = []; hazards = []; timers = []; vfx6 = []; introBoss = null; talkBoss = null;
   if (Number.isFinite(w.time)) time = w.time;
   setVineGrid(); mapVer++; polyCache.clear();
   const p = player; applyBed(depth); sleep = null; p.barrier = 0; p.pcd = {}; v05Last.torch = p.torchT; v05Last.hpPot = p.hpPot;
   p.x = w.px; p.y = w.py; if (Number.isFinite(w.fx)) { p.fx = w.fx; p.fy = w.fy; }
-  if (!Number.isFinite(p.x) || !Number.isFinite(p.y) || solidAt(p.x, p.y)) { const r = rooms[0]; p.x = (r.cx + .5) * TS; p.y = (r.cy + .5) * TS; }
+  if (!Number.isFinite(p.x) || !Number.isFinite(p.y) || solidAt(p.x, p.y) || pitHitAt(p.x, p.y, p.r)) { const r = rooms[0]; p.x = (r.cx + .5) * TS; p.y = (r.cy + .5) * TS; }
   computeStats(); debrisFix(); cam.x = p.x - VW / 2; cam.y = p.y - VH / 2; bannerT = BANNER_T; trauma = 0; bossIntro = 0; p.slowT = 0; p.walk = null; p.pickT = null; p.useT = null; clickMark = null;
   return true; }
 function debrisFix() { if (!Array.isArray(debris)) debris = []; }
@@ -2251,7 +2255,7 @@ window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; f
 
 // ---------- input: mouse (desktop): Diablo II style, see below ----------
 function mouseToCanvas(e) { mouse.cx = e.clientX; mouse.cy = e.clientY; const r = canvas.getBoundingClientRect(); mouse.x = (e.clientX - r.left) / (r.width || 1) * VW; mouse.y = (e.clientY - r.top) / (r.height || 1) * VH; }
-const onCanvas = e => !(e.target.closest && e.target.closest('button,input,.overlay,#inv,#touch,#topbar'));
+const onCanvas = e => !(e.target.closest && e.target.closest('button,input,.overlay,#inv,#touch,#topbar,#cornerbar'));
 window.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; mouseToCanvas(e); mouse.active = true; });
 // ---------- ground gear: click / tap to pick up, hover / long-press to inspect ----------
 const gtip = $('gtip');
@@ -2351,7 +2355,7 @@ let slotLP = 0; // slots are rebuilt on tap, so release is caught at window leve
 // =====================================================================
 const dm = { left: false, right: false, ctrl: false, lastTouch: 0, rep: 0 };
 let rskill = clamp(+settings.rskill || 0, 0, 2), clickMark = null, hoverEnemy = null, mapOpen = false, curKind = '';
-const walkable = (x, y) => tileAt(x, y) !== TILE.WALL && !(vineN > 0 && vineGrid[y * MW + x] === 1);
+const walkable = (x, y) => tileAt(x, y) !== TILE.WALL && tileAt(x, y) !== TILE.PIT && !(vineN > 0 && vineGrid[y * MW + x] === 1);
 function astar(sx, sy, gx, gy, maxN = 4000) { // 8-way A* on the tile grid (no corner cutting). Returns [[tx,ty],...] excluding start, or null
   if (!walkable(gx, gy)) return null; if (sx === gx && sy === gy) return [];
   const N = MW * MH, g = new Float32Array(N).fill(1e9), from = new Int32Array(N).fill(-1), closed = new Uint8Array(N), heap = [];
@@ -2500,7 +2504,7 @@ function drawBigMap() {
   drawTextC(`MAP - DEPTH ${depth}` + (floorRevealed ? '  REVEALED' : '') + (touchMode ? '' : '   (M)'), VW / 2, oy - 9, '#c9a050'); ctx.globalAlpha = ga * MAP_ALPHA;
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (!seen[y * MW + x]) continue; const t = map[y * MW + x];
     if (t === TILE.WALL) { if (!(walkable(x, y + 1) || walkable(x, y - 1) || walkable(x + 1, y) || walkable(x - 1, y))) continue; ctx.fillStyle = 'rgba(120,96,80,.85)'; }
-    else ctx.fillStyle = t === TILE.STAIRS ? '#ffe040' : 'rgba(150,130,170,.45)';
+    else ctx.fillStyle = t === TILE.STAIRS ? '#ffe040' : t === TILE.PIT ? 'rgba(10,4,14,.95)' : hazAt(x, y) ? HAZ_MAP[hazAt(x, y)] : 'rgba(150,130,170,.45)';
     ctx.fillRect(Math.floor(ox + x * s), Math.floor(oy + y * s), Math.ceil(s), Math.ceil(s)); }
   for (const c of chests) if (seen[c.ty * MW + c.tx]) { ctx.fillStyle = c.open ? '#6a5020' : c.free ? '#b08850' : '#e8c840'; ctx.fillRect(Math.round(ox + c.tx * s), Math.round(oy + c.ty * s), Math.ceil(s), Math.ceil(s)); }
   for (const b of braziers) { const tx = Math.floor(b.x / TS), ty = Math.floor(b.y / TS); if (seen[ty * MW + tx]) { ctx.fillStyle = '#ff8030'; ctx.fillRect(Math.round(ox + tx * s), Math.round(oy + ty * s), Math.ceil(s), Math.ceil(s)); } }
@@ -2646,9 +2650,7 @@ function a2hsWanted() { let dismissed = false; try { dismissed = localStorage.ge
 function updateA2HS() { $('a2hs').classList.toggle('hidden', !(state === 'menu' && a2hsWanted())); }
 $('a2hsX').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); try { localStorage.setItem(A2HS_KEY, '1'); } catch (_) {} updateA2HS(); });
 $('tPause').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'play') pauseGame(); });
-$('tSnd').addEventListener('pointerdown', e => { e.preventDefault(); initAudio(); settings.sound = !settings.sound; syncAudioUI(); });
 function syncAudioUI() {
-  $('tSnd').style.opacity = settings.sound ? 1 : .4;
   $('mSound').textContent = 'SOUND: ' + (settings.sound ? 'ON' : 'OFF');
   $('mMusic').textContent = 'MUSIC: ' + (settings.music ? 'ON' : 'OFF');
   if (!(settings.shake in SHAKE_MULT)) settings.shake = 'full';
@@ -2715,11 +2717,11 @@ function updateTouchUI() {
   $('touch').classList.toggle('hidden', !((touchMode && state === 'play') || state === 'tlayout'));
   { const mt = document.getElementById('mTouch'); if (mt) mt.classList.toggle('hidden', !touchMode); }
   if (window.__tlReady) applyTouchLayout();
-  $('topbar').classList.toggle('hidden', !(touchMode && state === 'play'));
+  $('topbar').classList.toggle('hidden', !(touchMode && state === 'play')); $('cornerbar').classList.toggle('hidden', !(touchMode && state === 'play')); // v0.7.1 §2: pause lower-left, map lower-right
   { const sk = document.getElementById('mSkills'); if (sk) sk.classList.toggle('hidden', touchMode); } // skill keys are a keyboard thing
   $('helpTxt').innerHTML = touchMode
-    ? 'Left thumb: drag anywhere to move<br>Right thumb: attack (hold), ROLL to dodge, skills, potions, bag; USE appears by doors, water, torches and traders &middot; &#x2317; map<br>Walk onto the stairs to go deeper. Gold, potions and keys are picked up automatically; tap gear to pick it up, press-and-hold to inspect.'
-    : 'LEFT-CLICK walk / attack / pick up / open / use (hold to keep going) &middot; hold CTRL to stand in place (CTRL+CLICK attacks without moving) &middot; RIGHT-CLICK cast selected skill (F1-F3 to select) &middot; 1 2 3 cast skills at the cursor &middot; F use / drink / light &middot; R eat &middot; Z rest &middot; SPACE dodge roll toward cursor (K also) &middot; WASD also moves &middot; J attacks in place &middot; Q / E potions &middot; I inventory &middot; M / TAB map &middot; hold ALT item labels &middot; ESC pause<br>Walk onto the stairs to go deeper. Gold, potions and keys are picked up automatically; click gear to walk over and pick it up, hover to inspect.';
+    ? 'Left thumb: drag anywhere to move<br>Right thumb: attack (hold), ROLL to dodge, skills, potions, bag; USE appears by doors, water, torches and traders &middot; &#x2317; map<br>USE the way down twice to descend. Gold, potions and keys are picked up automatically; tap gear to pick it up, press-and-hold to inspect.'
+    : 'LEFT-CLICK walk / attack / pick up / open / use (hold to keep going) &middot; hold CTRL to stand in place (CTRL+CLICK attacks without moving) &middot; RIGHT-CLICK cast selected skill (F1-F3 to select) &middot; 1 2 3 cast skills at the cursor &middot; F use / drink / light &middot; R eat &middot; Z rest &middot; SPACE dodge roll toward cursor (K also) &middot; WASD also moves &middot; J attacks in place &middot; Q / E potions &middot; I inventory &middot; M / TAB map &middot; hold ALT item labels &middot; ESC pause<br>USE the way down twice to descend. Gold, potions and keys are picked up automatically; click gear to walk over and pick it up, hover to inspect.';
 }
 function pauseGame() { save(); setState('pause'); $('mResume').classList.remove('hidden'); $('mCont').classList.add('hidden'); }
 let confirmNew = false;
@@ -2836,7 +2838,7 @@ function los(a, b) { const d = dist(a, b), n = Math.ceil(d / 6); for (let i = 1;
 function nearestEnemy(range) { let best = null, bd = range; for (const e of enemies) { if (!targetable(e)) continue; const d = dist(e, player); if (d < bd && los(player, e)) { bd = d; best = e; } } return best; }
 function moveEnt(e, dx, dy) {
   const r = e.r;
-  const hit = (x, y) => solidAt(x - r, y - r) || solidAt(x + r, y - r) || solidAt(x - r, y + r) || solidAt(x + r, y + r);
+  const pit = !(e === player && (player.roll > 0 || pitAct)) && !pitHitAt(e.x, e.y, r), hit = (x, y) => solidAt(x - r, y - r) || solidAt(x + r, y - r) || solidAt(x - r, y + r) || solidAt(x + r, y + r) || (pit && pitHitAt(x, y, r)); // v0.7.1: pits block walking (not rolling)
   if (!hit(e.x + dx, e.y)) e.x += dx;
   if (!hit(e.x, e.y + dy)) e.y += dy;
 }
@@ -3005,19 +3007,20 @@ function startRoll(mv) {
   if (!dx && !dy) { const ma = mouseAim(); if (ma) { dx = ma.x; dy = ma.y; } else { dx = p.fx; dy = p.fy; } }
   const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
   p.rx = dx; p.ry = dy; p.fx = dx; p.fy = dy;
-  p.roll = ROLL_TIME; p.rollCd = ROLL_CD; p.rollQ = 0; p.swing = 0;
+  p.roll = ROLL_TIME; p.rollCd = ROLL_CD; p.rollQ = 0; p.swing = 0; burnOnRoll(); // v0.7.1 §5: each roll cuts 1s of burn
   sfx('roll'); burst(p.x, p.y + 4, '#6a5a6a', 6, 30);
 }
 // ---------- update ----------
 function update(dt) {
   time += dt;
   if (climb) { updateClimb(dt); return; } // v0.7.0: input frozen while climbing down
+  if (pitAct) { updatePitAct(dt); return; } // v0.7.1 §3: ledge inch / pit fall play out on their own
   const p = player;
   p.atkCd -= dt * (p.fatigue <= 0 ? .8 : 1); p.swing = Math.max(0, p.swing - dt); p.inv0 -= dt;
   for (let i = 0; i < 3; i++) p.cds[i] = Math.max(0, p.cds[i] - dt);
   p.hp = Math.min(p.st.maxHp, p.hp + p.st.regen * dt); p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * .1) * dt);
   const stand = !touchMode && !!keys.Control; if (stand && p.walk) p.walk = null; // Ctrl held = stand in place (attack / cast without moving)
-  const mv = stand ? { x: 0, y: 0 } : moveInput(), sp = 62 * p.st.ms * (p.swing > 0 ? .55 : 1) * (p.slowT > 0 ? .6 : 1) * survSpeed() * webSlow();
+  const mv = stand ? { x: 0, y: 0 } : moveInput(), sp = 62 * p.st.ms * (p.swing > 0 ? .55 : 1) * (p.slowT > 0 ? .6 : 1) * survSpeed() * webSlow() * hazSlow();
   p.rollCd = Math.max(0, p.rollCd - dt); p.rollQ -= dt;
   if (p.rollQ > 0 && p.roll <= 0 && p.rollCd <= 0) startRoll(mv);
   if (p.roll > 0) {
@@ -3037,10 +3040,8 @@ function update(dt) {
   if (state !== 'play') return;
   if (v04Update(dt) || state !== 'play') return;
   const ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
-  if (tileAt(ptx, pty) === TILE.STAIRS) {
-    const bb = enemies.find(e => e.T.boss); if (bb) { if (msg.life <= 0) flashMsg(bb.name + ' bars the way!', '#f66'); aggro(bb); }
-    else { startClimb(); return; } // v0.7.0: climb-down transition, then startFloor(depth + 1)
-  }
+  // v0.7.1 §6: no auto-descend - walking onto the entrance does nothing; Examine / USE it, then USE again to confirm (entUse -> startClimb)
+  if (v071Update(dt, mv) || state !== 'play') return;
   updateEnemies(dt); if (state !== 'play') return;
   if (enemies.some(e => e.state === 'chase' && dist(e, p) < 170) || projs.some(q => q.owner === 'e')) music.combatUntil = time + 4;
   music.boss = enemies.some(e => e.T.boss && e.state === 'chase' && dist(e, p) < 260);
@@ -3392,7 +3393,7 @@ function interactables() {
     else if (t.out && p.torchT > 0) L.push({ x, y, r: 16, label: 'RELIGHT SCONCE', use: () => { t.out = false; mapVer++; sfx('whoosh'); burst(t.x, t.y, '#ffb040', 8, 25); flashMsg('The sconce flares back to life.', '#ffb040'); }, ref: t }); }
   for (const c of chests) if (!c.open && close(c.x, c.y, 16)) L.push({ x: c.x, y: c.y, r: 18, label: c.free || p.keys > 0 ? 'OPEN CHEST' : 'LOCKED CHEST', use: () => openChest(c), ref: c });
   if (shop && close(shop.x, shop.y, 20)) L.push({ x: shop.x, y: shop.y + 4, r: 22, label: 'TRADE', use: openShop, ref: shop });
-  v06Interact(L, close);
+  v06Interact(L, close); v071Interact(L, close);
   return L;
 }
 function nearestInteract() { const p = player; let best = null, bd = 1e9;
@@ -4309,7 +4310,7 @@ const UI_DIM = { off: 1, low: .7, med: .48 };
 let UIA = 1;
 function uiAlpha() { return UI_DIM[settings.uiDim] || 1; }
 function applyDim() { if (!(settings.uiDim in UI_DIM)) settings.uiDim = 'off'; UIA = uiAlpha();
-  for (const id of ['touch', 'topbar']) { const el = document.getElementById(id); if (el) el.style.opacity = state === 'tlayout' ? '1' : String(UIA); }
+  for (const id of ['touch', 'topbar', 'cornerbar']) { const el = document.getElementById(id); if (el) el.style.opacity = state === 'tlayout' ? '1' : String(UIA); }
   const b = document.getElementById('mDim'); if (b) b.textContent = 'UI DIM: ' + settings.uiDim.toUpperCase(); }
 function cycleDim() { settings.uiDim = { off: 'low', low: 'med', med: 'off' }[settings.uiDim] || 'off'; saveSettings(); applyDim(); }
 // ---- §22 difficulty: enemies hit a little harder, front-loaded on the early floors (tune here) ----
@@ -4710,10 +4711,11 @@ function render() {
       if (tileAt(tx, ty + 1) !== TILE.WALL) ctx.drawImage(tx >= 0 && ty >= 0 && tx < MW && ty < MH ? texWall(tx, ty) : tileImgs.wallFace[v >= 2 ? v - 1 : 0], X, Y);
       else if (tx >= 0 && ty >= 0 && tx < MW && ty < MH) ctx.drawImage(tileImgs.wallTop, X, Y);
     } else if (t === TILE.STAIRS) drawEntranceTile(tx, ty, X, Y); // v0.7.0 varied entrance art (procedural stairs fallback)
+    else if (t === TILE.PIT) drawPitTile(tx, ty, X, Y); // v0.7.1 §3
     else { ctx.drawImage(texFloor(tx, ty), X, Y);
       if (tileAt(tx, ty - 1) === TILE.WALL) { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(X, Y, TS, 3); } }
   }
-  drawFloorDecor(); drawV05Floor(); drawV06Floor(); drawDebris(); drawCritters(false); drawSecrets(); drawSecretSense(); drawHazards(); drawChests(); drawProps(); drawDoors(); drawV05Upper(); drawV06World();
+  drawV071Floor(t0x, t0y, t1x, t1y); drawFloorDecor(); drawV05Floor(); drawV06Floor(); drawDebris(); drawCritters(false); drawSecrets(); drawSecretSense(); drawHazards(); drawChests(); drawProps(); drawDoors(); drawV05Upper(); drawV06World();
   for (const g of ground) {
     const by = Math.round(Math.sin(time * 3 + g.bob));
     if (g.item) { if (g.item.rarity >= 2) { ctx.fillStyle = g.item.rarity === 3 ? 'rgba(216,160,64,.3)' : 'rgba(240,240,96,.2)'; ctx.fillRect(Math.round(g.x) - 1, Math.round(g.y) - 22, 2, 18); }
@@ -4727,7 +4729,7 @@ function render() {
   const ents = enemies.slice(); ents.push(p); ents.sort((a, b) => a.y - b.y);
   for (const e of ents) {
     ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(Math.round(e.x - e.r), Math.round(e.y + e.r - 1), e.r * 2, 2);
-    if (e === p) { if (climb) drawClimb(); else { drawPlayer(); drawWard(); } } else drawEnemy(e);
+    if (e === p) { if (climb) drawClimb(); else if (pitAct || teeter()) drawPitAct(); else { drawPlayer(); drawWard(); } drawBurn(); } else drawEnemy(e);
   }
   for (const f of effects) {
     const k = f.t / f.dur;
@@ -4824,7 +4826,7 @@ function drawHUD() {
   const ox = clamp(ptx - Math.floor(cw / 2), 0, Math.max(0, MW - cw)), oy = clamp(pty - Math.floor(ch / 2), 0, Math.max(0, MH - ch));
   ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(mx - 1, my - 1, cw * mmS + 2, ch * mmS + 2);
   for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) { const x = ox + i, y = oy + j; if (!seen[y * MW + x]) continue; const t = tileAt(x, y);
-    if (t === TILE.WALL) continue; ctx.fillStyle = t === TILE.STAIRS ? '#ffe040' : 'rgba(150,130,160,.6)'; ctx.fillRect(mx + i * mmS, my + j * mmS, mmS, mmS); }
+    if (t === TILE.WALL) continue; ctx.fillStyle = t === TILE.STAIRS ? '#ffe040' : t === TILE.PIT ? '#140a18' : hazAt(x, y) ? HAZ_MAP[hazAt(x, y)] : 'rgba(150,130,160,.6)'; ctx.fillRect(mx + i * mmS, my + j * mmS, mmS, mmS); }
   for (const e of enemies) if (e.state === 'chase' && !e.hidden && !e.disg) { const i = Math.floor(e.x / TS) - ox, j = Math.floor(e.y / TS) - oy; if (i >= 0 && j >= 0 && i < cw && j < ch) { ctx.fillStyle = '#f33'; ctx.fillRect(mx + i * mmS, my + j * mmS, mmS, mmS); } }
   ctx.fillStyle = Math.floor(time * 4) % 2 ? '#fff' : '#4f4'; ctx.fillRect(mx + (ptx - ox) * mmS, my + (pty - oy) * mmS, mmS, mmS);
   }
@@ -4874,17 +4876,18 @@ let floorEnt = null, entPrev = null, climb = null; const entFxStats = {}, climbS
 function pickEntrance(d, prev, theme, salt) { // seeded by depth + floor layout, never the previous floor's id, theme-fit ids weighted x3
   const R = mulberry(hashStr('ent|' + d + '|' + (prev || '') + '|' + (theme || '') + '|' + (salt || 0))), fit = ENT_THEME[theme] || [], bag = [];
   for (const E of ENTRANCES) { if (E.id === prev) continue; const w = fit.includes(E.id) ? 3 : 1; for (let i = 0; i < w; i++) bag.push(E.id); }
-  const id = bag[Math.floor(R() * bag.length)], o = { id }; if (id === 'E9') o.col = PORTAL_COLS[Math.floor(R() * PORTAL_COLS.length)]; return o; }
+  const id = bag[Math.floor(R() * bag.length)], o = { id }; if (id === 'E9') o.col = PORTAL_COLS[Math.floor(R() * PORTAL_COLS.length)];
+  if (WALL_DOOR[id] && R() < WALL_DOOR_P) o.wall = WALL_DOOR[id]; return o; } // v0.7.1 §6: some door-type entrances sit in the wall
 function entStairs() { const i = map.indexOf(TILE.STAIRS); return i < 0 ? null : { tx: i % MW, ty: (i / MW) | 0 }; }
-function setFloorEntrance(d) { const s = entStairs(); floorEnt = pickEntrance(d, entPrev, floorTheme, s ? s.tx * 131 + s.ty * 7 + MW : 0); entPrev = floorEnt.id; return floorEnt; }
+function setFloorEntrance(d) { const s = entStairs(); floorEnt = pickEntrance(d, entPrev, floorTheme, s ? s.tx * 131 + s.ty * 7 + MW : 0); entPrev = floorEnt.id; if (floorEnt.wall && !moveStairsToWall()) delete floorEnt.wall; return floorEnt; }
 function portalFrame() { return Math.floor(time * 1000 / PORTAL_MS) % 4; }
 function entranceArt(E) { if (!E) return null; const D = ENT_BY[E.id]; if (!D) return null;
   if (D.id === 'E9') { const c = PORTAL_COLS.includes(E.col) ? E.col : 'purple'; return ART['entrance_portal_' + c + '_0' + (portalFrame() + 1)] || ART['entrance_portal_' + c] || null; }
   return ART['entrance_' + D.key] || null; }
-function drawEntranceTile(tx, ty, X, Y) { const a = entranceArt(floorEnt); if (!a) { ctx.drawImage(tileImgs.stairs, X, Y); return; }
+function drawEntranceTile(tx, ty, X, Y) { if (floorEnt && floorEnt.wall && drawWallDoor(tx, ty, X, Y)) return; const a = entranceArt(floorEnt); if (!a) { ctx.drawImage(tileImgs.stairs, X, Y); return; }
   ctx.drawImage(texFloor(tx, ty), X, Y); ctx.drawImage(a, X + ((TS - a.width) >> 1), Y + ((TS - a.height) >> 1)); }
 function entFxKind() { const D = floorEnt && ENT_BY[floorEnt.id]; return D && D.fx || null; }
-function entInView() { const s = entStairs(); if (!s) return null; const X = s.tx * TS, Y = s.ty * TS; if (X < cam.x - 24 || Y < cam.y - 24 || X > cam.x + VW + 8 || Y > cam.y + VH + 8) return null; return { X, Y }; }
+function entInView() { const s = entStairs(); if (!s) return null; const X = s.tx * TS, Y = s.ty * TS - (floorEnt && floorEnt.wall ? 14 : 0); if (X < cam.x - 24 || Y < cam.y - 24 || X > cam.x + VW + 8 || Y > cam.y + VH + 8) return null; return { X, Y }; }
 const ENT_RATE = { portal: 7, embers: 4, shimmer: 4, drips: 1.3, runes: 5, frost: 5, incense: 2.6, dust: 3 };
 function entPart(kind, o) { o.nd = 1; o.ek = kind; parts.push(o); entFxStats[kind] = (entFxStats[kind] || 0) + 1; }
 function emitEntranceFx(kind, X, Y) {
@@ -4904,9 +4907,10 @@ function entranceLights(L, view) { const kind = entFxKind(), s = kind && entStai
   L.push({ x, y, r: kind === 'portal' ? 38 + Math.sin(time * 3) * 2 : 22, col, a: kind === 'portal' ? .55 : kind === 'drips' ? .15 : .3 }); }
 function climbSex() { const P = activeProfile() || {}; const s = player && player.look && player.look.sex || P.sex; if (s === 'f' || s === 'm') return s; return hashStr((P.id || '') + (player && player.pname || '')) % 2 ? 'f' : 'm'; }
 function startClimb() { const s = entStairs(), p = player; climb = { t: 0, dur: CLIMB_T, x0: p.x, y0: p.y, x: s ? (s.tx + .5) * TS : p.x, y: s ? (s.ty + .5) * TS : p.y, sex: climbSex(), d: depth };
+  if (floorEnt && floorEnt.wall) { climb.door = 0; climb.pre = DOOR_OPEN_T; climb.y -= 4; cueAt(WALL_DOOR_CUE[floorEnt.wall] || 'wld_door_wood_open_01', climb.x, climb.y, 300, .9); } // v0.7.1 §6: the wall door swings open first
   climbStats.n++; sfx('stairs'); p.walk = null; p.swing = 0; p.roll = 0; if (typeof clickMark !== 'undefined') clickMark = null; }
 function climbFrame() { return climb ? Math.min(3, Math.floor(climb.t / climb.dur * 4)) : -1; }
-function updateClimb(dt) { const c = climb, p = player; c.t += dt; const k = Math.min(1, c.t / (c.dur * .4));
+function updateClimb(dt) { const c = climb, p = player; if (c.pre > 0) { c.pre -= dt; c.door = Math.min(3, Math.floor((DOOR_OPEN_T - Math.max(0, c.pre)) / DOOR_OPEN_T * 4)); msg.life -= dt; return; } if (c.door !== undefined) c.door = 3; c.t += dt; const k = Math.min(1, c.t / (c.dur * .4));
   p.x = c.x0 + (c.x - c.x0) * k; p.y = c.y0 + (c.y - c.y0) * k; p.walkT = 0; p.inv0 = Math.max(p.inv0, .2);
   if (parts.length > MAX_PARTS) parts.splice(0, parts.length - MAX_PARTS);
   for (let i = parts.length - 1; i >= 0; i--) { const q = parts[i]; q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; if (q.ay) q.vy += q.ay * dt; if (!q.nd) { q.vx *= .9; q.vy *= .9; } if (q.life <= 0) parts.splice(i, 1); }
@@ -4953,6 +4957,212 @@ function drawCritter(c) { const C = CRITTERS[c.k], a = critterImg(c), bob = C.fl
 function drawCritters(glow) { const x0 = cam.x - 20, y0 = cam.y - 20; for (const c of critters) { if (c.x < x0 || c.y < y0 || c.x > x0 + VW + 40 || c.y > y0 + VH + 40) continue; if (!!CRITTERS[c.k].glow === glow) drawCritter(c); } }
 function critterLights(L, view) { for (const c of critters) { const G = CRITTERS[c.k].glow; if (G && view(c.x, c.y, 20)) L.push({ x: c.x, y: c.y, r: 13 + Math.sin(c.ph * .7) * 1.5, col: G, a: .32 }); } }
 function freeChestEmpty(c) { return c.empty === undefined ? (c.empty = Math.random() < FREE_EMPTY) : !!c.empty; }
+// ---- v0.7.1: bottomless pits + ledge traversal (§3), hazard rooms + sinking stones (§4), fire pits + burn (§5), examine-to-descend + wall doors (§6) ----
+// Tunables (call-outs in CHANGELOG / playtest focus):
+//  pits: fall = 50% max HP, never lethal (leaves >= 1 HP); you climb back out at the last safe tile you stood on (the edge you fell from)
+//        walking can't cross a pit; pushing into the edge for 1s, or dodge-rolling into it, drops you in. USE the wall ledge to inch across (auto).
+//  sinking stones: sink after 1.5s of standing on one (risen -> mid 0.35s -> sunken), re-emerge 3.2s later (sunken -> mid 0.35s -> risen); sunken = you're in the hazard
+//  hazards: water 1.5% max HP/s + 45% slow (never lethal); acid 6%/s; lava 12%/s + sets you on fire; spikes 10% max HP per raise (up 1.0s of every 2.4s); rolling skips contact
+//  fire pits: depth 6+ (2x2), depth 10+ can be 3x3. Step in -> burn VFX 3s, 8% max HP DoT over 4s; each dodge roll cuts 1s off both (= 2% less damage); water puts you out
+const PIT_DMG = .5, PIT_PUSH_T = 1.0, PIT_TEETER = .35, LEDGE_GRAB_T = .25, LEDGE_SPEED = 30, PIT_FALL_T = 1.05, INCH_FPS = 8;
+const HAZ = { 1: 'water', 2: 'acid', 3: 'lava', 4: 'spikes' }, HAZ_ID = { water: 1, acid: 2, lava: 3, spikes: 4 };
+const HAZ_MAP = { 1: 'rgba(60,110,200,.8)', 2: 'rgba(110,210,60,.8)', 3: 'rgba(240,90,30,.85)', 4: 'rgba(170,170,185,.75)' }, HAZ_COL = { water: '#24489a', acid: '#4a9a20', lava: '#c83a10', spikes: '#6a6a74' };
+const HAZ_DPS = { water: .015, acid: .06, lava: .12 }, HAZ_LETHAL = { water: false, acid: true, lava: true, spikes: true };
+const HAZ_FPS = 9, SPIKE_CYCLE = 2.4, SPIKE_UP = 1.0, SPIKE_HIT = .10, WATER_SLOW = .55, HAZ_TICK = .5;
+const SINK_AFTER = 1.5, SINK_MID = .35, REEMERGE_T = 3.2;
+const BURN_VFX = 3, BURN_DOT = 4, BURN_PCT = .08, FIRE_FPS = 11, FIREPIT_MIN = 6, FIREPIT_HUGE = 10;
+const WALL_DOOR = { E4: 'iron', E5: 'demon', E6: 'bloody', E7: 'rusty', E8: 'wood', E11: 'bone', E13: 'rune' }, WALL_DOOR_P = .5, DOOR_OPEN_T = .48;
+const HAZ_KEEP_SETP = ['pool', 'statue', 'coffin', 'niche', 'bowl', 'window'];
+const WALL_DOOR_CUE = { iron: 'wld_door_iron_open_01', rusty: 'wld_door_iron_open_01' }, ENT_ARM_T = 8;
+let V71 = v071Empty(), pitAct = null, entArmT = -99; const v071Stats = { falls: 0, ledges: 0, sinks: 0, burns: 0, descends: 0, examines: 0 };
+function v071Empty() { return { haz: new Uint8Array(0), stones: [], firepits: [], ledges: [], pitArt: {}, hrooms: [], sIdx: new Map() }; }
+function v071Index() { V71.sIdx = new Map(); for (const s of V71.stones) V71.sIdx.set(s.ty * MW + s.tx, s); }
+function v071Snap() { return { hazS: V71.haz.some(v => v) ? Array.from(V71.haz).join('') : '', stones: V71.stones, firepits: V71.firepits, ledges: V71.ledges, pitArt: V71.pitArt, hrooms: V71.hrooms }; }
+function v071Restore(o) { V71 = v071Empty(); V71.haz = new Uint8Array(MW * MH); pitAct = null; entArmT = -99;
+  if (o && typeof o === 'object') { if (typeof o.hazS === 'string' && o.hazS.length === MW * MH) for (let i = 0; i < o.hazS.length; i++) V71.haz[i] = (o.hazS.charCodeAt(i) - 48) & 7;
+    for (const k of ['stones', 'firepits', 'ledges', 'hrooms']) if (Array.isArray(o[k])) V71[k] = o[k]; if (o.pitArt && typeof o.pitArt === 'object') V71.pitArt = o.pitArt; }
+  v071Index(); if (player) { player.pitPush = 0; player.burn = null; } }
+function shuf(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function pitAtPx(x, y) { return tileAt(Math.floor(x / TS), Math.floor(y / TS)) === TILE.PIT; }
+function pitHitAt(x, y, r) { r = r || 5; return pitAtPx(x - r, y - r) || pitAtPx(x + r, y - r) || pitAtPx(x - r, y + r) || pitAtPx(x + r, y + r); }
+function hazAt(tx, ty) { return tx < 0 || ty < 0 || tx >= MW || ty >= MH || !V71.haz.length ? 0 : V71.haz[ty * MW + tx]; }
+function stoneAt(tx, ty) { return V71.sIdx.get(ty * MW + tx) || null; }
+function spikesUp() { return (time % SPIKE_CYCLE) < SPIKE_UP; }
+function footTile() { const p = player; return [Math.floor(p.x / TS), Math.floor((p.y + 2) / TS)]; }
+function genV071(d) { V71 = v071Empty(); V71.haz = new Uint8Array(MW * MH); pitAct = null; entArmT = -99;
+  if (player) { player.burn = null; player.pitPush = 0; player.hazAcc = 0; player.hazT = 0; player.safeX = undefined; player.safeY = undefined; }
+  placePits(d); placeHazards(d); placeFirepits(d); v071Index(); }
+function v071Busy() { const H = new Set(), S = new Set(), at = (B, tx, ty) => B.add(ty * MW + tx), addO = B => o => { if (!o || typeof o !== 'object') return; if (Number.isFinite(o.tx) && Number.isFinite(o.ty)) at(B, o.tx, o.ty); else if (Number.isFinite(o.x) && Number.isFinite(o.y)) at(B, Math.floor(o.x / TS), Math.floor(o.y / TS)); };
+  for (const A of [chests, secrets, braziers, glimmers, puzzles, traps, setp, basins, pblocks, books, annexes]) if (Array.isArray(A)) A.forEach(addO(H));
+  for (const A of [props, ground, webs, enemies, vines]) if (Array.isArray(A)) A.forEach(addO(S));
+  if (shop) addO(H)(shop); for (const d of doors) for (const t of d.tiles) for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) at(H, t.x + i, t.y + j);
+  for (const w of waters) for (let x = w.x0; x <= w.x1; x++) at(H, x, w.y);
+  const s = entStairs(); if (s) for (let j = -2; j <= 2; j++) for (let i = -2; i <= 2; i++) at(H, s.tx + i, s.ty + j);
+  const r0 = rooms[0]; for (let j = r0.y - 2; j <= r0.y + r0.h + 1; j++) for (let i = r0.x - 2; i <= r0.x + r0.w + 1; i++) at(H, i, j);
+  const all = new Set(H); S.forEach(v => all.add(v)); return { H, all }; }
+function roomMask() { const M = new Uint8Array(MW * MH); rooms.forEach((r, i) => { for (let j = r.y; j < r.y + r.h; j++) for (let x = r.x; x < r.x + r.w; x++) M[j * MW + x] = i + 1; }); return M; }
+function dropDecorOn(test) { const tile = o => Number.isFinite(o.tx) ? [o.tx, o.ty] : [Math.floor(o.x / TS), Math.floor(o.y / TS)]; decor = decor.filter(o => !test(...tile(o))); props = props.filter(o => !test(...tile(o))); }
+// §3 bottomless pits: 2-3 tiles across a 2-wide corridor (blocks it; wall ledge on one side), plus the odd hole in a big room (walk around it)
+function placePits(d) { if (d < 2) return; const { all: B } = v071Busy(), M = roomMask(), F = (x, y) => tileAt(x, y) === TILE.FLOOR && !M[y * MW + x] && !B.has(y * MW + x), W = (x, y) => tileAt(x, y) === TILE.WALL;
+  const want = (Math.random() < .75 ? 1 : 0) + (d >= 5 && Math.random() < .5 ? 1 : 0) + (d >= 9 && Math.random() < .35 ? 1 : 0), cands = [], done = [];
+  for (let y = 2; y < MH - 3; y++) for (let x = 2; x < MW - 3; x++) for (const L of [2, 3]) {
+    let ok = true; for (let i = -2; i <= L + 1 && ok; i++) ok = F(x + i, y) && F(x + i, y + 1) && (i < -1 || i > L || (W(x + i, y - 1) && W(x + i, y + 2))); if (ok) cands.push({ dir: 'h', x, y, L });
+    ok = true; for (let j = -2; j <= L + 1 && ok; j++) ok = F(x, y + j) && F(x + 1, y + j) && (j < -1 || j > L || (W(x - 1, y + j) && W(x + 2, y + j))); if (ok) cands.push({ dir: 'v', x, y, L }); }
+  const damp = floorTheme === 'drowned' || floorTheme === 'vermin', vv = (x, y) => 'pit_void_0' + (1 + (x * 7 + y * 13) % 3);
+  for (const c of shuf(cands)) { if (done.length >= want) break; if (done.some(o => Math.abs(o.x - c.x) + Math.abs(o.y - c.y) < 12)) continue; done.push(c); const A = V71.pitArt, set = (x, y, k) => { map[y * MW + x] = TILE.PIT; A[y * MW + x] = k; };
+    if (c.dir === 'h') { for (let i = 0; i < c.L; i++) { set(c.x + i, c.y, 'ledge_h'); set(c.x + i, c.y + 1, i === 0 ? 'pit_edge_w' : i === c.L - 1 ? 'pit_edge_e' : vv(c.x + i, c.y + 1)); }
+      V71.ledges.push({ dir: 'h', L: c.L, a: { x: c.x - 1, y: c.y }, b: { x: c.x + c.L, y: c.y } }); }
+    else { for (let j = 0; j < c.L; j++) { set(c.x, c.y + j, 'pit_ledge_wall'); set(c.x + 1, c.y + j, j === 0 ? (damp ? 'pit_edge_n_moss' : 'pit_edge_n') : j === c.L - 1 ? 'pit_edge_s' : vv(c.x + 1, c.y + j)); }
+      V71.ledges.push({ dir: 'v', L: c.L, a: { x: c.x, y: c.y - 1 }, b: { x: c.x, y: c.y + c.L } }); } }
+  if (d >= 3) { let holes = irand(0, 2); for (const r of shuf(rooms.slice(1, -1))) { if (holes <= 0) break; if (r.w < 7 || r.h < 6) continue; const big = Math.random() < .35, n = big ? 2 : 1;
+      const tx = irand(r.x + 2, r.x + r.w - 2 - n), ty = irand(r.y + 2, r.y + r.h - 2 - n); let ok = true;
+      for (let j = 0; j < n && ok; j++) for (let i = 0; i < n && ok; i++) { const x = tx + i, y = ty + j; ok = tileAt(x, y) === TILE.FLOOR && !B.has(y * MW + x) && x !== r.cx && x !== r.cx + 1 && y !== r.cy && y !== r.cy + 1; }
+      if (!ok) continue; holes--; const A = V71.pitArt, set = (x, y, k) => { map[y * MW + x] = TILE.PIT; A[y * MW + x] = k; };
+      if (!big) set(tx, ty, 'pit_hole'); else { set(tx, ty, 'pit_edge_nw'); set(tx + 1, ty, 'pit_edge_ne'); set(tx, ty + 1, 'pit_edge_sw'); set(tx + 1, ty + 1, 'pit_edge_se'); } } }
+  dropDecorOn((x, y) => tileAt(x, y) === TILE.PIT); }
+// §4 hazard rooms: the whole room floor becomes water / acid / lava / spikes, with a stone path from every way in to the middle
+function placeHazards(d) { if (d < 3) return; let n = (Math.random() < .6 ? 1 : 0) + (d >= 7 && Math.random() < .45 ? 1 : 0); if (!n) return;
+  const H = new Set(), at = (tx, ty) => H.add(ty * MW + tx), addO = o => { if (!o || typeof o !== 'object') return; if (Number.isFinite(o.tx) && Number.isFinite(o.ty)) at(o.tx, o.ty); else if (Number.isFinite(o.x) && Number.isFinite(o.y)) at(Math.floor(o.x / TS), Math.floor(o.y / TS)); };
+  for (const A of [chests, glimmers, puzzles, traps, basins, pblocks, books, annexes]) if (Array.isArray(A)) A.forEach(addO); if (shop) addO(shop);
+  setp.forEach(o => { if (HAZ_KEEP_SETP.includes(o.kind)) addO(o); }); for (const w of waters) for (let x = w.x0; x <= w.x1; x++) at(x, w.y);
+  const kinds = ['water', 'spikes'].concat(d >= 4 ? ['acid'] : [], d >= 7 ? ['lava', 'lava'] : []), fav = { drowned: 'water', vermin: 'acid', bone: 'spikes', choir: d >= 7 ? 'lava' : 'spikes' }[floorTheme];
+  for (const r of shuf(rooms.slice(1, -1))) { if (n <= 0) break; if (r.w < 5 || r.h < 4) continue; let busy = false;
+    for (let j = r.y - 1; j <= r.y + r.h && !busy; j++) for (let i = r.x - 1; i <= r.x + r.w && !busy; i++) busy = H.has(j * MW + i) || tileAt(i, j) === TILE.PIT || tileAt(i, j) === TILE.STAIRS;
+    if (busy) continue; const k = fav && kinds.includes(fav) && Math.random() < .45 ? fav : pick(kinds); if (hazRoom(r, HAZ_ID[k])) n--; } }
+function hazRoom(r, id) { const idx = (x, y) => y * MW + x, inR = (x, y) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h, path = new Set(), entries = [];
+  const doorT = new Set(); for (const d of doors) for (const t of d.tiles) doorT.add(idx(t.x, t.y)); for (const q of secrets) if (Number.isFinite(q.tx)) doorT.add(idx(q.tx, q.ty));
+  for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) { if (x > r.x && x < r.x + r.w - 1 && y > r.y && y < r.y + r.h - 1) continue;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy; if (!inR(nx, ny) && (tileAt(nx, ny) !== TILE.WALL || doorT.has(idx(nx, ny)))) { entries.push([x, y, dx !== 0]); break; } } }
+  if (!entries.length) return false;
+  for (const b of braziers) { const bx = Math.floor(b.x / TS), by = Math.floor(b.y / TS); if (inR(bx, by)) path.add(idx(bx, by)); } // a stone under any brazier in the room
+  for (const [ex, ey, horiz] of entries) { let x = ex, y = ey; path.add(idx(x, y));
+    const goX = () => { while (x !== r.cx) { x += Math.sign(r.cx - x); path.add(idx(x, y)); } }, goY = () => { while (y !== r.cy) { y += Math.sign(r.cy - y); path.add(idx(x, y)); } };
+    if (horiz) { goX(); goY(); } else { goY(); goX(); } }
+  let nh = 0; for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) if (tileAt(x, y) === TILE.FLOOR && !path.has(idx(x, y))) nh++;
+  if (nh < 6) return false;
+  for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) { if (tileAt(x, y) !== TILE.FLOOR) continue; V71.haz[idx(x, y)] = id;
+    if (path.has(idx(x, y))) { const hz = path.has(idx(x - 1, y)) && path.has(idx(x + 1, y)) && !path.has(idx(x, y - 1)) && !path.has(idx(x, y + 1)); V71.stones.push({ tx: x, ty: y, st: 0, on: 0, t: 0, v: irand(1, 3), strip: hz }); } }
+  V71.hrooms.push({ x: (r.x + r.w / 2) * TS, y: (r.y + r.h / 2) * TS, k: HAZ[id], rr: Math.max(r.w, r.h) * 9, x0: r.x, y0: r.y, x1: r.x + r.w - 1, y1: r.y + r.h - 1 });
+  const wet = (x, y) => inR(x, y) && !path.has(idx(x, y)); dropDecorOn(wet); setp = setp.filter(o => { const x = Number.isFinite(o.tx) ? o.tx : Math.floor(o.x / TS), y = Number.isFinite(o.ty) ? o.ty : Math.floor(o.y / TS); return HAZ_KEEP_SETP.includes(o.kind) || !wet(x, y) || tileAt(x, y) === TILE.WALL; }); return true; }
+// §5 large burning fire pits on harder floors
+function placeFirepits(d) { if (d < FIREPIT_MIN) return; let n = 1 + (d >= 9 && Math.random() < .5 ? 1 : 0); const { all: B } = v071Busy();
+  for (let tries = 0; tries < 60 && n > 0; tries++) { const r = pick(rooms.slice(1, -1)); if (!r) break; const sz = d >= FIREPIT_HUGE && Math.random() < .5 ? 3 : 2; if (r.w < sz + 3 || r.h < sz + 2) continue;
+    const tx = irand(r.x + 1, r.x + r.w - 1 - sz), ty = irand(r.y + 1, r.y + r.h - 1 - sz); let ok = true;
+    for (let j = 0; j < sz && ok; j++) for (let i = 0; i < sz && ok; i++) { const x = tx + i, y = ty + j; ok = tileAt(x, y) === TILE.FLOOR && !hazAt(x, y) && !B.has(y * MW + x); } // 1-tile margin inside the room walls, so you can always walk round it
+    if (!ok || V71.firepits.some(f => Math.abs(f.tx - tx) < 5 && Math.abs(f.ty - ty) < 5)) continue; V71.firepits.push({ tx, ty, n: sz }); n--; }
+  dropDecorOn((x, y) => V71.firepits.some(f => x >= f.tx && x < f.tx + f.n && y >= f.ty && y < f.ty + f.n)); }
+function firepitAt(x, y) { for (const f of V71.firepits) if (x > f.tx * TS + 2 && x < (f.tx + f.n) * TS - 2 && y + 2 > f.ty * TS + 2 && y + 2 < (f.ty + f.n) * TS - 1) return f; return null; }
+function hazUnder() { const p = player; if (!p || p.roll > 0 || !V71.haz.length) return 0; const [tx, ty] = footTile(), id = hazAt(tx, ty); if (!id) return 0; const s = stoneAt(tx, ty); if (s && s.st !== 2) return 0; return id; }
+function hazSlow() { return hazUnder() === 1 ? WATER_SLOW : 1; }
+function envHurt(d, label, lethal, col) { const p = player; d = Math.max(1, Math.round(d)); p.hp -= d; music.combatUntil = time + 3; addText(p.x, p.y - 12, d, col || '#ff7040');
+  if (p.hp <= 0) { if (!lethal) p.hp = 1; else { p.hp = 0; die(label); return true; } } else powersLowHp(); return false; }
+function igniteBurn() { const p = player; if (!p.burn) { v071Stats.burns++; flashMsg('You catch fire! Dodge roll to beat out the flames.', '#ff9040'); cue('wld_trap_flame_01', { vol: .8 }); }
+  p.burn = { vfx: BURN_VFX, dot: BURN_DOT, acc: (p.burn && p.burn.acc) || 0, tick: (p.burn && p.burn.tick) || 0 }; }
+function burnOnRoll() { const p = player, b = p && p.burn; if (!b) return; b.vfx = Math.max(0, b.vfx - 1); b.dot = Math.max(0, b.dot - 1); v071Stats.rollCuts = (v071Stats.rollCuts || 0) + 1;
+  if (b.dot <= 0) { p.burn = null; addText(p.x, p.y - 14, 'PUT OUT', '#ffd080'); } }
+function updateBurn(dt) { const p = player, b = p.burn; if (!b) return false; const step = Math.min(dt, b.dot); b.vfx = Math.max(0, b.vfx - dt); b.dot -= dt; b.acc += BURN_PCT / BURN_DOT * p.st.maxHp * step; b.tick += dt;
+  if (b.vfx > 0 && Math.random() < .5 && parts.length < MAX_PARTS) parts.push({ x: p.x + rand(-3, 3), y: p.y - rand(0, 8), vx: rand(-4, 4), vy: rand(-22, -10), life: rand(.25, .5), col: pick(['#ff6020', '#ffa030', '#ffd060']), nd: 1 });
+  if (b.tick >= HAZ_TICK || b.dot <= 0) { b.tick = 0; const d = Math.floor(b.acc); if (d >= 1) { b.acc -= d; if (envHurt(d, 'flames', true, '#ffa040')) return true; } }
+  if (b.dot <= 0) { if (b.acc >= .5 && envHurt(b.acc, 'flames', true, '#ffa040')) return true; p.burn = null; } return false; }
+function v071Update(dt, mv) { const p = player; if (climb || pitAct) return true; if (!V71.haz.length) return false;
+  const ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
+  if (tileAt(ptx, pty) === TILE.PIT) { startFall(ptx, pty); return true; } // rolled (or got shoved) into the pit
+  if (p.roll <= 0 && mv && (mv.x || mv.y)) { const l = Math.hypot(mv.x, mv.y), qx = p.x + mv.x / l * (p.r + 3), qy = p.y + mv.y / l * (p.r + 3);
+    if (pitAtPx(qx, qy)) { const was = p.pitPush || 0; p.pitPush = was + dt; if (was < PIT_TEETER && p.pitPush >= PIT_TEETER) flashMsg('You teeter on the edge of a bottomless pit...', '#c8a0ff');
+      if (p.pitPush >= PIT_PUSH_T) { startFall(Math.floor(qx / TS), Math.floor(qy / TS)); return true; } } else p.pitPush = 0; } else p.pitPush = 0;
+  // sinking stones
+  const [fx, fy] = footTile();
+  for (const s of V71.stones) { const here = p.roll <= 0 && s.tx === fx && s.ty === fy;
+    if (s.st === 0) { if (here) { s.on += dt; if (s.on >= SINK_AFTER) { s.st = 1; s.t = 0; v071Stats.sinks++; sfx('splash', { vol: .5 }); flashMsg('The stone sinks under you!', '#a0c8ff'); } } else s.on = 0; }
+    else { s.t += dt; if (s.st === 1 && s.t >= SINK_MID) { s.st = 2; s.t = 0; } else if (s.st === 2 && s.t >= REEMERGE_T) { s.st = 3; s.t = 0; } else if (s.st === 3 && s.t >= SINK_MID) { s.st = 0; s.t = 0; s.on = 0; } } }
+  // hazard contact
+  const hz = hazUnder(), k = HAZ[hz];
+  if (k === 'spikes') { const cyc = Math.floor(time / SPIKE_CYCLE); if (spikesUp() && p.spikeCyc !== cyc && p.inv0 <= 0) { p.spikeCyc = cyc; p.inv0 = .3; sfx('hurt'); addTrauma(.2); if (envHurt(p.st.maxHp * SPIKE_HIT, 'spikes', true, '#ff5050')) return true; } p.hazAcc = 0; }
+  else if (k) { p.hazAcc = (p.hazAcc || 0) + HAZ_DPS[k] * p.st.maxHp * dt; p.hazT = (p.hazT || 0) + dt; if (!p.hazIn) { p.hazIn = k; flashMsg(k === 'water' ? 'You wade into cold black water.' : k === 'acid' ? 'Acid! It burns!' : 'LAVA!', k === 'water' ? '#80a8ff' : k === 'acid' ? '#a0ff60' : '#ff8040'); if (k !== 'water') sfx('hurt'); }
+    if (k === 'water' && p.burn) { p.burn = null; addText(p.x, p.y - 14, 'HISS', '#c0e0ff'); } if (k === 'lava') igniteBurn();
+    if (p.hazT >= HAZ_TICK) { p.hazT = 0; const d = Math.floor(p.hazAcc); if (d >= 1) { p.hazAcc -= d; if (envHurt(d, k, HAZ_LETHAL[k], k === 'acid' ? '#a0e040' : k === 'water' ? '#80b0ff' : '#ff7030')) return true; } } }
+  if (!k) { p.hazIn = null; p.hazT = 0; p.hazAcc = 0; }
+  // fire pits
+  if (p.roll <= 0 && firepitAt(p.x, p.y)) igniteBurn();
+  if (updateBurn(dt) || state !== 'play') return true;
+  for (const f of V71.firepits) { const cx = (f.tx + f.n / 2) * TS, cy = (f.ty + f.n / 2) * TS; if (Math.abs(cx - p.x) > 260 || Math.abs(cy - p.y) > 180 || parts.length > MAX_PARTS * .8) continue;
+    if (Math.random() < 4 * f.n * dt) parts.push({ x: cx + rand(-f.n * 6, f.n * 6), y: cy + rand(-f.n * 4, f.n * 4), vx: rand(-4, 4), vy: rand(-26, -12), life: rand(.5, 1), col: pick(['#ff5010', '#ff9030', '#ffd060', '#808080']), nd: 1 }); }
+  // last safe spot (pit recovery)
+  if (p.roll <= 0 && !hazAt(fx, fy) && !pitHitAt(p.x, p.y, p.r) && !firepitAt(p.x, p.y) && (tileAt(ptx, pty) === TILE.FLOOR || tileAt(ptx, pty) === TILE.STAIRS)) { p.safeX = p.x; p.safeY = p.y; }
+  return false; }
+function partsTick(dt) { if (parts.length > MAX_PARTS) parts.splice(0, parts.length - MAX_PARTS);
+  for (let i = parts.length - 1; i >= 0; i--) { const q = parts[i]; q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; if (q.ay) q.vy += q.ay * dt; if (!q.nd) { q.vx *= .9; q.vy *= .9; } if (q.life <= 0) parts.splice(i, 1); } }
+function startLedge(g, fromA) { const p = player, A = fromA ? g.a : g.b, B = fromA ? g.b : g.a; if (pitAct || climb) return false;
+  const h = g.dir === 'h', sx = (A.x + .5) * TS - (h ? 0 : 3), sy = (A.y + .5) * TS - (h ? 3 : 0), ex = (B.x + .5) * TS - (h ? 0 : 3), ey = (B.y + .5) * TS - (h ? 3 : 0);
+  pitAct = { kind: 'ledge', t: 0, x0: p.x, y0: p.y, sx, sy, ex, ey, fx: (B.x + .5) * TS, fy: (B.y + .5) * TS, dir: g.dir, flip: h ? B.x < A.x : B.y < A.y, sex: climbSex(), lf: -1, dur: LEDGE_GRAB_T + Math.hypot(ex - sx, ey - sy) / LEDGE_SPEED };
+  v071Stats.ledges++; p.walk = null; p.swing = 0; p.roll = 0; p.pitPush = 0; if (typeof clickMark !== 'undefined') clickMark = null; cue('player_step_stone_01', { vol: .7 }); return true; }
+function startFall(tx, ty) { const p = player; if (pitAct) return; pitAct = { kind: 'fall', t: 0, x: (tx + .5) * TS, y: (ty + .5) * TS, x0: p.x, y0: p.y, sex: climbSex() };
+  v071Stats.falls++; p.walk = null; p.pitPush = 0; p.roll = 0; p.swing = 0; if (typeof clickMark !== 'undefined') clickMark = null; flashMsg('You fall into the dark!', '#c8a0ff'); }
+function endFall() { const p = player, dmg = Math.ceil(p.st.maxHp * PIT_DMG), before = p.hp; p.hp = Math.max(1, p.hp - dmg); pitAct = null;
+  let sx = p.safeX, sy = p.safeY; if (!Number.isFinite(sx) || pitHitAt(sx, sy, p.r) || solidAt(sx, sy)) { const r = rooms[0]; sx = (r.cx + .5) * TS; sy = (r.cy + .5) * TS; }
+  p.x = sx; p.y = sy; p.inv0 = 1; p.burn = null; addText(p.x, p.y - 12, '-' + Math.round(before - p.hp), '#ff5050'); addTrauma(.35); music.combatUntil = time + 2; burst(p.x, p.y + 2, '#3a2a40', 10, 40);
+  flashMsg('You claw your way back out of the pit. (-50% life)', '#d0a0ff'); powersLowHp(); }
+function updatePitAct(dt) { const a = pitAct, p = player; a.t += dt; p.walkT = 0; p.inv0 = Math.max(p.inv0, .15);
+  if (a.kind === 'ledge') { if (a.t < LEDGE_GRAB_T) { const q = a.t / LEDGE_GRAB_T; p.x = a.x0 + (a.sx - a.x0) * q; p.y = a.y0 + (a.sy - a.y0) * q; }
+      else { const k = clamp((a.t - LEDGE_GRAB_T) / (a.dur - LEDGE_GRAB_T), 0, 1); p.x = a.sx + (a.ex - a.sx) * k; p.y = a.sy + (a.ey - a.sy) * k; const f = inchFrame(); if (f !== a.lf) { a.lf = f; if (f % 3 === 0) cue('player_step_stone_01', { vol: .45 }); } }
+      if (a.t >= a.dur) { p.x = a.fx; p.y = a.fy; pitAct = null; p.safeX = p.x; p.safeY = p.y; } }
+  else { const k = Math.min(1, a.t / .25); p.x = a.x0 + (a.x - a.x0) * k; p.y = a.y0 + (a.y - a.y0) * k;
+    if (!a.snd && a.t >= .12) { a.snd = 1; sfx('pitfall'); addTrauma(.45); buzz(120); }
+    if (a.t >= PIT_FALL_T) endFall(); }
+  partsTick(dt); updateEntranceFx(dt); msg.life -= dt; bannerT -= dt; for (const q of texts) { q.life -= dt; q.y += q.vy * dt; } for (let i = texts.length - 1; i >= 0; i--) if (texts[i].life <= 0) texts.splice(i, 1);
+  cam.x += (p.x - VW / 2 - cam.x) * Math.min(1, dt * 8); cam.y += (p.y - VH / 2 - cam.y) * Math.min(1, dt * 8); }
+function inchFrame() { const a = pitAct; return a && a.kind === 'ledge' ? Math.floor(Math.max(0, a.t - LEDGE_GRAB_T) * INCH_FPS) % 6 : -1; }
+function fallFrame() { const a = pitAct; return a && a.kind === 'fall' ? Math.min(4, Math.floor(a.t / .15)) : -1; }
+function teeter() { return !!player && (player.pitPush || 0) > PIT_TEETER && !climb; }
+function drawPitAct() { const p = player, a = pitAct, s = a ? a.sex : climbSex(); let img = null, flip = false;
+  if (!a) { img = ART['player_' + s + '_pit_fall_01']; flip = p.fx < 0; }
+  else if (a.kind === 'ledge') { img = a.t < LEDGE_GRAB_T ? ART['player_' + s + '_ledge_grab'] : ART['player_' + s + '_ledge_inch_0' + (inchFrame() + 1)]; flip = a.flip; }
+  else img = ART['player_' + s + '_pit_fall_0' + (fallFrame() + 1)];
+  const X = Math.round(p.x - 6), Y = Math.round(p.y - 9);
+  if (!img) { const WS = wardSprites(p), im = WS.a[flip ? 'l' : 'r']; if (a && a.kind === 'fall') { const cut = Math.min(12, Math.round(12 * a.t / .75)); if (cut < 12) ctx.drawImage(im, 0, 0, im.width, im.height - cut, X, Y + cut, im.width, im.height - cut); } else ctx.drawImage(im, X, Y); return; }
+  if (flip) { ctx.save(); ctx.translate(X + 12, Y); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0); ctx.restore(); } else ctx.drawImage(img, X, Y); }
+function drawBurn() { const p = player, b = p.burn; if (!b || b.vfx <= 0 || climb || (pitAct && pitAct.kind === 'fall')) return; const a = ART['vfx_player_onfire_0' + (Math.floor(time * FIRE_FPS) % 4 + 1)] || ART.vfx_player_onfire, X = Math.round(p.x - 6), Y = Math.round(p.y - 11);
+  if (a) ctx.drawImage(a, X, Y); else for (let i = 0; i < 4; i++) { ctx.fillStyle = pick(['#ff6020', '#ffa030', '#ffe060']); ctx.fillRect(X + irand(2, 9), Y + irand(0, 9), 1, 2); } }
+function drawPitTile(tx, ty, X, Y) { const k = V71.pitArt[ty * MW + tx] || 'pit_void_01';
+  if (k === 'ledge_h') { const a = ART.pit_ledge_wall; if (a) { ctx.save(); ctx.translate(X + TS, Y); ctx.rotate(Math.PI / 2); ctx.drawImage(a, 0, 0); ctx.restore(); return; } }
+  else { const a = ART[k] || ART.pit_void_01; if (a) { ctx.drawImage(a, X, Y); return; } }
+  ctx.fillStyle = '#040206'; ctx.fillRect(X, Y, TS, TS); ctx.fillStyle = '#1a1220'; if (k === 'ledge_h') ctx.fillRect(X, Y, TS, 3); else if (k === 'pit_ledge_wall') ctx.fillRect(X, Y, 3, TS); }
+function drawV071Floor(t0x, t0y, t1x, t1y) {
+  if (V71.haz.length && (V71.hrooms.length || V71.stones.length)) { const f = Math.floor(time * HAZ_FPS) % 4, up = spikesUp();
+    for (let ty = Math.max(0, t0y); ty <= Math.min(MH - 1, t1y); ty++) for (let tx = Math.max(0, t0x); tx <= Math.min(MW - 1, t1x); tx++) { const id = V71.haz[ty * MW + tx]; if (!id) continue; const X = tx * TS, Y = ty * TS, k = HAZ[id];
+      const a = k === 'spikes' && !up ? ART.hazard_spikes_retracted : ART['hazard_' + k + '_0' + (((f + tx + ty) % 4) + 1)] || ART['hazard_' + k];
+      if (a) ctx.drawImage(a, X, Y); else { ctx.fillStyle = HAZ_COL[k]; ctx.fillRect(X, Y, TS, TS); }
+      const s = V71.sIdx.get(ty * MW + tx); if (s) { const st = s.st === 3 ? 'mid' : ['risen', 'mid', 'sunken'][s.st], b = ART[s.strip ? 'path_stone_strip_' + st : 'path_stone_pad_0' + s.v + '_' + st];
+        if (b) ctx.drawImage(b, X, Y); else if (s.st !== 2) { ctx.fillStyle = s.st === 0 ? '#8a8478' : '#5a5650'; ctx.fillRect(X + 2, Y + 2, TS - 4, TS - 4); }
+        if (s.st === 0 && s.on > SINK_AFTER * .45 && Math.floor(time * 12) % 2) { ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(X + 3, Y + TS - 4, TS - 6, 1); } } } }
+  for (const fp of V71.firepits) { const X = fp.tx * TS, Y = fp.ty * TS, sz = fp.n * TS; if (X + sz < t0x * TS || Y + sz < t0y * TS || X > (t1x + 1) * TS || Y > (t1y + 1) * TS) continue; const fi = Math.floor(time * FIRE_FPS) % 4 + 1;
+    let a = fp.n === 3 ? ART['firepit_huge_48_0' + fi] || ART.firepit_huge_48 : ART['firepit_large_32_0' + fi] || ART.firepit_large_32;
+    if (a) ctx.drawImage(a, X, Y, sz, sz); else { ctx.fillStyle = '#2a1008'; ctx.fillRect(X, Y, sz, sz); for (let i = 0; i < fp.n * 6; i++) { ctx.fillStyle = pick(['#ff5010', '#ff9030', '#ffd060']); ctx.fillRect(X + irand(2, sz - 3), Y + irand(2, sz - 3), 2, 2); } } } }
+function v071Lights(L, view) { for (const f of V71.firepits) { const x = (f.tx + f.n / 2) * TS, y = (f.ty + f.n / 2) * TS; if (view(x, y, 60)) L.push({ x, y, r: 30 + f.n * 8 + Math.sin(time * 9 + f.tx) * 2, col: 'amber', a: .7 }); }
+  for (const h of V71.hrooms) if ((h.k === 'lava' || h.k === 'acid') && view(h.x, h.y, h.rr)) L.push({ x: h.x, y: h.y, r: h.rr * (h.k === 'lava' ? 1 : .8), col: h.k === 'lava' ? 'red' : 'venom', a: h.k === 'lava' ? .45 : .25 });
+  const p = player; if (p && p.burn && p.burn.vfx > 0) L.push({ x: p.x, y: p.y - 4, r: 26 + Math.sin(time * 14) * 2, col: 'amber', a: .55 }); }
+// §6 examine-to-descend: USE the entrance once to examine it, USE again (within 8s) to go down. Boss floors: the boss still bars the way.
+function moveStairsToWall() { const s = entStairs(); if (!s) return false; const r = rooms[rooms.length - 1], xs = []; for (let x = r.x + 1; x < r.x + r.w - 1; x++) xs.push(x); xs.sort((a, b) => Math.abs(a - r.cx) - Math.abs(b - r.cx));
+  for (const x of xs) { const y = r.y; if (tileAt(x, y - 1) !== TILE.WALL || tileAt(x, y) !== TILE.FLOOR || tileAt(x - 1, y - 1) !== TILE.WALL || tileAt(x + 1, y - 1) !== TILE.WALL) continue;
+    if (torches.some(t => Math.abs(t.x - (x * TS + 8)) < 14 && Math.floor(t.y / TS) === y - 1)) continue;
+    if (doors.some(d => d.tiles.some(t => Math.abs(t.x - x) <= 1 && Math.abs(t.y - y) <= 1)) || secrets.some(q => q.tx === x && Math.abs(q.ty - y) <= 1)) continue;
+    if (chests.some(c => c.tx === x && c.ty === y) || setp.some(o => Number.isFinite(o.tx) ? o.tx === x && o.ty === y : Math.floor(o.x / TS) === x && Math.floor(o.y / TS) === y) || props.some(o => Math.floor(o.x / TS) === x && Math.floor(o.y / TS) === y)) continue;
+    map[s.ty * MW + s.tx] = TILE.FLOOR; map[y * MW + x] = TILE.STAIRS; return true; }
+  return false; }
+function drawWallDoor(tx, ty, X, Y) { const k = floorEnt.wall, i = climb && climb.door !== undefined ? climb.door : 0, a = ART['wall_door_' + k + '_0' + (i + 1)] || ART['wall_door_' + k]; if (!a) return false;
+  ctx.drawImage(texFloor(tx, ty), X, Y); ctx.drawImage(a, X, Y - TS); return true; }
+function wallDoorFrame() { return climb && climb.door !== undefined ? climb.door : floorEnt && floorEnt.wall ? 0 : -1; }
+const ENT_NAME = { E1: 'STAIRS', E2: 'ELEVATOR', E3: 'HOLE', E4: 'GATE', E5: 'DEMON DOOR', E6: 'BLOODY DOOR', E7: 'RUSTY GATE', E8: 'WOODEN DOOR', E9: 'PORTAL', E10: 'MIRROR', E11: 'BONE DOOR', E12: 'ICE DOOR', E13: 'RUNE DOOR', E14: 'MOSS DOOR', E15: 'SEALED STONE', E16: 'CURTAIN' };
+const ENT_EXAM = { E1: 'STAIRS, WORN SMOOTH. THEY ONLY GO DOWN.', E2: 'A CAGE ON A ROTTEN CHAIN. IT SWAYS WHEN I BREATHE.', E3: 'A HOLE IN THE FLOOR. COLD AIR RISES FROM IT.', E9: 'THE PORTAL HUMS. IT KNOWS MY NAME.', E10: 'MY REFLECTION IS ALREADY ON THE OTHER SIDE.', E15: 'THE SEAL IS CRACKED. SOMETHING PUSHED FROM BELOW.', E16: 'INCENSE AND SOMETHING ROTTEN BEHIND THE CURTAIN.' };
+function entArmed() { return time - entArmT < ENT_ARM_T && entArmT > -99; }
+function entLabel() { const nm = floorEnt && floorEnt.wall ? floorEnt.wall.toUpperCase() + ' DOOR' : ENT_NAME[floorEnt && floorEnt.id] || 'STAIRS'; return entArmed() ? (floorEnt && floorEnt.wall ? 'ENTER DOOR' : 'DESCEND') : 'EXAMINE ' + nm; }
+function entUse() { const bb = enemies.find(e => e.T.boss); if (climb || pitAct) return false;
+  if (bb) { flashMsg(bb.name + ' bars the way!', '#f66'); aggro(bb); return false; }
+  if (!entArmed()) { entArmT = time; v071Stats.examines++; examineSay((ENT_EXAM[floorEnt && floorEnt.id] || (floorEnt && floorEnt.wall ? 'A DOOR IN THE WALL. STEPS LEAD DOWN BEHIND IT.' : 'THE WAY DOWN.')) + ' (USE AGAIN TO DESCEND)'); flashMsg('USE again to go deeper.', '#ffe080'); return false; }
+  entArmT = -99; v071Stats.descends++; startClimb(); return true; }
+function v071Interact(L, close) { if (climb || pitAct) return; const s = entStairs();
+  if (s) { const x = (s.tx + .5) * TS, y = (s.ty + .5) * TS; if (close(x, y, 20)) L.push({ x, y, r: 20, label: entLabel(), use: entUse, ref: 'entrance', tier: 3 }); }
+  for (const g of V71.ledges) for (const end of [0, 1]) { const e = end ? g.b : g.a, x = (e.x + .5) * TS, y = (e.y + .5) * TS; if (close(x, y, 20)) L.push({ x, y, r: 20, label: 'CLIMB LEDGE', use: () => startLedge(g, !end), ref: g, tier: 2 }); } }
 // ---------- main loop ----------
 let last = performance.now();
 function loop(now) {
