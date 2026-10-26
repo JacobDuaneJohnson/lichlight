@@ -11,7 +11,7 @@ cd "$(dirname "$0")"
 VER="${1:-}"; NOTES="${2:-}"; TITLE="${3:-}"; DRY="${4:-}"
 REPO="gamedevjake/lichlight"
 die() { echo "release.sh: $*" >&2; exit 1; }
-[[ "$VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "version must look like 1.2.3 (no leading v)"
+[[ "$VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || die "version must look like 1.2.3 or 1.2.3.4 (no leading v)"
 [[ -f "$NOTES" ]] || die "notes file not found: $NOTES"
 [[ -n "$TITLE" ]] || die "give a short title as the 3rd argument"
 TAG="v$VER"; DATE="$(date +%F)"

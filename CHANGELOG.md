@@ -4,6 +4,17 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.3.1] - 2026-10-26
+
+_Auto-equip when slot empty_
+
+### Changed
+- **Auto-equip on pickup**: when you pick up a weapon, armor (helm, body, boots or shield) or jewelry (ring or amulet) and the matching slot is empty, it is equipped straight away.
+  - If that slot is already filled, the item goes to your inventory as before. Equipped gear is never swapped out.
+  - This applies to ground loot, chests and every other pickup path.
+  - Gear above your level still stays in the bag. A full backpack still accepts an item that can go straight onto an empty slot.
+  - Pickup sounds, thoughts, unique lore, stacks and saves are unchanged.
+
 ## [0.7.3] - 2026-10-26
 
 _Zoom, castle floors, prism puzzle, dark portals, survival and softer light_
@@ -506,6 +517,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - **iPhone support.** It plays in Safari, Add to Home Screen gives you fullscreen with its own icon, sound starts on your first tap, and the layout works around the notch. Android has a fullscreen button.
 - Hosted on GitHub Pages.
 
+[0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
 [0.7.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3
 [0.7.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.2
 [0.7.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.1
