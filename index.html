@@ -5886,6 +5886,7 @@ function v077BuildRooms() { if (!rooms || !rooms.length || !MW) { V77 = { mask: 
   const seed = (player && player.v77 && player.v77.seed) || 1, letters = ['', 'a', 'b', 'c'], of = [];
   for (let i = 0; i <= rooms.length; i++) of.push(letters[hashStr('tile|' + seed + '|' + depth + '|' + i) % 4]); V77 = { mask, of }; }
 function tileRoomId(tx, ty) { const m = V77 && V77.mask; if (!m || tx < 0 || ty < 0 || tx >= MW || ty >= MH) return 0; const id = m[ty * MW + tx]; if (id) return id;
+  if (tileAt(tx, ty) !== TILE.WALL) return 0; // corridor floors share letter 0; walls take the room they face, south first
   for (const [dx, dy] of [[0, 1], [0, -1], [-1, 0], [1, 0]]) { const x = tx + dx, y = ty + dy; if (x < 0 || y < 0 || x >= MW || y >= MH) continue; const q = m[y * MW + x]; if (q) return q; } return 0; }
 function roomLetterOf(seed, d, i) { return ['', 'a', 'b', 'c'][hashStr('tile|' + (seed || 1) + '|' + d + '|' + i) % 4]; }
 function roomLetter(tx, ty) { if (!V77 || !V77.of) return ''; return V77.of[tileRoomId(tx, ty)] || ''; }

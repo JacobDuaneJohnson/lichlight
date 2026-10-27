@@ -147,11 +147,12 @@ function run(w) {
   g.v077Rooms();
   check('f4 stable', here === g.roomLetter(Math.floor(g.player.x / 16), Math.floor(g.player.y / 16)) && letters.indexOf(here) >= 0, here);
   let matched = 0, mismatched = 0;
-  for (let ty = 2; ty < 46 && matched + mismatched < 40; ty++) for (let tx = 2; tx < 62 && matched + mismatched < 40; tx++) {
+  for (const r of g.rooms || []) {
+    const tx = r.cx, ty = r.y;
     if (w.tileAt(tx, ty) !== 1 || w.tileAt(tx, ty - 1) !== 0) continue;
     if (g.roomLetter(tx, ty) === g.roomLetter(tx, ty - 1)) matched++; else mismatched++;
   }
-  check('f4 floor and wall', matched >= 8 && mismatched === 0, matched + ' match / ' + mismatched + ' differ');
+  check('f4 floor and wall', matched >= 3 && mismatched === 0, matched + ' match / ' + mismatched + ' differ');
   let tileL = null, tile0 = null;
   for (let seed = 1; seed < 50 && (!tileL || !tile0); seed++) {
     g.player.v77.seed = seed; g.v077Rooms();
