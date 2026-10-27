@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v075</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:960px;height:540px"></iframe>
+<pre id="out">running</pre>
+<script>
+const out = document.getElementById('out');
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 240) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  out.textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function run(w) {
+  const g = w.game;
+  check('boot', !!(g && g.version === '0.7.5'), g && g.version);
+  const html = w.compareHTML(
+    { min: 10, max: 14, spd: 1.2, def: 4, block: 8, mods: { ls: 7, ias: 10, hp: 20, crit: 5, dmg: 3 }, powers: [{ t: 'skillAmp', skill: 'frost', pct: 21 }] },
+    { min: 8, max: 12, spd: 1.1, def: 2, block: 12, mods: { ls: 5, ias: 8, hp: 10, crit: 8, dmg: 1 }, powers: [{ t: 'skillAmp', skill: 'frost', pct: 14 }] }
+  );
+  const plain = html.replace(/<[^>]+>/g, '');
+  check('b2 one frost line', (plain.match(/Frost Nova/g) || []).length === 1, plain);
+  check('b2 no double sign', !/\+\s+\+|-\s+-/.test(plain), plain);
+  check('b2 frost delta', plain.includes('(+7%)'), plain);
+  check('b2 leech', plain.includes('7% Life Steal') && plain.includes('(+2%)'), plain);
+  check('b2 crit down', plain.includes('(-3%)'), plain);
+  check('b2 armor', plain.includes('4 armor') && plain.includes('(+2)'), plain);
+  const same = w.compareHTML({ min: 4, max: 4, mods: { dmg: 3, ls: 2 } }, { min: 4, max: 4, mods: { dmg: 3, ls: 2 } });
+  check('b2 omit equal', same.includes('no difference'), same);
+
+  w.__zoomDesk = true;
+  const steps = g.zoomSteps();
+  check('f1 desktop steps', steps.join(',') === '0.25,0.35,0.5,0.75,1', steps.join(','));
+  g.setZoom(1);
+  g.cycleZoom(-1);
+  check('f1 minus from 1', g.zoom === 0.75, g.zoom);
+  g.cycleZoom(-1); g.cycleZoom(-1); g.cycleZoom(-1);
+  check('f1 out to 0.25', g.zoom === 0.25, g.zoom);
+  g.cycleZoom(1);
+  check('f1 plus toward 1', g.zoom === 0.35, g.zoom);
+  g.setZoom(1);
+  delete w.__zoomDesk;
+
+  const open = [
+    [1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1]
+  ];
+  const ai = w.createEnemyAI(1, 4, 0); ai.nextTick = 0;
+  const pl = { tx: 4, ty: 2 };
+  let ev = w.updateEnemyAI(ai, pl, open, 0);
+  check('b1 diagonal alert', ev === 'alert' && ai.state === 'ALERT', ev + ' ' + ai.state);
+  ev = w.updateEnemyAI(ai, pl, open, ai.nextTick);
+  check('b1 enters chase', ev === 'chase' && ai.state === 'CHASE', ev);
+  let hops = 0;
+  while (ai.state === 'CHASE' && hops < 12 && ev !== 'hold') { ev = w.updateEnemyAI(ai, pl, open, ai.nextTick); hops++; }
+  const cheb = Math.max(Math.abs(ai.tx - pl.tx), Math.abs(ai.ty - pl.ty));
+  check('b1 closes and holds', ev === 'hold' && cheb <= 1 && ai.state === 'CHASE', ev + ' @' + ai.tx + ',' + ai.ty);
+  ev = w.updateEnemyAI(ai, pl, open, ai.nextTick);
+  check('b1 keeps aggro', ev === 'hold' && ai.state === 'CHASE', ev + ' ' + ai.state);
+  ev = w.updateEnemyAI(ai, { tx: 40, ty: 40 }, open, ai.nextTick);
+  check('b1 drops when far', ev === 'drop' && ai.state === 'PATROL', ev + ' ' + ai.state);
+  const ai2 = w.createEnemyAI(1, 1, 0); ai2.nextTick = 0;
+  ev = w.updateEnemyAI(ai2, { tx: 5, ty: 1 }, open, 0);
+  check('b1 axis still alerts', ev === 'alert', ev);
+  const ai3 = w.createEnemyAI(1, 1, 0);
+  ai3.state = 'CHASE'; ai3.nextTick = 0; ai3.spotted = true;
+  ev = w.updateEnemyAI(ai3, pl, open, 0, { flee: true });
+  check('b1 fear leaves chase', ai3.state === 'PATROL', ev + ' ' + ai3.state);
+
+  check('f4 want 7', w.prismWant(7) === true);
+  check('f4 skip 6', w.prismWant(6) === false);
+  check('f4 want 14', w.prismWant(14) === true);
+  check('f4 skip 8', w.prismWant(8) === false);
+  w.__prismForce = false;
+  check('f4 force off', w.prismWant(21) === false);
+  w.__prismForce = true;
+  check('f4 force on depth', w.prismWant(7) === true && w.prismWant(2) === false);
+
+  w.__dpForce = false;
+  delete w.__forceShop;
+  g.newGame();
+  const p0 = g.player;
+  p0.hunger = 0; p0.thirst = 100; p0.hp = 40; p0.sw = {};
+  g.thought.life = 0; g.thought.ent = null;
+  g.updateSurvival(0.05);
+  check('f6 starve line', g.thought.text === "I'm starving to death!", JSON.stringify({ t: g.thought.text, life: g.thought.life, hp: p0.hp, h: p0.hunger, sw: p0.sw }));
+  const cd = p0.sw.starveSay;
+  g.updateSurvival(0.05);
+  check('f6 starve cooldown', p0.sw.starveSay === cd, p0.sw.starveSay);
+  p0.hunger = 80; g.updateSurvival(0.05);
+  check('f6 recover clears', p0.sw.starveSay === 0);
+  p0.hunger = 0; p0.thirst = 0; g.thought.life = 3; g.thought.ent = p0;
+  g.updateSurvival(0.05);
+  check('f6 thirst waits', p0.sw.thirstSay === 0 && g.thought.text === "I'm starving to death!");
+  g.thought.life = 0; p0.hunger = 50; p0.hp = 40;
+  g.updateSurvival(0.05);
+  check('f6 thirst line', g.thought.text === "I'm dying of thirst!", g.thought.text);
+
+  let placed = 0, skins = {}, chestBad = 0, gateBad = 0, goldN = 0, noteN = 0;
+  for (let i = 0; i < 6; i++) {
+    w.__prismForce = true;
+    g.startFloor(7, true);
+    const P = g.prism;
+    if (!P || !P.vault || !P.wall || !P.wall.tiles) continue;
+    placed++;
+    skins[P.skin] = (skins[P.skin] || 0) + 1;
+    const chestOnGate = P.wall.tiles.some(([x, y]) => x === P.vault.cx && y === P.vault.cy);
+    if (chestOnGate) chestBad++;
+    if (!P.wall.tiles.every(([x, y]) => w.tileAt(x, y) === 0)) gateBad++;
+    const gilt = (g.gilt || []).find(c => c.prism);
+    if (!gilt || P.wall.tiles.some(([x, y]) => gilt.tx === x && gilt.ty === y)) chestBad++;
+    const pile = g.ground.filter(o => o.gold && o.x >= P.vault.x * 16 && o.x < (P.vault.x + P.vault.w) * 16 && o.y >= P.vault.y * 16 && o.y < (P.vault.y + P.vault.h) * 16);
+    if (pile.length) goldN++;
+    if (pile.some(o => w.lootHidden075(o))) noteN++;
+    const dress = P.dress || [];
+    if (!dress.length) gateBad++;
+  }
+  check('b3 prism places', placed >= 5, placed + '/6 skins ' + JSON.stringify(skins));
+  check('b3 chest off gate', chestBad === 0, chestBad);
+  check('b3 gate sealed wall', gateBad === 0, gateBad);
+  check('b3 vault gold', goldN === placed, goldN);
+  check('b4 vault names hidden', noteN === placed, noteN);
+  if (placed) {
+    const P = g.prism;
+    w.prismOpenWall(P);
+    const openFloor = P.wall.tiles.every(([x, y]) => w.tileAt(x, y) === 1);
+    const gilt = (g.gilt || []).find(c => c.prism);
+    const stillBlocked = gilt && P.wall.tiles.some(([x, y]) => gilt.tx === x && gilt.ty === y);
+    check('b3 gate opens to floor', openFloor && P.wall.open);
+    check('b3 chest stays inside', gilt && !stillBlocked && gilt.tx >= P.vault.x && gilt.tx < P.vault.x + P.vault.w, gilt && (gilt.tx + ',' + gilt.ty));
+    const pile = g.ground.find(o => o.gold && o.x >= P.vault.x * 16 && o.x < (P.vault.x + P.vault.w) * 16 && o.y >= P.vault.y * 16 && o.y < (P.vault.y + P.vault.h) * 16);
+    if (pile) {
+      check('b4 still hidden until entered', w.lootHidden075(pile) === true);
+      P.vault.entered = true;
+      check('b4 visible after enter', w.lootHidden075(pile) === false);
+    } else lines.push('FAIL b4 vault pile :: none');
+  }
+  const skinAt = {};
+  for (const d of [7, 14, 21, 28]) {
+    w.__prismForce = true;
+    g.startFloor(d, true);
+    if (g.prism) skinAt[d] = g.prism.skin;
+  }
+  check('f4 skins rotate', skinAt[7] === 'A' && skinAt[14] === 'B' && skinAt[21] === 'C' && skinAt[28] === 'D', JSON.stringify(skinAt));
+
+  w.__prismForce = false;
+  delete w.__forceShop;
+  g.startFloor(5, true);
+  check('f3 shop sealed on boss', !!(g.shop && g.shop.sealed), g.shop && g.shop.sealed);
+  const boss = g.enemies.find(e => e.T && e.T.boss);
+  check('f3 boss present', !!boss);
+  if (boss && g.shop && g.shop.sealed) {
+    w.killEnemy(boss);
+    check('f3 wall crumbles', g.shop.sealed === false && w.tileAt(g.shop.tx, g.shop.ty) === 1, g.shop.sealed);
+  }
+  g.openShop();
+  const hello = w.document.getElementById('shNote').textContent;
+  check('f3 lore bubble', hello.length > 8, hello);
+  const pack = g.player;
+  pack.inv[0] = w.makeItem(3, 0);
+  pack.inv[1] = w.makeItem(3, 1);
+  pack.gold = 0;
+  g.renderShop();
+  let slots = w.document.querySelectorAll('#shGrid .slot');
+  slots[0].dispatchEvent(new Event('pointerdown', { bubbles: true }));
+  slots = w.document.querySelectorAll('#shGrid .slot');
+  slots[1].dispatchEvent(new Event('pointerdown', { bubbles: true }));
+  const sellTxt = w.document.getElementById('shSell').textContent;
+  check('f3 multi select', /2/.test(sellTxt), sellTxt);
+  const prev = g.sellAllPreview();
+  g.sellAll();
+  check('f3 sell all asks', w.document.getElementById('shSellAll').textContent === 'YES, SELL ALL' && pack.inv.filter(Boolean).length === 2, prev.g);
+  g.sellAll();
+  check('f3 sell all confirms', pack.inv.filter(Boolean).length === 0 && pack.gold === prev.g, pack.gold);
+
+  w.__prismForce = false;
+  let spikes = 0, blocked = 0;
+  for (let d = 4; d <= 9 && spikes < 1; d++) {
+    g.startFloor(d, true);
+    const S = g.spikes || [];
+    if (!S.length) continue;
+    spikes = S.length;
+    blocked = S.filter(s => !g.walkable(s.tx, s.ty)).length;
+    const s = S[0];
+    const plr = g.player;
+    plr.roll = 0.2; plr.x = (s.tx + .5) * 16; plr.y = (s.ty + .5) * 16; plr.safeX = plr.x - 16; plr.safeY = plr.y;
+    w.v075AfterMove();
+    check('f7 roll does not fall', !g.pitAct, g.pitAct && g.pitAct.kind);
+    plr.roll = 0;
+    const hp0 = plr.hp, maxHp = plr.st.maxHp;
+    w.v075AfterMove();
+    check('f7 walk-in falls', g.pitAct && g.pitAct.kind === 'spikefall');
+    for (let i = 0; i < 25 && g.pitAct; i++) w.updatePitAct(0.1);
+    const lost = hp0 - plr.hp;
+    check('f7 5% then back', !g.pitAct && lost >= 1 && lost <= Math.max(1, Math.ceil(maxHp * 0.05)) + 1 && plr.hp >= 1, 'lost ' + lost + ' hp ' + plr.hp + ' at ' + Math.round(plr.x) + ',' + Math.round(plr.y));
+  }
+  check('f7 spikes exist', spikes >= 1, spikes);
+  check('f7 not walkable', blocked === spikes && spikes > 0, blocked + '/' + spikes);
+
+  w.__prismForce = false;
+  g.startFloor(4, true);
+  const scrap = (g.ground || []).filter(o => o.note);
+  check('f5 scraps on floor', scrap.length >= 1, scrap.length);
+  const door = (g.doors || []).find(d => d.rect && !d.open);
+  if (door) {
+    const loot = { x: (door.rect.x + .5) * 16, y: (door.rect.y + .5) * 16, item: { name: 'Sealed Helm', rarity: 2 } };
+    g.player.x = loot.x; g.player.y = loot.y + 20;
+    check('b4 closed door hides', w.lootHidden075(loot) && w.labelShown(loot) === false);
+    door.open = true;
+    check('b4 open but not entered', w.lootHidden075(loot) === true);
+    door.entered = true;
+    check('b4 entered shows', w.lootHidden075(loot) === false && w.labelShown(loot) === true);
+  } else lines.push('FAIL b4 door fixture :: no closed door on depth 4');
+  check('ui notes', !!w.document.getElementById('notesBtn'));
+  check('ui sell all', !!w.document.getElementById('shSellAll'));
+}
+</script>
+</body>
+</html>

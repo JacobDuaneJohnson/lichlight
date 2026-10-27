@@ -2,7 +2,7 @@
 
 **[▶ Play Lichlight](https://gamedevjake.github.io/lichlight/)**
 
-Current version: **v0.7.4** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
+Current version: **v0.7.5** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
 
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 
@@ -33,7 +33,11 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 - **Traps:** narrow corridors can hide pitfalls, dart traps, collapsing ceilings, rolling stones, and fire jets. Each one flashes a warning first, so roll.
 - **Torches:** hit a wall torch to knock it out. Fireballs, Whirlwind, Frost Nova, and enemy shots put them out too. Walk up to a lit torch or brazier and use it (**F** / **USE**) to relight your own torch, and use a lit torch on an empty sconce to relight it.
 - **Survival:** watch **F**ood, **W**ater, and **R**est. When a bar runs low you move slower. When it's empty you slowly lose life, but this alone never kills you. Eat rations from your bag (they turn up in crates, urns, and vaults, or from the trader), drink from stone basins and running water, and **REST** for 1 to 8 hours in a quiet room with no enemies nearby. 6 to 8 hours is a full rest.
-- **Crypt shop:** sometimes the floor right after a boss has the Hollow Pedlar in a side room. Sell backpack items, repair everything, and buy potions, rations, and Gate Keys.
+- **Crypt shop:** every boss floor, a wall crumbles when the boss falls and the Hollow Pedlar is waiting in a side room. Sell selected backpack items or **Sell All** (it asks once and shows the gold), repair everything, and buy potions, rations, and Gate Keys.
+- **Zoom (computer):** `-` and `=` cycle 0.25x, 0.35x, 0.5x, 0.75x, and 1x. `0` returns to 1x. Phones stay on 1x / 1.15x / 1.25x / 1.35x.
+- **Notes:** worn glyph scraps turn up on the floors. They go into **NOTES** in the bag, which is enough to put a prism's sequence in order.
+- **Spiked gaps:** a break in a hallway is full of spikes. Dodge-roll hops it. Walking in costs 5% of your life over a couple of seconds, then drops you back where you stepped off.
+- **Prisms:** about every 7th floor holds a lich-light prism. The crank is at its base. Scratch the order out of the notebook, and the gate that opens glows the same green as the beam. The room beyond is a chest of gold.
 - **Map Fragments:** very rare. Collect 4 and use them from your bag to reveal the whole floor, including hidden walls and traps.
 - **Satchels and backpacks:** the Bone King and later bosses can drop bags that add 5 or 10 slots (40 max).
 - **Drop All:** the **DROP ALL** button in the bag drops every backpack item after you confirm (Shift+click skips the confirm). Equipped gear stays on.

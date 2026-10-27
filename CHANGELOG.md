@@ -4,6 +4,27 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.5] - 2026-10-27
+
+_Chase, true loot deltas, prism vaults, scarcer gold, a shop after every boss_
+
+### Fixed
+- **Enemy chase (B1)**: a monster that sees you, including on a diagonal within about 5 tiles, alerts and then keeps walking toward you. It attacks while it is next to you, and it only gives up once you get far enough away. Fear still makes it flee.
+- **Tooltip deltas (B2)**: comparing a drop to what you have equipped shows the new value and the real change, as in `+10% damage (+5%)`. Equal stats are left off. A skill bonus such as Frost Nova is one line, and the comparison no longer stacks a second `+` or `-` in front of the number.
+- **Prism reward (B3)**: solving the prism no longer opens a stair-shaped hole in the wall. A gate opens into a side room with a gold-filled chest, and the chest sits off the doorway. The open gate glows the prism's pale green.
+- **Names behind gates (B4)**: loot and chest names stay hidden until the gate is open and you have walked into that room.
+
+### Added
+- **Shop after every boss (F3)**: when a boss falls, a wall crumbles into the Crypt Shop. The Hollow Pedlar greets you with a random line. Sell several backpack items at once, or **Sell All** after a confirm that shows the gold. Equipped gear is not sold.
+- **Stash & notes (F5)**: the bag has a **NOTES** page. Glyph scraps scattered through the dungeon are copied into it, and the two notes on a prism floor together spell the sequence.
+- **Starve and thirst (F6)**: while hunger or thirst is actually draining your life, a thought bubble says "I'm starving to death!" or "I'm dying of thirst!" It does not repeat every moment, and it stops once you eat or drink.
+- **Spiked hallway gaps (F7)**: some corridors are broken by a spiked tile. A dodge roll hops across. Walking in deals 5% of your max life over 2 seconds (never the killing blow) and puts you back on the tile you left. Click-to-walk goes around them.
+
+### Changed
+- **Desktop zoom (F1)**: on a computer, zoom steps are 0.25x / 0.35x / 0.5x / 0.75x / 1x, and minus zooms out from 1x. Phones stay on 1x / 1.15x / 1.25x / 1.35x.
+- **Scarcer gold (F2)**: ordinary kills, pots, props, and chests pay less. Boss piles and the prism bonus room stay rich.
+- **Prism halls (F4)**: the crank sits at the base of a shorter prism. Wall glyphs are scratched and harder to read. A prism shows up about once every 7 floors, and each visit uses a different shell (default, hex, twin, or stump) plus a little dressing. The hall glows green, and solving it floods the room with prism light. Beam contact blooms are unchanged.
+
 ## [0.7.4] - 2026-10-26
 
 _iPhone UI, puzzle polish, skill FX, power attack, enemy AI_
@@ -543,6 +564,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - Hosted on GitHub Pages.
 
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
+[0.7.5]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.5
 [0.7.4]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.4
 [0.7.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3
 [0.7.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.2

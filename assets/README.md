@@ -7,7 +7,9 @@ the game uses them instead. Missing or broken files are skipped silently, so the
 { "files": ["icon_sword_unique.png", "floor_moss.png"] }
 ```
 
-File names: lowercase letters, digits, `_` and `-`, ending in `.png`. Up to 400 files.
+File names: lowercase letters, digits, `_` and `-`, ending in `.png`. The loader accepts up to 1200 files.
+
+v0.7.5 shorter prisms live beside the v0.7.3 hall art: skin A keeps `prism_idle` / `dais_stone` (now 16×24), skins B/C/D are `prism_b_*`, `prism_c_*`, `prism_d_*` plus matching daises, `crank_base*`, and `prism_dress_*` (not `floor_*`, so they are not mixed into random floors). The beam is still drawn in code. `beam_contact_bloom_01`–`04` are unchanged.
 
 | Kind | File name | Size | Notes |
 |---|---|---|---|
