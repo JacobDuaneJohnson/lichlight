@@ -4,6 +4,23 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.7] - 2026-10-27
+
+_Move during a spike bite, map icons for what you have seen, flames that light your torch, room tile sets, a wider ambience mix, acid and lava pits that are not a black void_
+
+### Fixed
+- **Spiked gaps (B1)**: the 5% life bite and the snap back onto the tile you left are unchanged, and a dodge roll still hops the gap. The bite no longer roots you. You can walk, strafe, and dodge while the ticks land.
+
+### Added
+- **Map icons (F1)**: the first time a puzzle sconce, lever, dais, plaque, crank, glyph socket, secret wall, platform, dark portal, or sink stone is on a seen tile, its 8×8 icon is drawn on the map (M). Anything not yet seen stays off the map. The marks follow the floor save.
+- **Falling into acid or lava (F6)**: a pit over acid or lava draws the liquid void, rims, holes, and splash. Other pits stay the black void. The fall still costs half your life and does not kill you.
+
+### Changed
+- **Relighting (F2)**: any burning world flame — wall torch, brazier, lit puzzle sconce, iron flame, or fire pit — lights your torch with the same LIGHT TORCH use. A cold sconce or a snuffed torch does not.
+- **Puzzle sconces (F3)**: lit and unlit sconces use the standout brazier art, with a short flicker while they burn.
+- **Room tiles (F4)**: each room picks one variant for its floor and walls together. The letter is blank (the tiles already in the game), a, b, or c. Corridors share one letter. Castle, ice, bloody, demonic, lava, and damp sets stay in their own family.
+- **Ambience (F5)**: each floor rolls one bed and one explore track from its depth band, then crossfades to the next bed over 1.5–3 seconds. The last beds and the last track are skipped when the pool allows it. Ice leans wet and cave. Bloody, demonic, and lava planes lean deep crypt, bone, and the fire track. A lava room can switch to `amb_fire_hall_loop_01` when that cue is shipped; it is not in this pack, so those rooms keep the floor bed. Undercroft and catacomb bone sit a little quieter. One-shots stay on the 8–30 second gap, with no two of the same cue back to back.
+
 ## [0.7.6] - 2026-10-27
 
 _Zoom fog, hazard rooms, spiked gaps you can fall into, prism light, quieter acid and lava_

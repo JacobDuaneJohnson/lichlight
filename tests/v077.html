@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v077</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:960px;height:540px"></iframe>
+<pre id="out">running</pre>
+<script>
+const out = document.getElementById('out');
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 280) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  out.textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try {
+    const x = new XMLHttpRequest();
+    x.open('GET', url, false);
+    x.send(null);
+    return x.status === 200 ? x.responseText : '';
+  } catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function run(w) {
+  const g = w.game;
+  check('version', g && g.version === '0.7.7', g && g.version);
+  const src = fetchText('../index.html');
+  check('version source', src.indexOf("const VERSION = '0.7.7'") >= 0);
+  const man = JSON.parse(fetchText('../assets/manifest.json') || '{"files":[]}');
+  const files = man.files || [];
+  const has = n => files.indexOf(n) >= 0;
+  const icons = ['sconce', 'prism', 'dais', 'plaque', 'crank', 'glyph_socket', 'secret_wall', 'lever', 'platform', 'dark_portal', 'sink_stone'];
+  check('f1 icons', icons.every(k => has('map_icon_' + k + '.png')), icons.filter(k => !has('map_icon_' + k + '.png')).join(','));
+  check('f3 art', ['brazier_lit.png', 'brazier_unlit.png', 'puzzle_sconce_lit.png', 'puzzle_sconce_unlit.png', 'brazier_lit_01.png', 'puzzle_sconce_lit_04.png'].every(has));
+  check('f3 draw', w.drawV05Floor.toString().indexOf('puzzle_sconce_lit') >= 0 && w.drawV05Floor.toString().indexOf('brazier_lit') >= 0);
+  check('f4 variants', ['floor_damp_01_va.png', 'floor_damp_01_vb.png', 'floor_damp_01_vc.png', 'floor_castle_01_va.png', 'floor_ice_01_vb.png', 'floor_bloody_01_vc.png', 'floor_demonic_01_va.png', 'floor_lava_01_vb.png', 'wall_face_01_va.png', 'wall_face_bloody_01_va.png', 'wall_top_01_vc.png'].every(has));
+  check('f4 pool', /_v\(\[abc\]\)/.test(w.registerArt.toString()) && w.registerArt.toString().indexOf('ART_TILES.floor.push') > w.registerArt.toString().indexOf('_v([abc])'));
+  check('f6 art', ['fall_acid_void_01.png', 'fall_lava_void_01.png', 'fall_acid_rim_n.png', 'fall_lava_rim_nw.png', 'fall_acid_hole_01.png', 'fall_lava_ledge_wall_01.png', 'fx_fall_acid_splash_01.png', 'fx_fall_lava_splash_04.png'].every(has));
+  check('f6 draw', w.drawPitTile.toString().indexOf('drawFallPit') >= 0 && w.drawPitTile.toString().indexOf('#040206') >= 0);
+
+  const sfx = JSON.parse(fetchText('../assets/sfx/sfx.json') || '{}');
+  const cues = sfx.cues || {};
+  const cueN = (id, n) => cues[id] && cues[id].files && cues[id].files.length === n;
+  check('f5 beds', ['amb_undercroft_loop_01', 'amb_catacomb_bone_loop_01', 'amb_cistern_echo_loop_01', 'amb_ruin_draft_loop_01'].every(id => cueN(id, 1) && cues[id].loop));
+  check('f5 shots', cueN('amb_chain_rattle_01', 4) && cueN('amb_pebble_trickle_01', 4) && cueN('amb_pipe_sigh_01', 4) && cueN('amb_bat_flutter_01', 3) && cueN('amb_door_far_01', 3) && cueN('amb_torch_pop_01', 4));
+  check('f5 no fire hall file', !cues.amb_fire_hall_loop_01);
+  check('f5 trim', g && src.indexOf('amb_undercroft_loop_01: .75') >= 0 && src.indexOf('amb_catacomb_bone_loop_01: .75') >= 0 && src.indexOf('amb_door_far_01: .7') >= 0 && src.indexOf('amb_bat_flutter_01: .7') >= 0);
+  check('f5 shop boss', w.smpTick.toString().indexOf('amb_shop_loop_01') >= 0 && w.smpTick.toString().indexOf('amb_boss_arena_loop_01') >= 0 && w.musWantBed.toString().indexOf('V73.music') >= 0);
+
+  g.newGame();
+  g.startFloor(4, true);
+  const p = g.player;
+  if (p.hp < p.st.maxHp) p.hp = p.st.maxHp;
+  p.st.regen = 0;
+  let spike = null;
+  for (let ty = 2; ty < 46 && !spike; ty++) for (let tx = 2; tx < 62; tx++) if (w.tileAt(tx, ty) === 1 && g.walkable(tx, ty) && w.tileAt(tx + 1, ty) === 1) { spike = { tx, ty }; break; }
+  check('b1 tile', !!spike);
+  if (spike) {
+    g.spikes.push({ tx: spike.tx, ty: spike.ty, axis: 'h' });
+    p.roll = 0.2; p.x = (spike.tx + .5) * 16; p.y = (spike.ty + .5) * 16; p.safeX = p.x - 16; p.safeY = p.y;
+    w.v075AfterMove();
+    check('b1 roll hops', !g.pitAct);
+    p.roll = 0;
+    const hp0 = p.hp, maxHp = p.st.maxHp, backX = p.safeX, backY = p.safeY;
+    w.v075AfterMove();
+    check('b1 caught', g.pitAct && g.pitAct.kind === 'spikefall');
+    const x0 = p.x, y0 = p.y;
+    let moved = false;
+    for (const d of [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }]) {
+      if (!g.pitAct) break;
+      g.step(0.2, d);
+      if (g.pitAct && g.pitAct.kind === 'spikefall' && Math.hypot(p.x - x0, p.y - y0) > 3) { moved = true; break; }
+      p.x = x0; p.y = y0;
+    }
+    check('b1 moves during dot', moved, Math.round(p.x) + ',' + Math.round(p.y));
+    if (g.pitAct) { p.roll = 0; p.rollCd = 0; p.rollQ = 0.2; g.step(0.05, { x: 1, y: 0 }); }
+    check('b1 can dodge', !!(p.roll > 0 || p.rollCd > 0));
+    p.roll = 0;
+    for (let i = 0; i < 40 && g.pitAct; i++) g.step(0.1, { x: 0, y: 0 });
+    const lost = hp0 - p.hp;
+    check('b1 snap and bite', !g.pitAct && lost >= 1 && lost <= Math.max(1, Math.ceil(maxHp * 0.05)) + 1 && p.hp >= 1 && Math.abs(p.x - backX) < 2 && Math.abs(p.y - backY) < 2, 'lost ' + lost + ' at ' + Math.round(p.x) + ',' + Math.round(p.y));
+  }
+
+  g.startFloor(3, true);
+  const unseen = [];
+  for (let ty = 1; ty < 46; ty++) for (let tx = 1; tx < 62; tx++) if (w.tileAt(tx, ty) === 1 && !g.seenAt(tx, ty)) { unseen.push([tx, ty]); if (unseen.length > 4) break; }
+  check('f1 unseen tiles', unseen.length >= 2, unseen.length);
+  if (unseen.length >= 2) {
+    const [sx, sy] = unseen[0], sc = { kind: 'sconce', x: (sx + .5) * 16, y: (sy + .5) * 16, on: false, door: { open: false }, idx: 0 };
+    const [lx, ly] = unseen[1], lv = { kind: 'lever', x: (lx + .5) * 16, y: (ly + .5) * 16, on: false, door: { open: false }, idx: 0 };
+    g.puzzles.push(sc, lv);
+    const before = g.mapMarks().filter(m => (m.k === 'sconce' && m.tx === sx && m.ty === sy) || (m.k === 'lever' && m.tx === lx && m.ty === ly));
+    check('f1 hidden', before.length === 0, before.length);
+    g.seeTile(sx, sy);
+    const mid = g.mapMarks();
+    check('f1 sconce seen', mid.some(m => m.k === 'sconce' && m.tx === sx && m.ty === sy));
+    check('f1 lever still hidden', !mid.some(m => m.k === 'lever' && m.tx === lx && m.ty === ly));
+    g.seeTile(lx, ly);
+    check('f1 lever seen', g.mapMarks().some(m => m.k === 'lever' && m.tx === lx && m.ty === ly));
+  }
+
+  const pp = g.player;
+  pp.torches = 2; pp.torchT = 0;
+  let litB = false;
+  if (g.braziers.length) {
+    const b = g.braziers[0]; pp.x = b.x; pp.y = b.y;
+    litB = w.interactables().some(o => o.ref === b && o.label === 'LIGHT TORCH') && w.nearestInteract().label === 'LIGHT TORCH';
+  }
+  check('f2 brazier', litB);
+  const wt = (g.torches || []).find(t => t && !t.out) || (g.torches || [])[0];
+  if (wt) {
+    wt.out = false; pp.torchT = 0; pp.x = wt.x; pp.y = wt.y + 14;
+    check('f2 wall torch', w.interactables().some(o => o.ref === wt && o.label === 'LIGHT TORCH'));
+    wt.out = true; pp.torchT = 8;
+    const labs = w.interactables().filter(o => o.ref === wt).map(o => o.label);
+    check('f2 snuffed', labs.indexOf('LIGHT TORCH') < 0 && labs.indexOf('RELIGHT SCONCE') >= 0, labs.join(','));
+  } else check('f2 wall torch', false, 'no torch');
+  const spot = unseen[0] || [8, 8];
+  const cold = { kind: 'sconce', x: (spot[0] + .5) * 16, y: (spot[1] + .5) * 16, on: false, door: { open: false }, idx: 1 };
+  g.puzzles.push(cold);
+  pp.x = cold.x; pp.y = cold.y; pp.torchT = 0;
+  check('f2 cold sconce', !w.interactables().some(o => o.ref === cold && o.label === 'LIGHT TORCH') && w.interactables().some(o => o.ref === cold && o.label === 'COLD SCONCE'));
+  cold.on = true;
+  check('f2 lit sconce', w.interactables().some(o => o.ref === cold && o.label === 'LIGHT TORCH'));
+  const iron = { k: 'wall_torch_iron', tx: spot[0], ty: spot[1] };
+  g.bprops.push(iron);
+  pp.x = (iron.tx + .5) * 16; pp.y = (iron.ty + .5) * 16; pp.torchT = 0;
+  check('f2 iron torch', w.interactables().some(o => o.ref === iron && o.label === 'LIGHT TORCH'));
+  const pit = { tx: spot[0], ty: spot[1], n: 2 };
+  g.firepits.push(pit);
+  pp.x = pit.tx * 16 + 3; pp.y = pit.ty * 16 + 14; pp.torchT = 0;
+  check('f2 fire pit', w.interactables().some(o => o.ref === pit && o.label === 'LIGHT TORCH'));
+
+  const letters = ['', 'a', 'b', 'c'];
+  let saw = {};
+  for (let i = 0; i < 24; i++) saw[g.roomLetterOf(7, 3, i)] = 1;
+  check('f4 four letters', letters.every(L => saw[L]));
+  g.player.v77.seed = 7; g.v077Rooms();
+  const here = g.roomLetter(Math.floor(g.player.x / 16), Math.floor(g.player.y / 16));
+  g.v077Rooms();
+  check('f4 stable', here === g.roomLetter(Math.floor(g.player.x / 16), Math.floor(g.player.y / 16)) && letters.indexOf(here) >= 0, here);
+  let matched = 0, mismatched = 0;
+  for (let ty = 2; ty < 46 && matched + mismatched < 40; ty++) for (let tx = 2; tx < 62 && matched + mismatched < 40; tx++) {
+    if (w.tileAt(tx, ty) !== 1 || w.tileAt(tx, ty - 1) !== 0) continue;
+    if (g.roomLetter(tx, ty) === g.roomLetter(tx, ty - 1)) matched++; else mismatched++;
+  }
+  check('f4 floor and wall', matched >= 8 && mismatched === 0, matched + ' match / ' + mismatched + ' differ');
+  let tileL = null, tile0 = null;
+  for (let seed = 1; seed < 50 && (!tileL || !tile0); seed++) {
+    g.player.v77.seed = seed; g.v077Rooms();
+    for (let ty = 2; ty < 40 && (!tileL || !tile0); ty += 2) for (let tx = 2; tx < 50; tx += 2) {
+      if (w.tileAt(tx, ty) !== 1) continue;
+      const L = g.roomLetter(tx, ty);
+      if (L && !tileL) tileL = { tx, ty, L };
+      if (!L && !tile0) tile0 = { tx, ty };
+    }
+  }
+  check('f4 base and variant rooms', !!(tileL && tile0), (tileL && tileL.L) + ' / ' + !!tile0);
+  if (tileL) {
+    const marker = { tag: 'damp-' + tileL.L }, wall = { tag: 'wall-' + tileL.L };
+    for (let i = 1; i <= 5; i++) { g.artVar['floor_damp_0' + i] = g.artVar['floor_damp_0' + i] || {}; g.artVar['floor_damp_0' + i][tileL.L] = marker; g.artVar['wall_face_0' + i] = g.artVar['wall_face_0' + i] || {}; g.artVar['wall_face_0' + i][tileL.L] = wall; }
+    g.setBiome(null);
+    check('f4 damp floor', g.texFloor(tileL.tx, tileL.ty) === marker);
+    check('f4 base floor stays', tile0 && g.texFloor(tile0.tx, tile0.ty) !== marker);
+    const base = { tag: 'castle' }, swapped = { tag: 'castle-a' };
+    g.artStem.set(base, 'floor_castle_01');
+    g.artVar.floor_castle_01 = g.artVar.floor_castle_01 || {};
+    g.artVar.floor_castle_01[tileL.L] = swapped;
+    check('f4 vary together', g.varyTile(base, tileL.tx, tileL.ty) === swapped);
+    if (tile0) check('f4 blank keeps base', g.varyTile(base, tile0.tx, tile0.ty) === base);
+  }
+
+  function many(opt, n) { const out = []; for (let i = 1; i <= n; i++) out.push(g.ambChoose(Object.assign({ seed: 99, salt: i, prevBeds: [], fireHall: false }, opt))); return out; }
+  const shallow = many({ depth: 2, biome: null }, 40);
+  const shallowBeds = ['amb_crypt_stone_loop_01', 'amb_hall_stone_loop_01', 'amb_corridor_wind_loop_01', 'amb_undercroft_loop_01', 'amb_quiet_chamber_loop_01'];
+  check('f5 shallow beds', shallow.every(r => shallowBeds.indexOf(r.bed) >= 0 && r.music === 'mus_explore_crypt_01' && r.fade >= 1.5 && r.fade <= 3));
+  check('f5 shallow variety', new Set(shallow.map(r => r.bed)).size >= 2);
+  const banned = ['amb_hall_stone_loop_01', 'amb_corridor_wind_loop_01'];
+  const excl = many({ depth: 2, biome: null, prevBeds: banned }, 50);
+  check('f5 exclude two', excl.every(r => banned.indexOf(r.bed) < 0));
+  const abyssPrev = ['amb_deep_crypt_loop_01', 'amb_catacomb_bone_loop_01'];
+  const abyss = many({ depth: 14, biome: null, prevBeds: abyssPrev }, 60);
+  const abyssBeds = ['amb_deep_crypt_loop_01', 'amb_catacomb_bone_loop_01', 'amb_cistern_echo_loop_01'];
+  check('f5 abyss pool', abyss.every(r => abyssBeds.indexOf(r.bed) >= 0 && r.bed !== 'amb_catacomb_bone_loop_01'));
+  check('f5 abyss keeps older', abyss.some(r => r.bed === 'amb_deep_crypt_loop_01') && abyss.some(r => r.bed === 'amb_cistern_echo_loop_01'));
+  const ice = many({ depth: 6, biome: 'ice', proc: 'abyss' }, 80);
+  const iceOk = { amb_cave_wet_loop_01: 1, amb_cistern_echo_loop_01: 1, amb_undercroft_loop_01: 1 };
+  check('f5 ice music', ice.every(r => r.music === 'mus_explore_cave_01'));
+  check('f5 ice weight', ice.filter(r => iceOk[r.bed]).length >= 50, ice.filter(r => iceOk[r.bed]).length);
+  const classic = many({ depth: 6, biome: null }, 40).concat(many({ depth: 9, biome: 'castle' }, 40));
+  check('f5 no fire hall classic', classic.every(r => r.bed !== 'amb_fire_hall_loop_01'));
+  const plane = many({ depth: 11, biome: 'bloody', fireHall: false }, 60);
+  check('f5 plane no missing hall', plane.every(r => r.bed !== 'amb_fire_hall_loop_01'));
+  const planeFire = many({ depth: 11, biome: 'lava', fireHall: true }, 80);
+  const fireN = planeFire.filter(r => r.music === 'mus_explore_fire_01').length;
+  check('f5 plane fire music', fireN > planeFire.length / 2, fireN);
+  check('f5 plane can pick hall', planeFire.some(r => r.bed === 'amb_fire_hall_loop_01'));
+  const sewer = many({ depth: 5, biome: null, proc: 'catacomb' }, 80);
+  check('f5 sewer swap', sewer.every(r => r.bed !== 'amb_cave_wet_loop_01') && sewer.some(r => r.bed === 'amb_sewer_loop_01'));
+  const a = g.ambChoose({ depth: 8, biome: null, seed: 3, salt: 1, prevBeds: [] });
+  const b = g.ambChoose({ depth: 8, biome: null, seed: 3, salt: 9, prevBeds: [] });
+  check('f5 oneshot stable', a.ones.join() === b.ones.join());
+  check('f5 no back to back', a.ones.every((id, i) => i === 0 || id !== a.ones[i - 1]));
+  const midMus = many({ depth: 6, biome: null, prevMusic: 'mus_explore_crypt_01' }, 30);
+  check('f5 music exclude', midMus.every(r => r.music !== 'mus_explore_crypt_01'));
+  const r0 = g.rooms && g.rooms[0];
+  if (r0) { g.player.x = (r0.cx + .5) * 16; g.player.y = (r0.cy + .5) * 16; }
+  check('f5 quiet room', w.v073Bed(w.bedFor(g.depth)) === 'amb_quiet_chamber_loop_01', w.v073Bed(w.bedFor(g.depth)));
+  check('f5 floor bed stored', shallowBeds.concat(['amb_cave_wet_loop_01', 'amb_cistern_echo_loop_01', 'amb_ruin_draft_loop_01', 'amb_sewer_loop_01', 'amb_deep_crypt_loop_01', 'amb_catacomb_bone_loop_01']).indexOf(g.amb.bed) >= 0, g.amb.bed);
+  check('f5 fade stored', g.amb.fade >= 1.5 && g.amb.fade <= 3, g.amb.fade);
+
+  g.startFloor(2, true);
+  g.setBiome(null);
+  let clean = null;
+  for (let ty = 2; ty < 40 && !clean; ty++) for (let tx = 2; tx < 50; tx++) if (w.tileAt(tx, ty) === 3 || w.tileAt(tx, ty) === 1) { if (!g.fallHazardAt(tx, ty)) { clean = { tx, ty }; break; } }
+  check('f6 other pit black', !!clean && g.fallArtKey(clean.tx, clean.ty, 'pit_void_01') === null);
+  if (clean) {
+    g.setHaz(clean.tx, clean.ty, 2);
+    const acid = g.fallArtKey(clean.tx, clean.ty, 'pit_void_01');
+    check('f6 acid void', acid && acid.indexOf('fall_acid_void_') === 0, acid);
+    const rim = g.fallArtKey(clean.tx, clean.ty, 'pit_edge_n_moss');
+    check('f6 acid rim', rim === 'fall_acid_rim_n_moss', rim);
+    g.setHaz(clean.tx, clean.ty, 0);
+    g.setHaz(clean.tx + 1, clean.ty, 3);
+    const lava = g.fallArtKey(clean.tx, clean.ty, 'pit_hole');
+    check('f6 lava beside', lava && lava.indexOf('fall_lava_hole_') === 0, lava);
+    g.setHaz(clean.tx + 1, clean.ty, 0);
+    g.setBiome('lava');
+    check('f6 lava plane', (g.fallArtKey(clean.tx, clean.ty, 'pit_void_01') || '').indexOf('fall_lava_void_') === 0);
+    g.setBiome(null);
+    check('f6 cleared', g.fallArtKey(clean.tx, clean.ty, 'pit_void_01') === null);
+  }
+}
+</script>
+</body>
+</html>
