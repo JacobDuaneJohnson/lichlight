@@ -7,7 +7,11 @@ the game uses them instead. Missing or broken files are skipped silently, so the
 { "files": ["icon_sword_unique.png", "floor_moss.png"] }
 ```
 
-File names: lowercase letters, digits, `_` and `-`, ending in `.png`. The loader accepts up to 1200 files.
+File names: lowercase letters, digits, `_` and `-`, ending in `.png`. The loader accepts up to 2000 files.
+
+v0.7.7 adds 8×8 `map_icon_*.png` markers (drawn on the M map only after that tile is seen), `puzzle_sconce_*` / `brazier_lit*` stand-in art for puzzle sconces, `fall_acid_*` / `fall_lava_*` pit pieces (acid and lava pits only), and per-room tile variants named `<stem>_va.png`, `_vb.png`, `_vc.png`. Those variants are not mixed into the random floor pool. A room picks one letter (`''` keeps the base tile, `a`/`b`/`c` swap floor and walls together).
+
+v0.7.7 ambience adds beds `amb_undercroft_loop_01`, `amb_catacomb_bone_loop_01`, `amb_cistern_echo_loop_01`, `amb_ruin_draft_loop_01` and one-shot cues `amb_chain_rattle_01`, `amb_pebble_trickle_01`, `amb_pipe_sigh_01`, `amb_bat_flutter_01`, `amb_door_far_01`, `amb_torch_pop_01` (ogg q5 + m4a, 48 kHz). `amb_fire_hall_loop_01` is not in this pack; lava rooms keep the floor bed until that cue exists. Undercroft and catacomb-bone beds are trimmed in the mixer, not re-encoded.
 
 v0.7.5 shorter prisms live beside the v0.7.3 hall art: skin A keeps `prism_idle` / `dais_stone` (now 16×24), skins B/C/D are `prism_b_*`, `prism_c_*`, `prism_d_*` plus matching daises, `crank_base*`, and `prism_dress_*` (not `floor_*`, so they are not mixed into random floors). The beam is still drawn in code. `beam_contact_bloom_01`–`04` are unchanged.
 
