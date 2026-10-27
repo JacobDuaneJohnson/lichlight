@@ -4,6 +4,31 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.4] - 2026-10-26
+
+_iPhone UI, puzzle polish, skill FX, power attack, enemy AI_
+
+### Fixed
+- **iPhone main menu (B1)**: the title menu and pause menu now sit inside the safe area and scroll if needed. The version bar and Add to Home Screen hint no longer cover buttons on any iPhone size.
+- **HUD safe area (B2)**: the HUD, messages and touch HUD are inset from the notch, Dynamic Island and home indicator.
+- **Glimmer pools (B4)**: no more braziers or wall torches on top of glimmer pools, and DRINK now wins over nearby props, so drinking always works.
+- **Click-to-walk around pits (B5)**: on desktop, clicking across a pit now walks around it instead of heading for the edge and sliding the wrong way.
+
+### Added
+- **Secret glimmer (F1)**: unfound secret walls and squeeze gaps give off a faint shimmer that brightens as you get close.
+- **Skill icons (F2)**: Fireball, Whirlwind and Frost Nova have pixel-art icons, with a padlock until you learn them, on desktop and touch.
+- **Snakes (F3)**: snakes are critters now, not enemies. They flee from you and squeeze away under the nearest wall.
+- **8-bit puzzle art (F5)**: new pressure pads, platforms and prism puzzle sprites.
+- **Skill FX (F8)**: new cast and impact effects for all three skills. The avatar spins during Whirlwind, and Frost Nova is denser and colder.
+- **Power attack (F9)**: tap attack for a normal swing. Hold it to charge (you'll see a growing ring and glow), then release for up to 2.25x damage, longer reach and a big knockback. This works with the J key, the touch attack button, a click on an enemy and Ctrl+click. You move slower while charging.
+- **Enemy AI rewrite (F11)**: enemies move on the grid. They patrol one tile at a time and spot you only when you share their row or column within 6 tiles with a clear line. Then they show a "!" and pause briefly before charging in a straight line. A charger that hits a wall is stunned for a moment. Ranged and special attacks still fire once they're engaged.
+
+### Changed
+- **Ice (F4)**: the Frozen Crypt is no longer part of the normal depth cycle. Ice now appears only in bonus rooms (dark-portal planes).
+- **Mobile zoom (F6)**: zoom steps on phones are 1x / 1.15x / 1.25x / 1.35x. Desktop zoom is unchanged.
+- **Squeeze tip (F7)**: the "squeeze through" tip appears only once, ever (per run and per device).
+- **Descend (F10)**: the way down no longer has an Examine step. A rotating "Descend into the deep" style prompt appears, and one USE takes you to the next level. Boss floors still bar the way.
+
 ## [0.7.3.1] - 2026-10-26
 
 _Auto-equip when slot empty_
@@ -518,6 +543,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - Hosted on GitHub Pages.
 
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
+[0.7.4]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.4
 [0.7.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3
 [0.7.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.2
 [0.7.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.1

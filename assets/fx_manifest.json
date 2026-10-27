@@ -1,0 +1,251 @@
+{
+ "fx_fireball_cast": {
+  "frames": [
+   "fx_fireball_cast_01.png",
+   "fx_fireball_cast_02.png",
+   "fx_fireball_cast_03.png",
+   "fx_fireball_cast_04.png"
+  ],
+  "size": [
+   24,
+   24
+  ],
+  "fps": 12,
+  "loop": false,
+  "anchor": [
+   6,
+   12
+  ],
+  "facing": "+X",
+  "note": "anchor=hand/mouth; rotate to aim"
+ },
+ "fx_fireball_proj": {
+  "frames": [
+   "fx_fireball_proj_01.png",
+   "fx_fireball_proj_02.png",
+   "fx_fireball_proj_03.png",
+   "fx_fireball_proj_04.png"
+  ],
+  "size": [
+   16,
+   16
+  ],
+  "fps": 14,
+  "loop": true,
+  "anchor": "centre",
+  "facing": "+X",
+  "note": "head at x~10; rotate to velocity"
+ },
+ "fx_fireball_impact": {
+  "frames": [
+   "fx_fireball_impact_01.png",
+   "fx_fireball_impact_02.png",
+   "fx_fireball_impact_03.png",
+   "fx_fireball_impact_04.png",
+   "fx_fireball_impact_05.png",
+   "fx_fireball_impact_06.png"
+  ],
+  "size": [
+   32,
+   32
+  ],
+  "fps": 14,
+  "loop": false,
+  "anchor": "centre"
+ },
+ "fx_fireball_ember": {
+  "frames": [
+   "fx_fireball_ember_01.png",
+   "fx_fireball_ember_02.png",
+   "fx_fireball_ember_03.png"
+  ],
+  "size": [
+   8,
+   8
+  ],
+  "fps": 10,
+  "loop": false,
+  "anchor": "centre",
+  "note": "particle chips hot->cool; spray 6-12"
+ },
+ "fx_whirlwind_swirl": {
+  "frames": [
+   "fx_whirlwind_swirl_01.png",
+   "fx_whirlwind_swirl_02.png",
+   "fx_whirlwind_swirl_03.png",
+   "fx_whirlwind_swirl_04.png",
+   "fx_whirlwind_swirl_05.png",
+   "fx_whirlwind_swirl_06.png"
+  ],
+  "size": [
+   48,
+   48
+  ],
+  "fps": 14,
+  "loop": true,
+  "anchor": "centre(player)",
+  "note": "3-fold, 40deg/frame, clockwise"
+ },
+ "fx_whirlwind_swirl64": {
+  "frames": [
+   "fx_whirlwind_swirl64_01.png",
+   "fx_whirlwind_swirl64_02.png",
+   "fx_whirlwind_swirl64_03.png",
+   "fx_whirlwind_swirl64_04.png",
+   "fx_whirlwind_swirl64_05.png",
+   "fx_whirlwind_swirl64_06.png"
+  ],
+  "size": [
+   64,
+   64
+  ],
+  "fps": 14,
+  "loop": true,
+  "anchor": "centre(player)",
+  "note": "same swirl sized to r=32 hit ring"
+ },
+ "fx_whirlwind_slash": {
+  "frames": [
+   "fx_whirlwind_slash_01.png",
+   "fx_whirlwind_slash_02.png",
+   "fx_whirlwind_slash_03.png",
+   "fx_whirlwind_slash_04.png"
+  ],
+  "size": [
+   32,
+   32
+  ],
+  "fps": 16,
+  "loop": false,
+  "anchor": "centre = orbit point",
+  "note": "orbit at r~0 around player, rotate per spawn"
+ },
+ "fx_whirlwind_dust": {
+  "frames": [
+   "fx_whirlwind_dust_01.png",
+   "fx_whirlwind_dust_02.png",
+   "fx_whirlwind_dust_03.png",
+   "fx_whirlwind_dust_04.png"
+  ],
+  "size": [
+   16,
+   16
+  ],
+  "fps": 10,
+  "loop": false,
+  "anchor": "bottom-centre (8,12)"
+ },
+ "fx_frost_nova_ring": {
+  "frames": [
+   "fx_frost_nova_ring_01.png",
+   "fx_frost_nova_ring_02.png",
+   "fx_frost_nova_ring_03.png",
+   "fx_frost_nova_ring_04.png",
+   "fx_frost_nova_ring_05.png",
+   "fx_frost_nova_ring_06.png"
+  ],
+  "size": [
+   64,
+   64
+  ],
+  "fps": 13,
+  "loop": false,
+  "anchor": "centre(player)",
+  "note": "scale 70/30 ~= x2.3 NN-ish (or x2) to match r=70"
+ },
+ "fx_frost_nova_burst": {
+  "frames": [
+   "fx_frost_nova_burst_01.png",
+   "fx_frost_nova_burst_02.png",
+   "fx_frost_nova_burst_03.png",
+   "fx_frost_nova_burst_04.png"
+  ],
+  "size": [
+   32,
+   32
+  ],
+  "fps": 14,
+  "loop": false,
+  "anchor": "centre(player)"
+ },
+ "fx_frost_shard": {
+  "frames": [
+   "fx_frost_shard_01.png",
+   "fx_frost_shard_02.png",
+   "fx_frost_shard_03.png",
+   "fx_frost_shard_04.png",
+   "fx_frost_shard_05.png",
+   "fx_frost_shard_06.png"
+  ],
+  "size": [
+   [
+    8,
+    8
+   ],
+   [
+    8,
+    8
+   ],
+   [
+    8,
+    8
+   ],
+   [
+    12,
+    12
+   ],
+   [
+    12,
+    12
+   ],
+   [
+    12,
+    12
+   ]
+  ],
+  "fps": 0,
+  "loop": false,
+  "anchor": "centre",
+  "note": "01-03 8x8, 04-06 12x12; random pick, spawn many"
+ },
+ "fx_frost_sparkle": {
+  "frames": [
+   "fx_frost_sparkle_01.png",
+   "fx_frost_sparkle_02.png",
+   "fx_frost_sparkle_03.png"
+  ],
+  "size": [
+   [
+    8,
+    8
+   ],
+   [
+    8,
+    8
+   ],
+   [
+    4,
+    4
+   ]
+  ],
+  "fps": 10,
+  "loop": false,
+  "anchor": "centre",
+  "note": "01-02 8x8, 03 4x4; twinkle big->small"
+ },
+ "fx_frost_mist": {
+  "frames": [
+   "fx_frost_mist_01.png",
+   "fx_frost_mist_02.png",
+   "fx_frost_mist_03.png"
+  ],
+  "size": [
+   16,
+   16
+  ],
+  "fps": 6,
+  "loop": false,
+  "anchor": "centre",
+  "note": "low alpha 110/85/55; fade sequence or random"
+ }
+}
