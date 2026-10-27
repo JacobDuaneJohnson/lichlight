@@ -3547,7 +3547,7 @@ function updateSurvival(dt) {
   if (drip && p.hp > 1) p.hp = Math.max(1, p.hp - p.st.maxHp * .006 * drip * dt); // harsh: slow life drain (never the killing blow on its own)
   const warn = (k, lvl, txt) => { const f = k + lvl; if (p[k] < lvl && !p.sw[f]) { p.sw[f] = 1; flashMsg(txt, '#d0a060'); } else if (p[k] > lvl + 10) p.sw[f] = 0; };
   if (!p.sw) p.sw = {};
-  const drainSay = (key, empty, line) => { if (!empty) { p.sw[key] = 0; return; } if (p.hp <= 1) return; if ((p.sw[key] || 0) > time) return; if (thought.life > 1.2 && thought.ent === p) return; p.sw[key] = time + 16; sayThought(p, line, PLAYER_BUBBLE); }; // v0.7.5 F6: only while the drain is actually hurting
+  const drainSay = (key, empty, line) => { if (!empty) { p.sw[key] = 0; return; } if (p.hp <= 1) return; const nowT = Math.max(time, 0); if ((p.sw[key] || 0) > nowT) return; if (thought.life > 1.2 && thought.ent === p) return; p.sw[key] = nowT + 16; sayThought(p, line, PLAYER_BUBBLE); }; // v0.7.5 F6: only while the drain is actually hurting
   drainSay('starveSay', p.hunger <= 0, "I'm starving to death!"); drainSay('thirstSay', p.thirst <= 0, "I'm dying of thirst!");
   warn('hunger', 25, 'Your stomach growls. Eat a ration (bag).'); warn('hunger', 1, 'You are starving! Life is draining away.');
   warn('thirst', 25, 'Your throat is dry. Drink from a basin or running water.'); warn('thirst', 1, 'You are parched! Life drains and spells cost more mana.');
@@ -5609,7 +5609,19 @@ function glyphWord075(id) { return GLYPH_WORD[id] || id; }
 function prismWant(d, H) { if (window.__prismForce !== undefined) return !!window.__prismForce && d >= 3; return d >= 7 && d % 7 === 0; } // v0.7.5 F4: about once every 7 levels
 function prismRay(ox, oy, k) { const a = k / PRISM_STOPS * 6.2832, dx = Math.cos(a), dy = Math.sin(a);
   for (let d = 1; d < 420; d++) { const x = ox + dx * d, y = oy + dy * d, tx = Math.floor(x / TS), ty = Math.floor(y / TS); if (tileAt(tx, ty) === TILE.WALL) return { x: Math.round(x), y: Math.round(y), tx, ty }; } return null; }
-function placePrism(d) { const boss = bossForDepth(d), s = entStairs(), cand = shuf(rooms.slice(1, boss ? -1 : rooms.length).filter(r => r.w >= 9 && r.h >= 4));
+function carvePrismHall075() { const w = 10, h = 5;
+  for (let k = 0; k < 500; k++) { const x = irand(2, MW - w - 3), y = irand(4, MH - h - 4); let solid = true;
+    for (let j = y - 2; j <= y + h && solid; j++) for (let i = x - 1; i <= x + w; i++) if (tileAt(i, j) !== TILE.WALL) solid = false;
+    if (!solid) continue; const doors = [];
+    const consider = (tx, ty, fx, fy) => { if (tileAt(tx, ty) === TILE.WALL && tileAt(fx, fy) === TILE.FLOOR) doors.push([tx, ty]); };
+    for (let i = x + 1; i < x + w - 1; i++) consider(i, y + h, i, y + h + 1); // south door only: the north wall keeps the glyph sockets
+    for (let j = y + 1; j < y + h - 1; j++) { consider(x - 1, j, x - 2, j); consider(x + w, j, x + w + 1, j); }
+    if (!doors.length) continue; const door = doors[irand(0, doors.length - 1)];
+    for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) map[j * MW + i] = TILE.FLOOR;
+    map[door[1] * MW + door[0]] = TILE.FLOOR;
+    const r = { x, y, w, h, cx: x + (w >> 1), cy: y + (h >> 1), prismHall: 1 }; rooms.push(r); return r; }
+  return null; }
+function placePrism(d, carved) { const boss = bossForDepth(d), s = entStairs(), cand = carved ? [carved] : shuf(rooms.slice(1, boss ? -1 : rooms.length).filter(r => r.w >= 9 && r.h >= 4));
   for (const r of cand) {
     if (s && s.tx >= r.x - 2 && s.tx <= r.x + r.w + 1 && s.ty >= r.y - 2 && s.ty <= r.y + r.h + 1) continue;
     let ok = true; for (let y = r.y; y < r.y + r.h && ok; y++) for (let x = r.x; x < r.x + r.w && ok; x++) ok = tileAt(x, y) === TILE.FLOOR && !hazAt(x, y) && !firepitAt((x + .5) * TS, (y + .5) * TS - 2);
@@ -5623,10 +5635,11 @@ function placePrism(d) { const boss = bossForDepth(d), s = entStairs(), cand = s
       const pl = fourR(R), wl = two(L.slice(0, Math.max(0, L.length))); if (pl && wl) lays.push({ cx, pc: pl, crank: pl[3], plq: pl[0], sx: wl[0] }); // plaque by the glyphs, crank at the far end
       const pr = four(L), wr = two(R); if (pr && wr) lays.push({ cx, pc: pr, crank: pr[0], plq: pr[1], sx: wr[0] }); }
     if (!lays.length) continue; const Ly = pick(lays), cx = Ly.cx, skin = prismSkin075(d), SK = PRISM_SKINS[skin], Fh = SK.h - SK.by, ox = cx * TS + 8, oy = r.y * TS + 45 - Fh;
-    const hits = []; for (let k = 0; k < PRISM_STOPS; k++) hits.push(prismRay(ox, oy, k));
+    const rayY = r.y * TS + 21; // visual origin sits lower on the short prism; this height still strikes the north sockets
+    const hits = []; for (let k = 0; k < PRISM_STOPS; k++) hits.push(prismRay(ox, rayY, k));
     const north = [5, 6, 7].map(k => ({ k, h: hits[k] })).filter(q => q.h && q.h.ty === fy && q.h.tx >= cx - 1 && q.h.tx <= cx + 1);
     if (north.length < 3 || new Set(north.map(q => q.h.tx)).size < 3) continue;
-    const side = [0, 4].map(k => ({ k, h: hits[k] })).filter(q => q.h && q.h.ty === Math.floor(oy / TS) && (q.h.tx === r.x - 1 || q.h.tx === r.x + r.w));
+    const side = [0, 4].map(k => ({ k, h: hits[k] })).filter(q => q.h && q.h.ty === Math.floor(rayY / TS) && (q.h.tx === r.x - 1 || q.h.tx === r.x + r.w));
     const N = d >= 8 && side.length ? 4 : 3, ids = shuf(PRISM_POOL.slice()).slice(0, N), cells = north.slice(); if (N === 4) cells.push(pick(side));
     const glyphs = shuf(cells.slice()).map((q, i) => ({ tx: q.h.tx, ty: q.h.ty, k: q.k, id: ids[i], st: 0, face: q.h.ty === fy ? 1 : 0 }));
     const seq = shuf(ids.slice()), used = new Set([cx - 1, cx, cx + 1, ...Ly.pc, Ly.sx, Ly.sx + 1]), decoy = [];
@@ -5641,6 +5654,7 @@ function placePrism(d) { const boss = bossForDepth(d), s = entStairs(), cand = s
     dropDecorOn(busyT); setp = setp.filter(o => !SETP_SOFT(o) || !busyT(Number.isFinite(o.tx) ? o.tx : Math.floor(o.x / TS), Number.isFinite(o.ty) ? o.ty : Math.floor(o.y / TS)));
     V72.bprops = V72.bprops.filter(o => !(o.tx >= r.x - 1 && o.tx <= r.x + r.w && (o.ty === r.y || busyT(o.tx, o.ty))));
     return true; }
+  if (!carved) { const hall = carvePrismHall075(); if (hall) return placePrism(d, hall); }
   return false; }
 function prismAt(P, k) { const h = P.hits[k]; return h ? P.glyphs.find(q => q.tx === h.tx && q.ty === h.ty) || null : null; }
 function prismGateTiles(P) { const W = P && P.wall; if (!W) return []; if (W.tiles && W.tiles.length) return W.tiles; const y = W.gy != null ? W.gy : P.fy; return [[W.sx, y], [W.sx + 1, y]]; }
@@ -5798,7 +5812,7 @@ function v073Emissive() { const P = V73.prism; if (P && P.solved) { ctx.save(); 
 // ---------- main loop ----------
 let last = performance.now();
 function loop(now) {
-  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  const dt = Math.min(.05, Math.max(0, (now - last) / 1000)); last = now;
   const blocked = !$('rotate').classList.contains('hidden');
   if (state === 'play' && !blocked) update(dt); else { time += dt; if (state === 'sleep') updateSleep(dt); }
   updateHover(); render(); updateTouchHUD(); updateMusic(); smpTick(dt); musTick(); updateGroundTip();
@@ -6024,7 +6038,11 @@ function aiCheb075(a, b) { return Math.max(Math.abs(a.tx - b.tx), Math.abs(a.ty 
 function aiLineOpen075(map, x0, y0, x1, y1) { let x = x0, y = y0, dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0), sx = Math.sign(x1 - x0), sy = Math.sign(y1 - y0), err = dx - dy;
   while (x !== x1 || y !== y1) { const e2 = err * 2; if (e2 > -dy) { err -= dy; x += sx; } if (e2 < dx) { err += dx; y += sy; } if (x === x1 && y === y1) return true; if (!aiOpen(map, x, y)) return false; } return true; }
 function aiNearDir075(A, player, map) { const n = aiCheb075(A, player), C = A.cfg || AI_CFG; if (n < 1 || n > (C.near || 5)) return null; if (!aiLineOpen075(map, A.tx, A.ty, player.tx, player.ty)) return null; return aiLockDir(A, player); }
-function aiStepToward075(A, player, map, blocked) { let best = null; for (const k in AI_DIR) { const dx = AI_DIR[k][0], dy = AI_DIR[k][1], x = A.tx + dx, y = A.ty + dy; if (!aiOpen(map, x, y) || (blocked && blocked(x, y))) continue; const nd = Math.max(Math.abs(x - player.tx), Math.abs(y - player.ty)); if (!best || nd < best.nd) best = { k, x, y, nd }; } return best; }
+function aiStepToward075(A, player, map, blocked) { let best = null; const far = aiCheb075(A, player);
+  for (const k in AI_DIR) { const dx = AI_DIR[k][0], dy = AI_DIR[k][1], x = A.tx + dx, y = A.ty + dy; if (!aiOpen(map, x, y) || (blocked && blocked(x, y))) continue;
+    const nd = Math.max(Math.abs(x - player.tx), Math.abs(y - player.ty)); if (nd > far) continue; const man = Math.abs(x - player.tx) + Math.abs(y - player.ty), back = x === A.fromX && y === A.fromY;
+    if (!best || nd < best.nd || (nd === best.nd && (back < best.back || (back === best.back && man < best.man)))) best = { k, x, y, nd, man, back }; }
+  return best; }
 // updateEnemyAI(enemy, player, map, currentTime[, opts]) -> event name or null
 //   enemy: instance above; player: { tx, ty } grid tile; map: 2D array, 0 walkable / 1 wall; currentTime: ms (performance.now() or any monotonic ms clock)
 //   opts (optional): { blocked(x, y) -> true if another body holds the tile, slow: tick multiplier, flee: true to step away from the player }
@@ -6045,7 +6063,7 @@ function updateEnemyAI(enemy, player, map, currentTime, opts) { const A = enemy,
     case 'CHASE': { const far = aiCheb075(A, player); A.engagedUntil = currentTime + (C.engagedMs || 4000); A.showAlertIcon = false;
       if (far > (C.escape || 12)) { A.state = 'PATROL'; A.spotted = false; A.dir = null; A.nextTick = currentTime + C.patrolMs * mul; return 'drop'; }
       if (far <= 1) { A.dir = aiLockDir(A, player); A.nextTick = currentTime + (C.chaseMs || 160) * mul; return 'hold'; }
-      const step = aiStepToward075(A, player, map, o.blocked); if (!step || step.nd >= far) { A.state = 'STUNNED'; A.stunBack = 'CHASE'; A.nextTick = currentTime + Math.min(C.stunMs || 1200, 500) * mul; return 'stun'; }
+      const step = aiStepToward075(A, player, map, o.blocked); if (!step) { A.state = 'STUNNED'; A.stunBack = 'CHASE'; A.nextTick = currentTime + Math.min(C.stunMs || 1200, 500) * mul; return 'stun'; }
       A.dir = step.k; A.tx = step.x; A.ty = step.y; A.nextTick = currentTime + (C.chaseMs || 160) * mul; A.moveMs = (C.chaseMs || 160) * mul; return 'chase'; }
     case 'CHARGING': { const [dx, dy] = AI_DIR[A.dir] || [0, 0], x = A.tx + dx, y = A.ty + dy;
       if (!aiOpen(map, x, y)) { A.state = 'STUNNED'; A.stunBack = null; A.nextTick = currentTime + C.stunMs * mul; return 'stun'; }

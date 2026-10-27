@@ -59,7 +59,7 @@ function run(w) {
     [1, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1]
   ];
-  const ai = w.createEnemyAI(1, 4, 0);
+  const ai = w.createEnemyAI(1, 4, 0); ai.nextTick = 0;
   const pl = { tx: 4, ty: 2 };
   let ev = w.updateEnemyAI(ai, pl, open, 0);
   check('b1 diagonal alert', ev === 'alert' && ai.state === 'ALERT', ev + ' ' + ai.state);
@@ -73,7 +73,7 @@ function run(w) {
   check('b1 keeps aggro', ev === 'hold' && ai.state === 'CHASE', ev + ' ' + ai.state);
   ev = w.updateEnemyAI(ai, { tx: 40, ty: 40 }, open, ai.nextTick);
   check('b1 drops when far', ev === 'drop' && ai.state === 'PATROL', ev + ' ' + ai.state);
-  const ai2 = w.createEnemyAI(1, 1, 0);
+  const ai2 = w.createEnemyAI(1, 1, 0); ai2.nextTick = 0;
   ev = w.updateEnemyAI(ai2, { tx: 5, ty: 1 }, open, 0);
   check('b1 axis still alerts', ev === 'alert', ev);
   const ai3 = w.createEnemyAI(1, 1, 0);
@@ -95,9 +95,9 @@ function run(w) {
   g.newGame();
   const p0 = g.player;
   p0.hunger = 0; p0.thirst = 100; p0.hp = 40; p0.sw = {};
-  g.thought.life = 0;
+  g.thought.life = 0; g.thought.ent = null;
   g.updateSurvival(0.05);
-  check('f6 starve line', g.thought.text === "I'm starving to death!", g.thought.text);
+  check('f6 starve line', g.thought.text === "I'm starving to death!", JSON.stringify({ t: g.thought.text, life: g.thought.life, hp: p0.hp, h: p0.hunger, sw: p0.sw }));
   const cd = p0.sw.starveSay;
   g.updateSurvival(0.05);
   check('f6 starve cooldown', p0.sw.starveSay === cd, p0.sw.starveSay);
@@ -129,7 +129,7 @@ function run(w) {
     const dress = P.dress || [];
     if (!dress.length) gateBad++;
   }
-  check('b3 prism places', placed >= 4, placed + '/6 skins ' + JSON.stringify(skins));
+  check('b3 prism places', placed >= 5, placed + '/6 skins ' + JSON.stringify(skins));
   check('b3 chest off gate', chestBad === 0, chestBad);
   check('b3 gate sealed wall', gateBad === 0, gateBad);
   check('b3 vault gold', goldN === placed, goldN);
@@ -142,12 +142,12 @@ function run(w) {
     const stillBlocked = gilt && P.wall.tiles.some(([x, y]) => gilt.tx === x && gilt.ty === y);
     check('b3 gate opens to floor', openFloor && P.wall.open);
     check('b3 chest stays inside', gilt && !stillBlocked && gilt.tx >= P.vault.x && gilt.tx < P.vault.x + P.vault.w, gilt && (gilt.tx + ',' + gilt.ty));
-    const pile = g.ground.find(o => o.gold);
+    const pile = g.ground.find(o => o.gold && o.x >= P.vault.x * 16 && o.x < (P.vault.x + P.vault.w) * 16 && o.y >= P.vault.y * 16 && o.y < (P.vault.y + P.vault.h) * 16);
     if (pile) {
       check('b4 still hidden until entered', w.lootHidden075(pile) === true);
       P.vault.entered = true;
       check('b4 visible after enter', w.lootHidden075(pile) === false);
-    }
+    } else lines.push('FAIL b4 vault pile :: none');
   }
   const skinAt = {};
   for (const d of [7, 14, 21, 28]) {
@@ -194,7 +194,7 @@ function run(w) {
     const S = g.spikes || [];
     if (!S.length) continue;
     spikes = S.length;
-    blocked = S.filter(s => !w.walkable(s.tx, s.ty)).length;
+    blocked = S.filter(s => !g.walkable(s.tx, s.ty)).length;
     const s = S[0];
     const plr = g.player;
     plr.roll = 0.2; plr.x = (s.tx + .5) * 16; plr.y = (s.ty + .5) * 16; plr.safeX = plr.x - 16; plr.safeY = plr.y;
@@ -204,7 +204,7 @@ function run(w) {
     const hp0 = plr.hp, maxHp = plr.st.maxHp;
     w.v075AfterMove();
     check('f7 walk-in falls', g.pitAct && g.pitAct.kind === 'spikefall');
-    for (let i = 0; i < 25; i++) w.updatePitAct(0.1);
+    for (let i = 0; i < 25 && g.pitAct; i++) w.updatePitAct(0.1);
     const lost = hp0 - plr.hp;
     check('f7 5% then back', !g.pitAct && lost >= 1 && lost <= Math.max(1, Math.ceil(maxHp * 0.05)) + 1 && plr.hp >= 1, 'lost ' + lost + ' hp ' + plr.hp + ' at ' + Math.round(plr.x) + ',' + Math.round(plr.y));
   }
