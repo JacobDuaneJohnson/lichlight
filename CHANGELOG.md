@@ -4,6 +4,28 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.6] - 2026-10-27
+
+_Zoom fog, hazard rooms, spiked gaps you can fall into, prism light, quieter acid and lava_
+
+### Fixed
+- **Desktop zoom fog (B1)**: at 0.25x, 0.35x, 0.5x, 0.75x and 1x, the lightmap, torch light, fog and shadows cover the same world the camera shows. Unexplored and unlit rooms stay hidden when you zoom out. Phone zoom steps are unchanged.
+- **Rituals in hazard rooms (B2)**: a ritual site no longer appears in an acid or lava room, including on the stone path through the pool.
+- **Spiked gaps (B3)**: a spiked hallway gap is a pit you can walk into, not a solid wall. Walking in drops you onto the spikes for 5% of your max life over 2 seconds (never the killing blow), then puts you back on the tile you left. A dodge roll or leap still hops the gap.
+
+### Added
+- **Drink gulp (F2)**: a successful drink plays `player_drink_gulp_01`–`03` once (`drink_gulp`). Potion drinks keep their own cue.
+- **Eat munch (F3)**: eating a ration plays `player_eat_munch_01`–`03` once (`eat_munch`). It does not play the gulp.
+- **Tile sink (F6)**: a sinking stone plays `wld_tile_sink_01`–`03` once, from where the stone is, when the drop starts.
+
+### Changed
+- **Prism solve light (F1)**: solving a prism casts a soft green light with falloff. It spills through open doors into nearby halls and stops at walls. The old flat room fill is gone.
+- **Louder rest (F4)**: sleep uses `player_rest_snore_v2_loop_01`, and waking uses `player_rest_refreshed_v2_01`–`02`. The old rest bed is not played on top.
+- **Quieter acid and lava (F5)**: hazard pools use the quieter tiles, with a few bubbles (and lava embers) on top. Acid glows `#5CFF3A`. Lava glows `#FF7A1A`, with a faint outline on the pool's edge.
+- **Map (F7)**: the M map has no cell grid, and the overlay is more transparent.
+- **Spike-gap art (F8)**: spiked gaps draw `spike_gap_h` and `spike_gap_v` instead of a procedural fill.
+- **Glimmer pools (F9)**: one drink from a pool grants +25% bonus XP. Another drink from that same pool does nothing.
+
 ## [0.7.5] - 2026-10-27
 
 _Chase, true loot deltas, prism vaults, scarcer gold, a shop after every boss_

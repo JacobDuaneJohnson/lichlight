@@ -271,7 +271,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.5'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.6'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -554,6 +554,7 @@ const SMP = { state: 'idle', man: null, buf: {}, fail: {}, last: {}, voices: [],
 const SMP_GAIN = .42; // samples peak at -1 dBFS; this sits them next to the old procedural mix
 const SMP_MIX = { player_step_stone_01: .192 /* v0.7.1 §1: 60% of .32 */, wld_pit_fall_scare_01: 1.26 /* +2 dB, low-heavy */, cbt_miss_01: .8, ui_slider_tick_01: .8, wld_pickup_gold_01: .8, cbt_kill_confirm_01: .7, enm_grunt_hurt_01: .7, enm_ranged_hurt_01: .7,
   player_hurt_01: 1.15, player_death_01: 1.1, enm_boss_intro_sting_01: .9, meta_floor_enter_01: .7, meta_gameover_01: .85, cbt_proj_arrow_impact_01: .6, cbt_proj_magic_bolt_impact_01: .7,
+  player_drink_gulp_01: 1.15, player_eat_munch_01: 1.1, wld_tile_sink_01: 1.05, player_rest_refreshed_v2_01: 1.15, player_rest_snore_v2_loop_01: 1.2, /* v0.7.6 */
   ui_hover_01: .7, ui_menu_open_01: .8, ui_menu_close_01: .8, enm_grunt_alert_01: .75, enm_ranged_alert_01: .75, enm_skeleton_rattle_01: .7, enm_ghost_wail_01: .7, wld_mechanism_loop_01: .8 };
 // big stingers duck the music 3-6 dB for their length; player hurt ducks music + ambience ~150 ms so the hit reads
 const SMP_DUCK = { player_levelup_01: -5, enm_boss_intro_sting_01: -6, wld_pickup_rare_01: -4, wld_loot_rare_drop_01: -4, meta_floor_enter_01: -5, meta_gameover_01: -6, player_death_01: -6,
@@ -619,6 +620,7 @@ function swingCue() { return heavyWeapon() ? 'player_swing_heavy_01' : 'player_s
 const SFX_CUE = {
   swing: 'player_swing_light_01', hurt: 'player_hurt_01', fire: 'wld_torch_light_01', pick: () => 'wld_pickup_item_01', lvl: 'player_levelup_01',
   drink: 'wld_potion_drink_01', stairs: 'wld_stairs_down_01', die: () => ['player_death_01'].concat(musSting('mus_gameover_01', { delay: 1.5 }) ? [] : [['meta_gameover_01', { delay: 1.5 }]]),
+  gulp: 'player_drink_gulp_01', drink_gulp: 'player_drink_gulp_01', eat: 'player_eat_munch_01', eat_munch: 'player_eat_munch_01', sink: 'wld_tile_sink_01', tile_sink: 'wld_tile_sink_01', /* v0.7.6 F2 F3 F6: not wld_potion_drink */
   pitfall: 'wld_pit_fall_scare_01', /* v0.7.1 §3 Razz pit-fall scare (3 variants) */ drip: 'wld_water_drip_01', wind: 'amb_wind_gust_01', mob: 'amb_creepy_distant_01', /* P2 ambient one-shots (ambience slider) */ roll: 'player_dash_01', fail: 'ui_error_01',
   break: 'wld_breakable_crate_01', shatter: 'wld_breakable_pot_01', nova: 'player_cast_release_01',
   fbcast: 'player_cast_release_01', fbboom: 'cbt_proj_fireball_impact_01', whirl: 'player_swing_heavy_01', frost: ['player_cast_release_01', 'cbt_status_freeze_apply_01'],
@@ -1452,7 +1454,8 @@ function drawChests() { for (const c of chests) ctx.drawImage(c.open ? CHEST.ope
 const TORCH_TIME = 85, TORCH_WARN = 15, TORCH_CAP = 5, BASE_LIGHT = 20, TORCH_LIGHT = 96; /* v0.7.3 §13: torch reach 128 -> 96 */
 // v0.4.5: a notch more saturated (warmer ambers, richer colds) at the same brightness, plus skill / glimmer tints
 const LCOL = { warm: [255, 190, 116], fire: [255, 128, 34], cold: [100, 136, 255], violet: [176, 96, 255], red: [255, 58, 38], dim: [110, 96, 110], teal: [72, 232, 204], white: [230, 230, 255],
-  amber: [255, 150, 36], steel: [228, 196, 124], ice: [84, 218, 255], storm: [214, 196, 255], venom: [140, 230, 68], shadow: [150, 80, 222], glimmer: [150, 242, 230], lich: [150, 250, 165] }; /* v0.7.3: lich = prism beam */
+  amber: [255, 150, 36], steel: [228, 196, 124], ice: [84, 218, 255], storm: [214, 196, 255], venom: [140, 230, 68], shadow: [150, 80, 222], glimmer: [150, 242, 230], lich: [150, 250, 165],
+  acid: [92, 255, 58], magma: [255, 122, 26] }; /* v0.7.6 F5: acid #5CFF3A, lava #FF7A1A; v0.7.3 lich = prism beam */
 const LGRAD = {};
 for (const k in LCOL) { const [r, g, b] = LCOL[k], c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
   const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(.35, `rgba(${r},${g},${b},.92)`); gr.addColorStop(.68, `rgba(${r},${g},${b},.6)`); gr.addColorStop(.88, `rgba(${r},${g},${b},.22)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`); /* v0.7.3 §2: gentler shoulder (was .45 .85 / .78 .36) */
@@ -1480,8 +1483,9 @@ function playerLights() { // [{r, col, a}] — exposed for tests
   return L;
 }
 function lightRadius() { return Math.max(...playerLights().map(l => l.r)); }
-function gatherLights(sx, sy) {
-  const p = player, L = [], view = (x, y, r) => x > sx - r && y > sy - r && x < sx + VW + r && y < sy + VH + r;
+function gatherLights(sx, sy, vw, vh) {
+  vw = vw || VW; vh = vh || VH;
+  const p = player, L = [], view = (x, y, r) => x > sx - r && y > sy - r && x < sx + vw + r && y < sy + vh + r;
   const pl = playerLights(), pr = Math.max(...pl.map(l => l.r));
   const polys = bandPolys(p.x, p.y - 2, pr, pr > 60 ? 140 : 48), poly = polys[0]; // v0.7.2 §3: banded soft shadow edges
   for (const l of pl) L.push({ x: p.x, y: p.y - 2, r: l.r, col: l.col, a: l.a, poly, polys: l.r > 30 ? polys : null });
@@ -1514,17 +1518,35 @@ function lightAt(x, y) { // approximate brightness 0..~2 at a world point (uses 
 // v0.4.4: Lighting quality. High = full-res lightmap, Low = half-res (the old look). Unset = auto: Low on touch, High otherwise.
 function lightingQ() { if (settings.lighting === 'low' || settings.lighting === 'high') return settings.lighting; let coarse = false; try { coarse = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches; } catch (e) {} return coarse ? 'low' : 'high'; }
 function lightScale() { return lightingQ() === 'low' ? .5 : 1; }
+let lightFrame = null;
+function zoomVis(sx, sy) { // world rect currently on screen. Zoom-out sees more than VW×VH; the lightmap must cover that same rect.
+  if (ZOOM === 1 || !player) return { x: sx, y: sy, w: VW, h: VH };
+  const w = VW / ZOOM, h = VH / ZOOM;
+  return { x: player.x - w / 2, y: (player.y - 4) - h / 2, w, h };
+}
+function worldToScreen(wx, wy) {
+  const p = player; if (!p || ZOOM === 1) return { x: wx - cam.x, y: wy - cam.y };
+  return { x: VW / 2 + ZOOM * (wx - p.x), y: VH / 2 + ZOOM * (wy - (p.y - 4)) };
+}
+function lightSample(wx, wy) { // lightmap RGBA at a world point after the last renderLighting (null if off the buffer)
+  const V = lightFrame; if (!V || !lcan.width) return null;
+  const x = Math.floor((wx - V.x) / V.w * lcan.width), y = Math.floor((wy - V.y) / V.h * lcan.height);
+  if (x < 0 || y < 0 || x >= lcan.width || y >= lcan.height) return null;
+  const d = lctx.getImageData(x, y, 1, 1).data; return [d[0], d[1], d[2], d[3]];
+}
 function renderLighting(sx, sy) {
+  const V = zoomVis(sx, sy); lightFrame = V; // v0.7.6 B1: fog / torch / shadows cover the zoomed camera, then blit 1:1 over the screen
   const LQ = lightScale(), LW = Math.ceil(VW * LQ), LH = Math.ceil(VH * LQ);
   if (lcan.width !== LW || lcan.height !== LH) { lcan.width = LW; lcan.height = LH; }
-  const L = gatherLights(sx, sy); frameLights = L;
+  const L = gatherLights(V.x, V.y, V.w, V.h); frameLights = L;
   lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.globalCompositeOperation = 'source-over'; lctx.globalAlpha = 1;
   lctx.fillStyle = '#050408'; lctx.fillRect(0, 0, LW, LH);
-  lctx.setTransform(LQ, 0, 0, LQ, -sx * LQ, -sy * LQ);
+  const scx = LW / V.w, scy = LH / V.h;
+  lctx.setTransform(scx, 0, 0, scy, -V.x * scx, -V.y * scy);
   // explored-but-dark tiles stay faintly remembered
   lctx.fillStyle = '#1a1520';
-  const t0x = Math.floor(sx / TS), t0y = Math.floor(sy / TS);
-  for (let ty = t0y; ty <= t0y + Math.ceil(VH / TS) + 1; ty++) for (let tx = t0x; tx <= t0x + Math.ceil(VW / TS) + 1; tx++) if (tx >= 0 && ty >= 0 && tx < MW && ty < MH && seen[ty * MW + tx]) lctx.fillRect(tx * TS, ty * TS, TS, TS);
+  const t0x = Math.floor(V.x / TS) - 1, t0y = Math.floor(V.y / TS) - 1, t1x = Math.ceil((V.x + V.w) / TS) + 1, t1y = Math.ceil((V.y + V.h) / TS) + 1;
+  for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) if (tx >= 0 && ty >= 0 && tx < MW && ty < MH && seen[ty * MW + tx]) lctx.fillRect(tx * TS, ty * TS, TS, TS);
   lctx.globalCompositeOperation = 'lighter';
   for (const l of L) { if (l.a <= .01) continue; lctx.globalAlpha = Math.min(1, l.a);
     if (l.polys) drawLightPolys(l);
@@ -1532,15 +1554,15 @@ function renderLighting(sx, sy) {
       lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); }
     else lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); }
   lctx.globalAlpha = 1; lctx.globalCompositeOperation = 'source-over'; lctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingEnabled = true; zoomApply(ctx, sx, sy); ctx.drawImage(lcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingEnabled = true; ctx.drawImage(lcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
 }
 function drawEmissive(sx, sy) { // things that glow on their own, drawn above the darkness
-  const p = player, tf = Math.floor(time * 8);
-  for (const t of torches) { if (t.x < sx - 8 || t.x > sx + VW + 8 || t.y < sy - 8 || t.y > sy + VH + 8) continue;
+  const p = player, tf = Math.floor(time * 8), V = zoomVis(sx, sy), x0 = V.x - 12, y0 = V.y - 12, x1 = V.x + V.w + 12, y1 = V.y + V.h + 12;
+  for (const t of torches) { if (t.x < x0 || t.x > x1 || t.y < y0 || t.y > y1) continue;
     if (t.out) { ctx.fillStyle = '#3a2a20'; ctx.fillRect(t.x - 1, t.y + 1, 2, 4); continue; }
     ctx.drawImage(tileImgs.torch[(tf + t.x) % 3], t.x - 2, t.y - 3);
  }
-  for (const b of braziers) { if (b.x < sx - 10 || b.x > sx + VW + 10) continue; ctx.drawImage(BRAZIER, b.x - 5, b.y - 9); ctx.drawImage(tileImgs.torch[(tf + b.x) % 3], b.x - 2, b.y - 12); }
+  for (const b of braziers) { if (b.x < x0 || b.x > x1 || b.y < y0 || b.y > y1) continue; ctx.drawImage(BRAZIER, b.x - 5, b.y - 9); ctx.drawImage(tileImgs.torch[(tf + b.x) % 3], b.x - 2, b.y - 12); }
   // eyes in the dark: close enemies you can't see show only a glint
   for (const e of enemies) { if (e.hidden || e.disg || e.downT) continue; const d = dist(e, p); if (d > 115) continue;
     if (lightAt(e.x, e.y - 4) > .22) continue; if (Math.sin(time * 1.7 + e.id * 3.1) > .93) continue; // blink
@@ -1548,7 +1570,7 @@ function drawEmissive(sx, sy) { // things that glow on their own, drawn above th
     const col = e.T.boss ? '#ffd040' : e.T.ghost || e.T.ai === 'wisp' ? '#a0e0ff' : '#ff3a2a', sp = Math.max(2, Math.round(img.width * .18));
     ctx.globalAlpha = .55 + .45 * (1 - d / 115); ctx.fillStyle = col; ctx.fillRect(ex - sp, ey, 1, 1); ctx.fillRect(ex + sp - 1, ey, 1, 1); ctx.globalAlpha = 1; }
   // v0.4.5: glimmering pools twinkle above the darkness (slow, soft sparkle)
-  for (const g of glimmers) { if (!g.uses || g.x < sx - 10 || g.x > sx + VW + 10 || g.y < sy - 10 || g.y > sy + VH + 10) continue;
+  for (const g of glimmers) { if (!g.uses || g.x < x0 || g.x > x1 || g.y < y0 || g.y > y1) continue;
     for (let k = 0; k < 4; k++) { const ph = (time * .55 + k * .29 + g.ph) % 1; if (ph > .3) continue; const a = Math.sin(ph / .3 * Math.PI), ox = ((k * 37 + Math.floor(time * .55 + k * .29 + g.ph) * 13) % 9) - 4, oy = ((k * 23 + Math.floor(time * .55 + k * .29 + g.ph) * 7) % 7) - 4;
       ctx.globalAlpha = .75 * a; ctx.fillStyle = k % 2 ? '#e8ffff' : '#a0fff0'; ctx.fillRect(Math.round(g.x + ox), Math.round(g.y + oy), 1, 1); if (a > .8) { ctx.globalAlpha = .35 * a; ctx.fillRect(Math.round(g.x + ox) - 1, Math.round(g.y + oy), 3, 1); ctx.fillRect(Math.round(g.x + ox), Math.round(g.y + oy) - 1, 1, 3); } }
     ctx.globalAlpha = 1; }
@@ -2395,7 +2417,7 @@ let slotLP = 0; // slots are rebuilt on tap, so release is caught at window leve
 // =====================================================================
 const dm = { left: false, right: false, ctrl: false, lastTouch: 0, rep: 0 };
 let rskill = clamp(+settings.rskill || 0, 0, 2), clickMark = null, hoverEnemy = null, mapOpen = false, curKind = '';
-const walkable = (x, y) => tileAt(x, y) !== TILE.WALL && (tileAt(x, y) !== TILE.PIT || padUp(x, y)) && !(vineN > 0 && vineGrid[y * MW + x] === 1) && !spikeAt(x, y);
+const walkable = (x, y) => tileAt(x, y) !== TILE.WALL && (tileAt(x, y) !== TILE.PIT || padUp(x, y)) && !(vineN > 0 && vineGrid[y * MW + x] === 1); // v0.7.6 B3: spiked gaps are pits you can walk into, not walls
 function astar(sx, sy, gx, gy, maxN = 4000) { // 8-way A* on the tile grid (no corner cutting). Returns [[tx,ty],...] excluding start, or null
   if (!walkable(gx, gy)) return null; if (sx === gx && sy === gy) return [];
   const N = MW * MH, g = new Float32Array(N).fill(1e9), from = new Int32Array(N).fill(-1), closed = new Uint8Array(N), heap = [];
@@ -2546,7 +2568,7 @@ function drawBigMap() {
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { if (!seen[y * MW + x]) continue; const t = map[y * MW + x];
     if (t === TILE.WALL) { if (!(walkable(x, y + 1) || walkable(x, y - 1) || walkable(x + 1, y) || walkable(x - 1, y))) continue; ctx.fillStyle = 'rgba(120,96,80,.85)'; }
     else ctx.fillStyle = t === TILE.STAIRS ? '#ffe040' : t === TILE.PIT ? 'rgba(10,4,14,.95)' : hazAt(x, y) ? HAZ_MAP[hazAt(x, y)] : 'rgba(150,130,170,.45)';
-    ctx.fillRect(Math.floor(ox + x * s), Math.floor(oy + y * s), Math.ceil(s), Math.ceil(s)); }
+    const x0 = Math.floor(ox + x * s), y0 = Math.floor(oy + y * s), x1 = Math.floor(ox + (x + 1) * s), y1 = Math.floor(oy + (y + 1) * s); ctx.fillRect(x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0)); } // v0.7.6 F7: cells share edges — no hairline grid
   for (const c of chests) if (seen[c.ty * MW + c.tx]) { ctx.fillStyle = c.open ? '#6a5020' : c.free ? '#b08850' : '#e8c840'; ctx.fillRect(Math.round(ox + c.tx * s), Math.round(oy + c.ty * s), Math.ceil(s), Math.ceil(s)); }
   for (const b of braziers) { const tx = Math.floor(b.x / TS), ty = Math.floor(b.y / TS); if (seen[ty * MW + tx]) { ctx.fillStyle = '#ff8030'; ctx.fillRect(Math.round(ox + tx * s), Math.round(oy + ty * s), Math.ceil(s), Math.ceil(s)); } }
   const bo = enemies.find(e => e.T.boss && seen[Math.floor(e.y / TS) * MW + Math.floor(e.x / TS)]); if (bo) { ctx.fillStyle = '#ff3030'; ctx.fillRect(Math.round(ox + bo.x / TS * s) - 1, Math.round(oy + bo.y / TS * s) - 1, 3, 3); }
@@ -2762,8 +2784,8 @@ function updateTouchUI() {
   $('topbar').classList.toggle('hidden', !(touchMode && state === 'play')); $('cornerbar').classList.toggle('hidden', !(touchMode && state === 'play')); // v0.7.1 §2: pause lower-left, map lower-right
   { const sk = document.getElementById('mSkills'); if (sk) sk.classList.toggle('hidden', touchMode); } // skill keys are a keyboard thing
   $('helpTxt').innerHTML = touchMode
-    ? 'Left thumb: drag anywhere to move<br>Right thumb: attack (tap; hold to charge), ROLL to dodge, skills, potions, bag; USE appears by doors, water, torches and traders &middot; &#x2317; map<br>USE the way down to descend into the deep. Hold attack for a power attack. Dodge-roll hops a spiked hallway gap; walking in drops you back. NOTES in the bag holds glyph clues. Gold, potions and keys are picked up automatically; tap gear to pick it up, press-and-hold to inspect.'
-    : 'LEFT-CLICK walk / attack / pick up / open / use (hold to keep going) &middot; hold CTRL to stand in place (CTRL+CLICK attacks without moving) &middot; RIGHT-CLICK cast selected skill (F1-F3 to select) &middot; 1 2 3 cast skills at the cursor &middot; F use / drink / light &middot; R eat &middot; Z rest &middot; SPACE dodge roll toward cursor (K also) &middot; WASD also moves &middot; J attacks in place &middot; Q / E potions &middot; I inventory &middot; M / TAB map &middot; hold ALT item labels &middot; - / = zoom (0.25x to 1x) &middot; ESC pause<br>USE the way down to descend into the deep. Hold attack for a power attack. Dodge-roll hops a spiked hallway gap; walking in drops you back. NOTES in the bag holds glyph clues. Gold, potions and keys are picked up automatically; click gear to walk over and pick it up, hover to inspect.';
+    ? 'Left thumb: drag anywhere to move<br>Right thumb: attack (tap; hold to charge), ROLL to dodge, skills, potions, bag; USE appears by doors, water, torches and traders &middot; &#x2317; map<br>USE the way down to descend into the deep. Hold attack for a power attack. Dodge-roll hops a spiked gap; walking in falls you onto the spikes and drops you back. A glimmer pool is one drink (+25% XP). NOTES in the bag holds glyph clues. Gold, potions and keys are picked up automatically; tap gear to pick it up, press-and-hold to inspect.'
+    : 'LEFT-CLICK walk / attack / pick up / open / use (hold to keep going) &middot; hold CTRL to stand in place (CTRL+CLICK attacks without moving) &middot; RIGHT-CLICK cast selected skill (F1-F3 to select) &middot; 1 2 3 cast skills at the cursor &middot; F use / drink / light &middot; R eat &middot; Z rest &middot; SPACE dodge roll toward cursor (K also) &middot; WASD also moves &middot; J attacks in place &middot; Q / E potions &middot; I inventory &middot; M / TAB map &middot; hold ALT item labels &middot; - / = zoom (0.25x to 1x) &middot; ESC pause<br>USE the way down to descend into the deep. Hold attack for a power attack. Dodge-roll hops a spiked gap; walking in falls you onto the spikes (5% life) and drops you back. A glimmer pool is one drink (+25% XP). NOTES in the bag holds glyph clues. Gold, potions and keys are picked up automatically; click gear to walk over and pick it up, hover to inspect.';
 }
 function pauseGame() { save(); setState('pause'); $('mResume').classList.remove('hidden'); $('mCont').classList.add('hidden'); }
 let confirmNew = false;
@@ -3342,13 +3364,13 @@ function placeGlimmer() {
     if (waters.some(w => Math.abs(w.y - ty) <= 1) || basins.some(b => near(b, 24)) || props.some(o => near(o, 18)) || chests.some(c => near(c, 20)) || puzzles.some(o => near(o, 22)) || traps.some(T => near(T, 24)) || ground.some(g => near(g, 14))) continue;
     if (annexes.some(A => inRect(tx, ty, A.rect))) continue;
     if (braziers.some(b => near(b, 26)) || torches.some(t => Math.hypot(t.x - x, t.y + 14 - y) < 22)) continue; // v0.7.4 B4: never under a brazier / sconce
-    const g = { x, y, uses: 2, ph: Math.random() * 6.28, room: rooms.indexOf(r) }; glimmers.push(g); return g; }
+    const g = { x, y, uses: 1, ph: Math.random() * 6.28, room: rooms.indexOf(r) }; glimmers.push(g); return g; } // v0.7.6 F9: one drink per pool
   return null;
 }
-function drinkGlimmer(g) { const p = player; if (!g || g.uses <= 0) return false; g.uses--;
-  const refresh = p.xpBuffT > 0; p.thirst = Math.min(100, p.thirst + 45); p.xpBuffT = XPBUFF_TIME; sfx('gulp'); sfx('glimmer');
+function drinkGlimmer(g) { const p = player; if (!g || g.uses <= 0) return false; g.uses = 0; // v0.7.6 F9: the pool is spent; a second drink does nothing
+  const before = p.thirst; p.thirst = Math.min(100, p.thirst + 45); p.xpBuffT = XPBUFF_TIME; if (p.thirst > before) sfx('gulp'); sfx('glimmer');
   burst(p.x, p.y - 6, '#a0fff0', 10, 26); burst(g.x, g.y - 2, '#e8ffff', 8, 18);
-  flashMsg(refresh ? 'The glimmer renews. +25% XP for 5:00.' : 'Glimmering water... you feel keen. +25% XP for 5:00.', '#a0fff0'); return true; }
+  flashMsg('Glimmering water... you feel keen. +25% XP for 5:00.', '#a0fff0'); return true; }
 function buffText() { const p = player; if (!p || !(p.xpBuffT > 0)) return ''; const t = Math.ceil(p.xpBuffT); return `XP+${Math.round(XPBUFF * 100)}% ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; }
 function drawBuffHUD(x, y) { const s = buffText(); if (!s) return; const p = player, low = p.xpBuffT < 20 && Math.floor(time * 3) % 2;
   ctx.fillStyle = '#0a1818'; ctx.fillRect(x, y - 1, 7, 7); ctx.fillStyle = low ? '#407070' : '#a0fff0'; ctx.fillRect(x + 3, y, 1, 5); ctx.fillRect(x + 1, y + 2, 5, 1); ctx.fillStyle = '#fff'; ctx.fillRect(x + 3, y + 2, 1, 1);
@@ -3556,9 +3578,9 @@ function updateSurvival(dt) {
 function eatRation() {
   const p = player; if (!(p.rations > 0)) { flashMsg('No rations left.', '#a08870'); return false; }
   if (p.hunger >= 99) { flashMsg('You are not hungry.', '#a08870'); return false; }
-  p.rations--; p.hunger = Math.min(100, p.hunger + 45); sfx('eat'); flashMsg(`You eat a ration. (${p.rations} left)`, '#d0b070'); return true;
+  p.rations--; p.hunger = Math.min(100, p.hunger + 45); sfx('eat'); flashMsg(`You eat a ration. (${p.rations} left)`, '#d0b070'); return true; // v0.7.6 F3: one munch per ration, never a gulp
 }
-function drinkWater(n) { const p = player; p.thirst = Math.min(100, p.thirst + n); sfx('gulp'); burst(p.x, p.y - 6, '#60a0e0', 6, 20); flashMsg('Cold, clean water. You drink deeply.', '#80c0ff'); }
+function drinkWater(n) { const p = player, before = p.thirst; p.thirst = Math.min(100, p.thirst + n); if (p.thirst > before) sfx('gulp'); burst(p.x, p.y - 6, '#60a0e0', 6, 20); flashMsg('Cold, clean water. You drink deeply.', '#80c0ff'); } // v0.7.6 F2: gulp once per thirst restored
 function restUnsafeReason() {
   const p = player, tx = Math.floor(p.x / TS), ty = Math.floor(p.y / TS), r = roomOf(tx, ty) || (shop && inRect(tx, ty, shop.rect) ? shop.rect : null);
   if (!r) return 'Find a quiet room to rest - corridors are too exposed.';
@@ -4047,6 +4069,7 @@ function placeSetPieces() {
   const last = rooms[rooms.length - 1], mid = rooms.slice(1, rooms.length - 1), inAnnex = (tx, ty) => annexes.some(A => inRect(tx, ty, A.rect));
   // ritual circle: candles + altar (one per floor at most, depth 2+)
   if (depth >= 2 && Math.random() < (window.__forceRitual ? 1 : .35)) for (const r of shuffled(mid)) { if (r.w < 7 || r.h < 6) continue;
+    if (typeof V71 !== 'undefined' && V71.hrooms && V71.hrooms.some(h => (h.k === 'acid' || h.k === 'lava') && r.x <= h.x1 && r.x + r.w - 1 >= h.x0 && r.y <= h.y1 && r.y + r.h - 1 >= h.y0)) continue; // v0.7.6 B2
     const cx = r.x + Math.floor(r.w / 2), cy = r.y + Math.floor(r.h / 2); let ok = true;
     for (let j = -2; j <= 2 && ok; j++) for (let i = -2; i <= 2; i++) if (tileAt(cx + i, cy + j) !== TILE.FLOOR || inAnnex(cx + i, cy + j)) { ok = false; break; }
     const x = (cx + .5) * TS, y = (cy + .5) * TS; if (!ok || nearAny(x, y, 34) || doorwayNear(cx, cy, 3)) continue;
@@ -4177,7 +4200,7 @@ function pushBlock(b) { const p = player, d = b.door; if (d.open) return false;
   else { sfx('fail'); flashMsg('The block will not budge that way.', '#a08870'); return false; }
   b.x = (b.tx + .5) * TS; burst(b.x, b.y + 5, '#8a8078', 6, 20); addTrauma(.05);
   if (b.tx === b.plate.tx) { b.on = true; sfx('plate'); passageOpen(d); } return true; }
-function offView(x, y, m) { return x < cam.x - m || x > cam.x + VW + m || y < cam.y - m || y > cam.y + VH + m; }
+function offView(x, y, m) { const V = zoomVis(cam.x, cam.y); return x < V.x - m || x > V.x + V.w + m || y < V.y - m || y > V.y + V.h + m; }
 function drawV05Floor() { // floor-level set pieces (under items and actors)
   for (const o of setp) { if (offView(o.x, o.y, 40)) continue; const X = Math.round(o.x), Y = Math.round(o.y);
     if (o.kind === 'ritual') { ctx.fillStyle = 'rgba(140,20,30,.55)'; for (let i = 0; i < 40; i++) { const a = i / 40 * 6.28; ctx.fillRect(Math.round(X + Math.cos(a) * 28), Math.round(Y + Math.sin(a) * 21), 1, 1); }
@@ -4269,7 +4292,7 @@ function texWall(tx, ty) { const BW = biomeWall(tx, ty); if (BW) return BW; cons
 // ---- 10: bloom: additive glow on flames + spell light. Low lighting = fewer sources, half strength. ----
 const BLOOM = { high: { cap: 24, k: .5 }, low: { cap: 8, k: .25 } };
 let bloomStats = { n: 0, k: 0, q: 'high' };
-function bloomSources() { const p = player, out = [], q = lightingQ(), C = BLOOM[q], v = (x, y, m) => x > cam.x - m && x < cam.x + VW + m && y > cam.y - m && y < cam.y + VH + m;
+function bloomSources() { const p = player, out = [], q = lightingQ(), C = BLOOM[q], B = zoomVis(cam.x, cam.y), v = (x, y, m) => x > B.x - m && x < B.x + B.w + m && y > B.y - m && y < B.y + B.h + m;
   for (const t of torches) if (!t.out && v(t.x, t.y, 12)) out.push({ x: t.x, y: t.y - 1, r: 10 + Math.sin(time * 9 + t.x) * .8, col: 'fire', a: .55 });
   for (const b of braziers) if (v(b.x, b.y, 16)) out.push({ x: b.x, y: b.y - 10, r: 14, col: 'fire', a: .6 });
   for (const o of setp) if (o.kind === 'ritual' && v(o.x, o.y, 30)) for (const c of o.candles) out.push({ x: c.x, y: c.y - 5, r: 6, col: 'amber', a: .5 });
@@ -4649,7 +4672,7 @@ async function loadArt() { if (location.protocol === 'file:') return 0; try { co
   const files = (j && Array.isArray(j.files) ? j.files : []).filter(f => typeof f === 'string' && /^[a-z0-9_\-]+\.png$/i.test(f)).slice(0, 1200); /* v0.7.3: + castle / prism / dark-portal art (v0.7.2: 800) */
   await Promise.all(files.map(f => new Promise(res => { const im = new Image(); im.onload = () => { registerArt(f.replace(/\.png$/i, ''), im); res(); }; im.onerror = res; im.src = 'assets/' + f; }))); return files.length; } catch (e) { return 0; } }
 // ---- §18 puzzle glints / §19 slow puzzle doors, distant echo, map blink ----
-const PUZZLE_SLIDE = 3.2, MAP_BLINK = 15, MAP_ALPHA = .72, MAP_BG = .3;
+const PUZZLE_SLIDE = 3.2, MAP_BLINK = 15, MAP_ALPHA = .42, MAP_BG = .14; // v0.7.6 F7: map overlay is more see-through (was .72 / .3) and has no cell grid
 let glintStats = { n: 0 }, mapBlinkStats = { n: 0 };
 function doorOpenedV06(d) { if (!d.puzzle) return; d.blinkUntil = time + MAP_BLINK;
   if (d.puzzle === 'lever' || d.puzzle === 'p_levers') later(.9, () => sfx('echodoor', { wet: .9 }));
@@ -4797,7 +4820,7 @@ function render() {
   const so = shakeOffset(), sx = Math.round(cam.x + so.x), sy = Math.round(cam.y + so.y);
   const p = player;
   ctx.save(); zoomApply(ctx, sx, sy); ctx.translate(-sx, -sy);
-  const t0x = Math.floor(sx / TS) - 1, t0y = Math.floor(sy / TS) - 1, t1x = t0x + Math.ceil(VW / TS) + 2, t1y = t0y + Math.ceil(VH / TS) + 2;
+  const vis = zoomVis(sx, sy), t0x = Math.floor(vis.x / TS) - 1, t0y = Math.floor(vis.y / TS) - 1, t1x = Math.ceil((vis.x + vis.w) / TS) + 1, t1y = Math.ceil((vis.y + vis.h) / TS) + 1; // v0.7.6 B1: draw the zoomed frustum, not only the 1x window
   for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) {
     const t = tileAt(tx, ty), X = tx * TS, Y = ty * TS, v = mapVar[ty * MW + tx] || 0;
     if (t === TILE.WALL) {
@@ -4983,7 +5006,7 @@ function entranceArt(E) { if (!E) return null; const D = ENT_BY[E.id]; if (!D) r
 function drawEntranceTile(tx, ty, X, Y) { if (floorEnt && floorEnt.wall && drawWallDoor(tx, ty, X, Y)) return; const a = entranceArt(floorEnt); if (!a) { ctx.drawImage(tileImgs.stairs, X, Y); return; }
   ctx.drawImage(texFloor(tx, ty), X, Y); ctx.drawImage(a, X + ((TS - a.width) >> 1), Y + ((TS - a.height) >> 1)); }
 function entFxKind() { const D = floorEnt && ENT_BY[floorEnt.id]; return D && D.fx || null; }
-function entInView() { const s = entStairs(); if (!s) return null; const X = s.tx * TS, Y = s.ty * TS - (floorEnt && floorEnt.wall ? 14 : 0); if (X < cam.x - 24 || Y < cam.y - 24 || X > cam.x + VW + 8 || Y > cam.y + VH + 8) return null; return { X, Y }; }
+function entInView() { const s = entStairs(); if (!s) return null; const X = s.tx * TS, Y = s.ty * TS - (floorEnt && floorEnt.wall ? 14 : 0), V = zoomVis(cam.x, cam.y); if (X < V.x - 24 || Y < V.y - 24 || X > V.x + V.w + 8 || Y > V.y + V.h + 8) return null; return { X, Y }; }
 const ENT_RATE = { portal: 7, embers: 4, shimmer: 4, drips: 1.3, runes: 5, frost: 5, incense: 2.6, dust: 3 };
 function entPart(kind, o) { o.nd = 1; o.ek = kind; parts.push(o); entFxStats[kind] = (entFxStats[kind] || 0) + 1; }
 function emitEntranceFx(kind, X, Y) {
@@ -5051,7 +5074,7 @@ function drawCritter(c) { if (c.k === 'snake' && drawSnake074(c)) return; const 
   if (a) { if (c.vx < 0) { ctx.save(); ctx.translate(X + C.w, Y); ctx.scale(-1, 1); ctx.drawImage(a, 0, 0); ctx.restore(); } else ctx.drawImage(a, X, Y); }
   else { ctx.fillStyle = C.glow ? '#d0ff80' : '#2a2020'; ctx.fillRect(Math.round(c.x) - 1, Math.round(c.y) - 1 + bob, 2, 2); }
   ctx.globalAlpha = 1; }
-function drawCritters(glow) { const x0 = cam.x - 20, y0 = cam.y - 20; for (const c of critters) { if (c.x < x0 || c.y < y0 || c.x > x0 + VW + 40 || c.y > y0 + VH + 40) continue; if (!!CRITTERS[c.k].glow === glow) drawCritter(c); } }
+function drawCritters(glow) { const V = zoomVis(cam.x, cam.y), x0 = V.x - 20, y0 = V.y - 20; for (const c of critters) { if (c.x < x0 || c.y < y0 || c.x > x0 + V.w + 40 || c.y > y0 + V.h + 40) continue; if (!!CRITTERS[c.k].glow === glow) drawCritter(c); } }
 function critterLights(L, view) { for (const c of critters) { const G = CRITTERS[c.k].glow; if (G && view(c.x, c.y, 20)) L.push({ x: c.x, y: c.y, r: 13 + Math.sin(c.ph * .7) * 1.5, col: G, a: .32 }); } }
 function freeChestEmpty(c) { return c.empty === undefined ? (c.empty = Math.random() < FREE_EMPTY) : !!c.empty; }
 // ---- v0.7.1: bottomless pits + ledge traversal (§3), hazard rooms + sinking stones (§4), fire pits + burn (§5), examine-to-descend + wall doors (§6) ----
@@ -5065,13 +5088,13 @@ const PIT_DMG = .5, PIT_PUSH_T = 1.0, PIT_TEETER = .35, LEDGE_GRAB_T = .25, LEDG
 const HAZ = { 1: 'water', 2: 'acid', 3: 'lava', 4: 'spikes' }, HAZ_ID = { water: 1, acid: 2, lava: 3, spikes: 4 };
 const HAZ_MAP = { 1: 'rgba(60,110,200,.8)', 2: 'rgba(110,210,60,.8)', 3: 'rgba(240,90,30,.85)', 4: 'rgba(170,170,185,.75)' }, HAZ_COL = { water: '#24489a', acid: '#4a9a20', lava: '#c83a10', spikes: '#6a6a74' };
 const HAZ_DPS = { water: .015, acid: .06, lava: .12 }, HAZ_LETHAL = { water: false, acid: true, lava: true, spikes: true };
-const HAZ_FPS = 9, SPIKE_CYCLE = 2.4, SPIKE_UP = 1.0, SPIKE_HIT = .10, WATER_SLOW = .55, HAZ_TICK = .5;
+const HAZ_FPS = 8, SPIKE_CYCLE = 2.4, SPIKE_UP = 1.0, SPIKE_HIT = .10, WATER_SLOW = .55, HAZ_TICK = .5; // v0.7.6 F5: quieter tiles drift at 8 fps
 const SINK_AFTER = .8, SINK_MID = .2, REEMERGE_T = 3.2; /* v0.7.3 §10: was 1.5 / .35 */
 const BURN_VFX = 3, BURN_DOT = 4, BURN_PCT = .08, FIRE_FPS = 11, FIREPIT_MIN = 6, FIREPIT_HUGE = 10;
 const WALL_DOOR = { E4: 'iron', E5: 'demon', E6: 'bloody', E7: 'rusty', E8: 'wood', E11: 'bone', E13: 'rune' }, WALL_DOOR_P = .5, DOOR_OPEN_T = .48;
 const HAZ_KEEP_SETP = ['pool', 'statue', 'coffin', 'niche', 'bowl', 'window'];
 const WALL_DOOR_CUE = { iron: 'wld_door_iron_open_01', rusty: 'wld_door_iron_open_01' }, ENT_ARM_T = 8;
-let V71 = v071Empty(), pitAct = null, entArmT = -99; const v071Stats = { falls: 0, ledges: 0, sinks: 0, burns: 0, descends: 0, examines: 0 };
+let V71 = v071Empty(), pitAct = null, entArmT = -99, hazFx = []; const v071Stats = { falls: 0, ledges: 0, sinks: 0, burns: 0, descends: 0, examines: 0 };
 function v071Empty() { return { haz: new Uint8Array(0), stones: [], firepits: [], ledges: [], pitArt: {}, hrooms: [], sIdx: new Map() }; }
 function v071Index() { V71.sIdx = new Map(); for (const s of V71.stones) V71.sIdx.set(s.ty * MW + s.tx, s); }
 function v071Snap() { return { hazS: V71.haz.some(v => v) ? Array.from(V71.haz).join('') : '', stones: V71.stones, firepits: V71.firepits, ledges: V71.ledges, pitArt: V71.pitArt, hrooms: V71.hrooms }; }
@@ -5086,9 +5109,10 @@ function hazAt(tx, ty) { return tx < 0 || ty < 0 || tx >= MW || ty >= MH || !V71
 function stoneAt(tx, ty) { return V71.sIdx.get(ty * MW + tx) || null; }
 function spikesUp() { return (time % SPIKE_CYCLE) < SPIKE_UP; }
 function footTile() { const p = player; return [Math.floor(p.x / TS), Math.floor((p.y + 2) / TS)]; }
-function genV071(d) { V71 = v071Empty(); V71.haz = new Uint8Array(MW * MH); pitAct = null; entArmT = -99;
+function genV071(d) { V71 = v071Empty(); V71.haz = new Uint8Array(MW * MH); pitAct = null; entArmT = -99; hazFx = [];
   if (player) { player.burn = null; player.pitPush = 0; player.hazAcc = 0; player.hazT = 0; player.safeX = undefined; player.safeY = undefined; }
-  placePits(d); placeHazards(d); placeFirepits(d); v071Index(); }
+  placePits(d); placeHazards(d); placeFirepits(d); v071Index(); stripRituals076(); }
+function stripRituals076() { if (typeof setp === 'undefined' || !V71.hrooms.length) return; setp = setp.filter(o => { if (o.kind !== 'ritual') return true; const tx = Math.floor(o.x / TS), ty = Math.floor(o.y / TS); return !V71.hrooms.some(h => (h.k === 'acid' || h.k === 'lava') && tx >= h.x0 && tx <= h.x1 && ty >= h.y0 && ty <= h.y1); }); }
 function v071Busy() { const H = new Set(), S = new Set(), at = (B, tx, ty) => B.add(ty * MW + tx), addO = B => o => { if (!o || typeof o !== 'object') return; if (Number.isFinite(o.tx) && Number.isFinite(o.ty)) at(B, o.tx, o.ty); else if (Number.isFinite(o.x) && Number.isFinite(o.y)) at(B, Math.floor(o.x / TS), Math.floor(o.y / TS)); };
   for (const A of [chests, secrets, braziers, glimmers, puzzles, traps, setp, basins, pblocks, books, annexes]) if (Array.isArray(A)) A.forEach(addO(H));
   for (const A of [props, ground, webs, enemies, vines]) if (Array.isArray(A)) A.forEach(addO(S));
@@ -5118,14 +5142,14 @@ function placePits(d) { if (d < 2) return; const { all: B } = v071Busy(), M = ro
       if (!big) set(tx, ty, 'pit_hole'); else { set(tx, ty, 'pit_edge_nw'); set(tx + 1, ty, 'pit_edge_ne'); set(tx, ty + 1, 'pit_edge_sw'); set(tx + 1, ty + 1, 'pit_edge_se'); } } }
   dropDecorOn((x, y) => tileAt(x, y) === TILE.PIT); }
 // §4 hazard rooms: the whole room floor becomes water / acid / lava / spikes, with a stone path from every way in to the middle
-function placeHazards(d) { if (d < 3) return; let n = (Math.random() < .6 ? 1 : 0) + (d >= 7 && Math.random() < .45 ? 1 : 0); if (!n) return;
+function placeHazards(d) { const force = window.__forceHaz; if (d < 3 && !force) return; let n = force ? 3 : (Math.random() < .6 ? 1 : 0) + (d >= 7 && Math.random() < .45 ? 1 : 0); if (!n) return;
   const H = new Set(), at = (tx, ty) => H.add(ty * MW + tx), addO = o => { if (!o || typeof o !== 'object') return; if (Number.isFinite(o.tx) && Number.isFinite(o.ty)) at(o.tx, o.ty); else if (Number.isFinite(o.x) && Number.isFinite(o.y)) at(Math.floor(o.x / TS), Math.floor(o.y / TS)); };
   for (const A of [chests, glimmers, puzzles, traps, basins, pblocks, books, annexes]) if (Array.isArray(A)) A.forEach(addO); if (shop) addO(shop);
   setp.forEach(o => { if (HAZ_KEEP_SETP.includes(o.kind)) addO(o); }); for (const w of waters) for (let x = w.x0; x <= w.x1; x++) at(x, w.y);
-  const kinds = ['water', 'spikes'].concat(d >= 4 ? ['acid'] : [], d >= 7 ? ['lava', 'lava'] : []), fav = { drowned: 'water', vermin: 'acid', bone: 'spikes', choir: d >= 7 ? 'lava' : 'spikes' }[floorTheme];
+  const kinds = force && HAZ_ID[force] ? [force] : ['water', 'spikes'].concat(d >= 4 ? ['acid'] : [], d >= 7 ? ['lava', 'lava'] : []), fav = { drowned: 'water', vermin: 'acid', bone: 'spikes', choir: d >= 7 ? 'lava' : 'spikes' }[floorTheme];
   for (const r of shuf(rooms.slice(1, -1))) { if (n <= 0) break; if (r.w < 5 || r.h < 4) continue; let busy = false;
     for (let j = r.y - 1; j <= r.y + r.h && !busy; j++) for (let i = r.x - 1; i <= r.x + r.w && !busy; i++) busy = H.has(j * MW + i) || tileAt(i, j) === TILE.PIT || tileAt(i, j) === TILE.STAIRS;
-    if (busy) continue; const k = fav && kinds.includes(fav) && Math.random() < .45 ? fav : pick(kinds); if (hazRoom(r, HAZ_ID[k])) n--; } }
+    if (busy) continue; const k = force && HAZ_ID[force] ? force : fav && kinds.includes(fav) && Math.random() < .45 ? fav : pick(kinds); if (hazRoom(r, HAZ_ID[k])) n--; } }
 function hazRoom(r, id) { const idx = (x, y) => y * MW + x, inR = (x, y) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h, path = new Set(), entries = [];
   const doorT = new Set(); for (const d of doors) for (const t of d.tiles) doorT.add(idx(t.x, t.y)); for (const q of secrets) if (Number.isFinite(q.tx)) doorT.add(idx(q.tx, q.ty));
   for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) { if (x > r.x && x < r.x + r.w - 1 && y > r.y && y < r.y + r.h - 1) continue;
@@ -5140,7 +5164,9 @@ function hazRoom(r, id) { const idx = (x, y) => y * MW + x, inR = (x, y) => x >=
   for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) { if (tileAt(x, y) !== TILE.FLOOR) continue; V71.haz[idx(x, y)] = id;
     if (path.has(idx(x, y))) { const hz = path.has(idx(x - 1, y)) && path.has(idx(x + 1, y)) && !path.has(idx(x, y - 1)) && !path.has(idx(x, y + 1)); V71.stones.push({ tx: x, ty: y, st: 0, on: 0, t: 0, v: irand(1, 3), strip: hz }); } }
   V71.hrooms.push({ x: (r.x + r.w / 2) * TS, y: (r.y + r.h / 2) * TS, k: HAZ[id], rr: Math.max(r.w, r.h) * 9, x0: r.x, y0: r.y, x1: r.x + r.w - 1, y1: r.y + r.h - 1 });
-  const wet = (x, y) => inR(x, y) && !path.has(idx(x, y)); dropDecorOn(wet); setp = setp.filter(o => { const x = Number.isFinite(o.tx) ? o.tx : Math.floor(o.x / TS), y = Number.isFinite(o.ty) ? o.ty : Math.floor(o.y / TS); return HAZ_KEEP_SETP.includes(o.kind) || !wet(x, y) || tileAt(x, y) === TILE.WALL; }); return true; }
+  const wet = (x, y) => inR(x, y) && !path.has(idx(x, y)); dropDecorOn(wet); setp = setp.filter(o => { const x = Number.isFinite(o.tx) ? o.tx : Math.floor(o.x / TS), y = Number.isFinite(o.ty) ? o.ty : Math.floor(o.y / TS);
+    if (o.kind === 'ritual' && inR(x, y) && (id === 2 || id === 3)) return false; // v0.7.6 B2: no ritual in an acid or lava room, path included
+    return HAZ_KEEP_SETP.includes(o.kind) || !wet(x, y) || tileAt(x, y) === TILE.WALL; }); return true; }
 // §5 large burning fire pits on harder floors
 function placeFirepits(d) { if (d < FIREPIT_MIN) return; let n = 1 + (d >= 9 && Math.random() < .5 ? 1 : 0); const { all: B } = v071Busy();
   for (let tries = 0; tries < 60 && n > 0; tries++) { const r = pick(rooms.slice(1, -1)); if (!r) break; const sz = d >= FIREPIT_HUGE && Math.random() < .5 ? 3 : 2; if (r.w < sz + 3 || r.h < sz + 2) continue;
@@ -5161,7 +5187,7 @@ function updateBurn(dt) { const p = player, b = p.burn; if (!b) return false; co
   if (b.vfx > 0 && Math.random() < .5 && parts.length < MAX_PARTS) parts.push({ x: p.x + rand(-3, 3), y: p.y - rand(0, 8), vx: rand(-4, 4), vy: rand(-22, -10), life: rand(.25, .5), col: pick(['#ff6020', '#ffa030', '#ffd060']), nd: 1 });
   if (b.tick >= HAZ_TICK || b.dot <= 0) { b.tick = 0; const d = Math.floor(b.acc); if (d >= 1) { b.acc -= d; if (envHurt(d, 'flames', true, '#ffa040')) return true; } }
   if (b.dot <= 0) { if (b.acc >= .5 && envHurt(b.acc, 'flames', true, '#ffa040')) return true; p.burn = null; } return false; }
-function v071Update(dt, mv) { const p = player; if (climb || pitAct) return true; if (!V71.haz.length) return false;
+function v071Update(dt, mv) { const p = player; if (climb || pitAct) return true; tickHazFx(dt); if (!V71.haz.length) return false;
   const ptx = Math.floor(p.x / TS), pty = Math.floor(p.y / TS);
   if (tileAt(ptx, pty) === TILE.PIT && pitAtPx(p.x, p.y)) { startFall(ptx, pty); return true; } // rolled (or got shoved) into the pit
   if (p.roll <= 0 && mv && (mv.x || mv.y)) { const l = Math.hypot(mv.x, mv.y), qx = p.x + mv.x / l * (p.r + 3), qy = p.y + mv.y / l * (p.r + 3);
@@ -5170,7 +5196,7 @@ function v071Update(dt, mv) { const p = player; if (climb || pitAct) return true
   // sinking stones
   const [fx, fy] = footTile();
   for (const s of V71.stones) { const here = p.roll <= 0 && s.tx === fx && s.ty === fy;
-    if (s.st === 0) { if (here) { s.on += dt; if (s.on >= SINK_AFTER) { s.st = 1; s.t = 0; v071Stats.sinks++; sfx('splash', { vol: .5 }); flashMsg('The stone sinks under you!', '#a0c8ff'); } } else s.on = 0; }
+    if (s.st === 0) { if (here) { s.on += dt; if (s.on >= SINK_AFTER) { s.st = 1; s.t = 0; v071Stats.sinks++; sfxAt('sink', (s.tx + .5) * TS, (s.ty + .5) * TS, 280, .95); flashMsg('The stone sinks under you!', '#a0c8ff'); } } else s.on = 0; } // v0.7.6 F6: one positional sink at the drop, not a splash
     else { s.t += dt; if (s.st === 1 && s.t >= SINK_MID) { s.st = 2; s.t = 0; } else if (s.st === 2 && s.t >= REEMERGE_T) { s.st = 3; s.t = 0; } else if (s.st === 3 && s.t >= SINK_MID) { s.st = 0; s.t = 0; s.on = 0; } } }
   // hazard contact
   const hz = hazUnder(), k = HAZ[hz];
@@ -5228,19 +5254,34 @@ function drawPitTile(tx, ty, X, Y) { const k = V71.pitArt[ty * MW + tx] || 'pit_
   if (k === 'ledge_h') { const a = ART.pit_ledge_wall; if (a) { ctx.save(); ctx.translate(X + TS, Y); ctx.rotate(Math.PI / 2); ctx.drawImage(a, 0, 0); ctx.restore(); return; } }
   else { const a = ART[k] || ART.pit_void_01; if (a) { ctx.drawImage(a, X, Y); return; } }
   ctx.fillStyle = '#040206'; ctx.fillRect(X, Y, TS, TS); ctx.fillStyle = '#1a1220'; if (k === 'ledge_h') ctx.fillRect(X, Y, TS, 3); else if (k === 'pit_ledge_wall') ctx.fillRect(X, Y, 3, TS); }
+function hazTileArt(k, tx, ty, f) { const n = ((f + tx + ty) % 4) + 1; let alt = false; for (const h of V71.hrooms) if (h.k === k && tx >= h.x0 && tx <= h.x1 && ty >= h.y0 && ty <= h.y1) { alt = (h.x0 * 3 + h.y0) % 5 === 0; break; }
+  if (alt) { const b = ART['hazard_' + k + '_tile_b_0' + n]; if (b) return b; } return ART['hazard_' + k + '_0' + n] || ART['hazard_' + k]; }
+function tickHazFx(dt) { for (let i = hazFx.length - 1; i >= 0; i--) { const b = hazFx[i]; b.t += dt; const dur = b.kind === 'pop' ? .24 : b.kind === 'ember' ? .4 : (b.k === 'lava' ? .56 : .48); if (b.t < dur) continue; if (b.kind === 'bubble') { b.kind = 'pop'; b.t = 0; } else hazFx.splice(i, 1); }
+  if (!V71.hrooms.length || hazFx.length > 28) return;
+  for (const h of V71.hrooms) { if (h.k !== 'acid' && h.k !== 'lava') continue; const live = hazFx.filter(b => b.h === h).length, cap = h.k === 'lava' ? 7 : 6; if (live >= cap) continue;
+    const tiles = Math.max(1, (h.x1 - h.x0 + 1) * (h.y1 - h.y0 + 1)), rate = tiles / (h.k === 'lava' ? 9 : 7); if (Math.random() > rate * dt) continue;
+    const tx = irand(h.x0, h.x1), ty = irand(h.y0, h.y1); if (hazAt(tx, ty) !== HAZ_ID[h.k]) continue; const ember = h.k === 'lava' && Math.random() < .35;
+    hazFx.push({ k: h.k, kind: ember ? 'ember' : 'bubble', x: tx * TS + irand(2, 12), y: ty * TS + irand(2, 12), t: 0, h }); } }
+function drawHazFx() { if (!hazFx.length) return; for (const b of hazFx) { const n = b.kind === 'pop' ? 3 : 4, step = b.kind === 'pop' ? .08 : b.kind === 'ember' ? .1 : (b.k === 'lava' ? .14 : .12);
+  const fr = Math.min(n, Math.floor(b.t / step) + 1), key = b.kind === 'ember' ? 'fx_lava_ember_0' + fr : 'fx_' + b.k + '_' + (b.kind === 'pop' ? 'pop' : 'bubble') + '_0' + fr, im = ART[key];
+  const y = Math.round(b.y - (b.kind === 'ember' ? b.t * 12 : b.t * 3)), x = Math.round(b.x); if (im) ctx.drawImage(im, x - 4, y - 4); else { ctx.fillStyle = b.k === 'acid' ? '#5CFF3A' : '#FF7A1A'; ctx.fillRect(x, y, 2, 2); } } }
+function drawLavaRim(t0x, t0y, t1x, t1y) { ctx.save(); for (let ty = Math.max(0, t0y); ty <= Math.min(MH - 1, t1y); ty++) for (let tx = Math.max(0, t0x); tx <= Math.min(MW - 1, t1x); tx++) { if (hazAt(tx, ty) !== 3) continue; const X = tx * TS, Y = ty * TS;
+  const edge = (nx, ny, x, y, w, h) => { if (hazAt(nx, ny) === 3) return; ctx.fillStyle = 'rgba(255,122,26,.45)'; ctx.fillRect(x, y, w, h); ctx.fillStyle = 'rgba(255,122,26,.16)'; ctx.fillRect(x - (w === 1 ? 1 : 0), y - (h === 1 ? 1 : 0), w === 1 ? 3 : w, h === 1 ? 3 : h); };
+  edge(tx, ty - 1, X, Y, TS, 1); edge(tx, ty + 1, X, Y + TS - 1, TS, 1); edge(tx - 1, ty, X, Y, 1, TS); edge(tx + 1, ty, X + TS - 1, Y, 1, TS); } ctx.restore(); }
 function drawV071Floor(t0x, t0y, t1x, t1y) {
   if (V71.haz.length && (V71.hrooms.length || V71.stones.length)) { const f = Math.floor(time * HAZ_FPS) % 4, up = spikesUp();
     for (let ty = Math.max(0, t0y); ty <= Math.min(MH - 1, t1y); ty++) for (let tx = Math.max(0, t0x); tx <= Math.min(MW - 1, t1x); tx++) { const id = V71.haz[ty * MW + tx]; if (!id) continue; const X = tx * TS, Y = ty * TS, k = HAZ[id];
-      const a = k === 'spikes' && !up ? ART.hazard_spikes_retracted : ART['hazard_' + k + '_0' + (((f + tx + ty) % 4) + 1)] || ART['hazard_' + k];
+      const a = k === 'spikes' && !up ? ART.hazard_spikes_retracted : hazTileArt(k, tx, ty, f);
       if (a) ctx.drawImage(a, X, Y); else { ctx.fillStyle = HAZ_COL[k]; ctx.fillRect(X, Y, TS, TS); }
       const s = V71.sIdx.get(ty * MW + tx); if (s) { const st = s.st === 3 ? 'mid' : ['risen', 'mid', 'sunken'][s.st], b = ART[s.strip ? 'path_stone_strip_' + st : 'path_stone_pad_0' + s.v + '_' + st];
         if (b) ctx.drawImage(b, X, Y); else if (s.st !== 2) { ctx.fillStyle = s.st === 0 ? '#8a8478' : '#5a5650'; ctx.fillRect(X + 2, Y + 2, TS - 4, TS - 4); }
-        if (s.st === 0 && s.on > SINK_AFTER * .45 && Math.floor(time * 12) % 2) { ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(X + 3, Y + TS - 4, TS - 6, 1); } } } }
+        if (s.st === 0 && s.on > SINK_AFTER * .45 && Math.floor(time * 12) % 2) { ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(X + 3, Y + TS - 4, TS - 6, 1); } } }
+    drawLavaRim(t0x, t0y, t1x, t1y); drawHazFx(); }
   for (const fp of V71.firepits) { const X = fp.tx * TS, Y = fp.ty * TS, sz = fp.n * TS; if (X + sz < t0x * TS || Y + sz < t0y * TS || X > (t1x + 1) * TS || Y > (t1y + 1) * TS) continue; const fi = Math.floor(time * FIRE_FPS) % 4 + 1;
     let a = fp.n === 3 ? ART['firepit_huge_48_0' + fi] || ART.firepit_huge_48 : ART['firepit_large_32_0' + fi] || ART.firepit_large_32;
     if (a) ctx.drawImage(a, X, Y, sz, sz); else { ctx.fillStyle = '#2a1008'; ctx.fillRect(X, Y, sz, sz); for (let i = 0; i < fp.n * 6; i++) { ctx.fillStyle = pick(['#ff5010', '#ff9030', '#ffd060']); ctx.fillRect(X + irand(2, sz - 3), Y + irand(2, sz - 3), 2, 2); } } } }
 function v071Lights(L, view) { firepitLights(L, view); // v0.7.2 §7b: brighter pits (was r 30 + 8n, a .7)
-  for (const h of V71.hrooms) if ((h.k === 'lava' || h.k === 'acid') && view(h.x, h.y, h.rr)) L.push({ x: h.x, y: h.y, r: h.rr * (h.k === 'lava' ? 1 : .8), col: h.k === 'lava' ? 'red' : 'venom', a: h.k === 'lava' ? .45 : .25 });
+  for (const h of V71.hrooms) if ((h.k === 'lava' || h.k === 'acid') && view(h.x, h.y, h.rr + 24)) { const R = Math.max(48, h.rr * (h.k === 'lava' ? .85 : .7)), polys = bandPolys(h.x, h.y, R, 64, 'haz' + h.x0 + 'x' + h.y0 + h.k), flick = h.k === 'lava' ? .9 + .1 * Math.sin(time * 2.1 + h.x * .01) : 1; L.push({ x: h.x, y: h.y, r: R, col: h.k === 'lava' ? 'magma' : 'acid', a: (h.k === 'lava' ? .45 : .35) * flick, polys, poly: polys[0] }); } // v0.7.6 F5: #FF7A1A / #5CFF3A, occluded so the glow doesn't paint through walls
   const p = player; if (p && p.burn && p.burn.vfx > 0) L.push({ x: p.x, y: p.y - 4, r: 26 + Math.sin(time * 14) * 2, col: 'amber', a: .55 }); }
 // §6 examine-to-descend: USE the entrance once to examine it, USE again (within 8s) to go down. Boss floors: the boss still bars the way.
 function moveStairsToWall() { const s = entStairs(); if (!s) return false; const r = rooms[rooms.length - 1], xs = []; for (let x = r.x + 1; x < r.x + r.w - 1; x++) xs.push(x); xs.sort((a, b) => Math.abs(a - r.cx) - Math.abs(b - r.cx));
@@ -5702,7 +5743,7 @@ function drawPrismFloor(inV) { const P = V73.prism; if (!P || !inV(P.cx, P.r.y +
     for (const [x, y] of gt) { ctx.globalAlpha = a; ctx.fillStyle = '#60D67E'; ctx.fillRect(x * TS, y * TS, TS, TS); ctx.globalAlpha = a * .65; ctx.fillStyle = '#E4FFE4'; ctx.fillRect(x * TS + 2, y * TS + 2, TS - 4, TS - 4); } ctx.restore(); }
   for (const f of P.fx) { const im = f.k === 'ok' ? ART['glyph_flare_burst_0' + (Math.min(3, Math.floor(f.t * 12)) + 1)] : ART['glyph_wrong_flash_0' + (Math.min(1, Math.floor(f.t * 10)) + 1)]; if (im) ctx.drawImage(im, f.tx * TS, f.ty * TS); } }
 function drawPrism() { const P = V73.prism, f8 = Math.floor(time * PRISM_FPS) % 4 + 1, im = (P.turnT >= 0 ? prismArt075(P, 'prism_rotate_0' + f8) : prismArt075(P, 'prism_idle_beam_on')) || prismArt075(P, 'prism_idle') || ART.prism_idle;
-  const bx = P.bx || 8, by = P.by || 11; if (im) ctx.drawImage(im, P.ox - bx, P.oy - by); else { ctx.fillStyle = '#9070c0'; ctx.fillRect(P.ox - 3, P.oy - by, 6, P.hgt || 24); } }
+  const bx = P.bx || 8, by = P.by || 11; if (im) ctx.drawImage(im, P.ox - bx, P.oy - by); else { ctx.fillStyle = '#9070c0'; ctx.fillRect(P.ox - 3, P.oy - by, 6, P.hgt || 24); } drawPrismBeam(); } // beam sits under the lightmap so walls occlude it
 function drawPrismBeam() { const P = V73.prism; if (!prismBeamOn(P)) return; const E = prismBeamEnd(P); if (!E) return; const pulse = .85 + .15 * Math.sin(time * 9);
   ctx.save(); ctx.lineCap = 'round'; for (const [w, c, a] of [[4, '#3EAC62', .28], [3, '#60D67E', .45], [2, '#A0FAAA', .7], [1, '#E4FFE4', .95]]) { ctx.globalAlpha = a * pulse; ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(P.ox, P.oy); ctx.lineTo(E.x, E.y); ctx.stroke(); }
   ctx.restore(); const f10 = Math.floor(time * 10) % 4 + 1, fl = ART['beam_origin_flare_0' + f10], bl = ART['beam_contact_bloom_0' + f10];
@@ -5766,7 +5807,7 @@ function drawSqueeze() { const a = pitAct, T = squeezeT(); if (a.t >= T.enter &&
 // ---------- §11 survival ----------
 function manaCost(S) { const p = player; let m = 1; if (p && p.thirst <= 0) m += SURV_MANA.thirst; if (p && p.fatigue <= 0) m += SURV_MANA.fatigue; return Math.ceil(S.mana * m); }
 function survDrip(p) { let d = 0; for (const k of ['hunger', 'thirst', 'fatigue']) if (p[k] <= 0) d += SURV_DRAIN[k]; return d; }
-function v073Rested(s) { if (!player || player.hp <= 0) return; v073Stats.rested++; sayThought(player, RESTED_THINK, PLAYER_BUBBLE); thought.next = Math.max(thought.next || 0, 12); cue('player_rest_refreshed_01', { vol: 1 }); }
+function v073Rested(s) { if (!player || player.hp <= 0) return; v073Stats.rested++; sayThought(player, RESTED_THINK, PLAYER_BUBBLE); thought.next = Math.max(thought.next || 0, 12); cue('player_rest_refreshed_v2_01', { vol: 1 }); } // v0.7.6 F4: v2 only, never stacked on the old sting
 // ---------- §4 ambience ----------
 function ambBedFor(d) { return AMB_ROT[(d * 3 + 2) % AMB_ROT.length]; } // consecutive floors never share a bed; fire_hall never used on classic / castle floors
 function quietHere() { const p = player; if (!p || DPLANE) return false; if (inSecret(p) || inPrismHall(p)) return true; const r = rooms[0]; if (!r) return false; const tx = Math.floor(p.x / TS), ty = Math.floor(p.y / TS);
@@ -5784,7 +5825,7 @@ function doorHumK() { const s = entStairs(), p = player; if (!s || !p || climb |
 function doorHumId() { return 'wld_door_hum_loop_0' + (1 + hashStr('hum|' + depth + '|' + (floorEnt && floorEnt.id)) % 3); }
 // ---------- per-frame hooks ----------
 function v073Loops(want) { const p = player; if (!p) return;
-  if (state === 'sleep' && sleep) smpLoop('snore', 'player_rest_snore_loop_01', .5, 0, want);
+  if (state === 'sleep' && sleep) smpLoop('snore', 'player_rest_snore_v2_loop_01', .7, 0, want); // v0.7.6 F4: louder v2 bed, same loop slot (never live+v2)
   if (state !== 'play') return; const s = entStairs(), k = doorHumK();
   if (k > .005 && s) smpLoop('doorhum', doorHumId(), .9 * k, ((s.tx + .5) * TS - p.x) / 170, want);
   const P = V73.prism; if (P && prismBeamOn(P)) { const d = Math.hypot(P.ox - p.x, P.oy - p.y), q = Math.max(0, 1 - d / 220); if (q > 0) smpLoop('prism', 'wld_prism_beam_loop_01', .55 * q, (P.ox - p.x) / 170, want); }
@@ -5798,8 +5839,7 @@ function v073Interact(L, close) { if (climb || pitAct) return; const P = V73.pri
   const D = V73.dp; if (D && D.st === 'idle' && D.enterAt == null) { const x = (D.tx + .5) * TS, y = (D.ty + .5) * TS; if (close(x, y, 18)) L.push({ x, y, r: 18, label: 'ENTER DARK PORTAL', use: dpEnter, ref: D, tier: 3 }); }
   const E = V73.exit; if (E && DPLANE) { const x = (E.tx + .5) * TS, y = (E.ty + .5) * TS; if (close(x, y, 18)) L.push({ x, y, r: 18, label: 'RETURN THROUGH PORTAL', use: () => dpReturn(true), ref: E, tier: 3 }); } }
 function v073Lights(L, view) { const k = doorHumK(), s = entStairs(); if (k > .005 && s) { const x = (s.tx + .5) * TS, y = (s.ty + .5) * TS - (floorEnt && floorEnt.wall ? 10 : 2); L.push({ x, y, r: 16 + 30 * k, col: 'shadow', a: .75 * k * (.92 + .08 * Math.sin(time * 2.1)) }); }
-  const P = V73.prism; if (P && view(P.ox, P.oy, 240)) { L.push({ x: P.ox, y: P.oy, r: 16, col: 'lich', a: .55 }); const rr = Math.max(P.r.w, P.r.h) * TS * (P.solved ? 1.15 : .9), rcx = (P.r.x + P.r.w / 2) * TS, rcy = (P.r.y + P.r.h / 2) * TS; L.push({ x: rcx, y: rcy, r: rr, col: 'lich', a: P.solved ? .9 : .42 }); if (P.solved) L.push({ x: rcx, y: rcy, r: rr * 1.15, col: 'lich', a: .7 }); if (P.wall && P.wall.open) for (const [x, y] of prismGateTiles(P)) L.push({ x: (x + .5) * TS, y: (y + .5) * TS, r: 40, col: 'lich', a: .9 }); const E = prismBeamOn(P) && prismBeamEnd(P);
-    if (E) { const dx = E.x - P.ox, dy = E.y - P.oy, n = Math.max(1, Math.floor(Math.hypot(dx, dy) / 22)); for (let i = 1; i < n; i++) L.push({ x: P.ox + dx * i / n, y: P.oy + dy * i / n, r: 16, col: 'lich', a: .35 }); L.push({ x: E.x, y: E.y + 4, r: 28, col: 'lich', a: .75 }); } }
+  const P = V73.prism; if (P && view(P.ox, P.oy, P.solved ? 300 : 140)) { const R = P.solved ? 220 : 72, polys = bandPolys(P.ox, P.oy, R, P.solved ? 96 : 64, P.solved ? 'prismSolved' : 'prismDim'); L.push({ x: P.ox, y: P.oy, r: R, col: 'lich', a: P.solved ? .9 : .48, polys, poly: polys[0] }); if (P.solved) L.push({ x: P.ox, y: P.oy, r: 56, col: 'lich', a: .4, polys, poly: polys[0] }); if (P.solved && P.wall && P.wall.open) for (const [x, y] of prismGateTiles(P)) L.push({ x: (x + .5) * TS, y: (y + .5) * TS, r: 28, col: 'lich', a: .35 }); } // v0.7.6 F1: soft green falloff, same shadow polys as a torch, spills through open doors
   const D = V73.dp; if (D && view((D.tx + .5) * TS, D.ty * TS, 60)) L.push({ x: (D.tx + .5) * TS, y: D.ty * TS, r: D.st === 'closed' ? 12 : 30 + Math.sin(time * 3) * 2, col: 'shadow', a: D.st === 'closed' ? .2 : .6 });
   const E = V73.exit; if (E && view((E.tx + .5) * TS, E.ty * TS, 60)) L.push({ x: (E.tx + .5) * TS, y: E.ty * TS, r: 32, col: 'shadow', a: .65 }); }
 function v073Ents(ents) { const P = V73.prism; if (P) ents.push({ x: P.ox, y: P.oy + (P.F || 13), r: 0, v73draw: drawPrism }); const D = V73.dp; if (D) ents.push({ x: (D.tx + .5) * TS, y: (D.ty + 1) * TS - 1, r: 0, v73draw: drawDarkPortal });
@@ -5807,7 +5847,7 @@ function v073Ents(ents) { const P = V73.prism; if (P) ents.push({ x: P.ox, y: P.
 function drawV073Floor(t0x, t0y, t1x, t1y) { const inV = (tx, ty, m) => tx >= t0x - m && tx <= t1x + m && ty >= t0y - m && ty <= t1y + m;
   const D = V73.dp; if (D && inV(D.tx, D.ty, 1) && ART.dark_portal_floor_ring) ctx.drawImage(ART.dark_portal_floor_ring, D.tx * TS, D.ty * TS);
   drawPrismFloor(inV); drawV073Chests(inV); }
-function v073Emissive() { const P = V73.prism; if (P && P.solved) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .4; ctx.fillStyle = '#A0FAAA'; ctx.fillRect(P.r.x * TS, P.r.y * TS, P.r.w * TS, P.r.h * TS); if (P.vault) ctx.fillRect(P.vault.x * TS, P.vault.y * TS, P.vault.w * TS, P.vault.h * TS); ctx.restore(); } if (P) drawPrismBeam(); const k = doorHumK(), s = entStairs(); if (k > .05 && s && LGRAD.shadow) { const x = (s.tx + .5) * TS, y = (s.ty + .5) * TS - (floorEnt && floorEnt.wall ? 10 : 2), r = 8 + 14 * k;
+function v073Emissive() { const k = doorHumK(), s = entStairs(); if (k > .05 && s && LGRAD.shadow) { const x = (s.tx + .5) * TS, y = (s.ty + .5) * TS - (floorEnt && floorEnt.wall ? 10 : 2), r = 8 + 14 * k; // v0.7.6 F1: no flat room fill — the occluded lich light is the solve glow
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .35 * k; ctx.drawImage(LGRAD.shadow, x - r, y - r, r * 2, r * 2); ctx.restore(); } }
 // ---------- main loop ----------
 let last = performance.now();
@@ -5870,6 +5910,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   bestiary, ETYPES, MOB_IDS, MOBS, BOSSES, spawnEnemy, spawnBoss, damageEnemy, bossForDepth, addTrauma, shakeOffset, mouse, get trauma() { return trauma; }, get teles() { return teles; }, get hazards() { return hazards; }, get projs() { return projs; }, settings,
   newGame, continueGame, itemLines, UNIQUES, eligibleUniques, pickUnique, openInv, closeInv, makeItem, renderInv, gainXp, startFloor, sortInventory, compareItems, itemPower,
   get prism() { return V73 && V73.prism; }, get shop() { return shop; }, get spikes() { return V75 && V75.spikes; }, get doors() { return doors; }, get ground() { return ground; }, get gilt() { return V73 && V73.chests; }, get thought() { return thought; }, get pitAct() { return pitAct; }, get zoom() { return ZOOM; }, setZoom, cycleZoom, zoomSteps: zoomSteps074, compareHTML, updateEnemyAI, createEnemyAI, aiMap074, tileAt, walkable, prismOpenWall, prismWant, killEnemy, updateSurvival, sellAll, sellAllPreview, openShop, renderShop,
+  zoomVis, worldToScreen, lightSample, get lightFrame() { return lightFrame; }, get vw() { return VW; }, get vh() { return VH; }, get hrooms() { return V71 && V71.hrooms; }, get stones() { return V71 && V71.stones; }, get setp() { return setp; }, get mapAlpha() { return MAP_ALPHA; }, get mapBg() { return MAP_BG; }, eatRation, drinkWater, get sfxCues() { return { gulp: SFX_CUE.gulp, eat: SFX_CUE.eat, sink: SFX_CUE.sink }; }, get sfxLog() { return sfxLog; }, get snoreId() { return 'player_rest_snore_v2_loop_01'; }, get refreshedId() { return 'player_rest_refreshed_v2_01'; },
   get ios() { return { ios: isIOS(), safari: isIOSSafari(), fs: fsAvailable(), standalone: isStandalone(), appW, appH }; },
   get audio() { return { ctx: actx ? actx.state : null, unlocked: audioUnlocked, err: audioErr, music: music.mode, started: music.started, boss: music.boss, settings, musicSamples: { state: MUS.state, cur: MUS.cur && MUS.cur.id, p2: !!(MUS.cur && MUS.cur.p2), loaded: Object.keys(MUS.buf), failed: Object.keys(MUS.fail), played: MUS.played, err: MUS.err }, samples: { state: SMP.state, fmt: SMP.fmt, cues: SMP.man ? Object.keys(SMP.man.cues).length : 0, loaded: Object.keys(SMP.buf).length, failed: Object.keys(SMP.fail), loops: [...SMP.loops.keys()], played: SMP.played, err: SMP.err } }; } };
 // ---- v0.7.4: iPhone menu layout (B1), HUD safe-area inset (B2), no torch on glimmer pools (B4), click-walk never strings across a pit (B5),
@@ -6204,10 +6245,8 @@ function placeSpikes075(d) { V75.spikes = []; if (d < 3 || !rooms.length) return
     if (h || vert) cand.push({ tx, ty, axis: h ? 'h' : 'v' }); }
   for (let k = 0; k < n && cand.length; k++) { const c = cand.splice(irand(0, cand.length - 1), 1)[0]; if (V75.spikes.some(s => Math.hypot(s.tx - c.tx, s.ty - c.ty) < 7)) { k--; if (cand.length < 2) break; continue; } V75.spikes.push(c); } }
 function genV075(d) { V75 = v075Empty(); if (typeof DPLANE !== 'undefined' && DPLANE) return; placeSpikes075(d); scatterNotes075(d); }
-function drawV075Floor(t0x, t0y, t1x, t1y) { if (!V75 || !V75.spikes) return; for (const s of V75.spikes) { if (s.tx < t0x - 1 || s.tx > t1x + 1 || s.ty < t0y - 1 || s.ty > t1y + 1) continue; const X = s.tx * TS, Y = s.ty * TS;
-  ctx.fillStyle = '#140e0c'; ctx.fillRect(X + 1, Y + 1, 14, 14); ctx.fillStyle = '#3a241c'; ctx.fillRect(X, Y + 6, 16, 3); ctx.fillStyle = '#d8d0c0';
-  for (const [a, b] of (s.axis === 'v' ? [[3, 2], [8, 4], [12, 2], [5, 10], [11, 9]] : [[2, 4], [6, 7], [10, 4], [13, 8], [4, 11]])) { ctx.fillRect(X + a, Y + b, 1, 3); ctx.fillRect(X + a, Y + b, 2, 1); }
-  ctx.fillStyle = '#6a5040'; ctx.fillRect(X, Y, 16, 1); ctx.fillRect(X, Y + 15, 16, 1); if (Math.floor(time * 3 + s.tx) % 2 === 0) { ctx.fillStyle = 'rgba(220,60,40,.4)'; ctx.fillRect(X + 2, Y + 2, 12, 12); } } }
+function drawV075Floor(t0x, t0y, t1x, t1y) { if (!V75 || !V75.spikes) return; for (const s of V75.spikes) { if (s.tx < t0x - 1 || s.tx > t1x + 1 || s.ty < t0y - 1 || s.ty > t1y + 1) continue; const X = s.tx * TS, Y = s.ty * TS, ax = s.axis === 'v' ? 'v' : 'h', f = (Math.floor(time * 4 + s.tx) % 4) + 1;
+  const im = ART['spike_gap_' + ax + '_0' + f] || ART['spike_gap_' + ax]; if (im) { ctx.drawImage(im, X, Y); continue; } ctx.fillStyle = '#040206'; ctx.fillRect(X, Y, TS, TS); ctx.fillStyle = '#c8c4b8'; for (const a of [3, 7, 11]) ctx.fillRect(X + a, Y + 6, 1, 4); } } // v0.7.6 F8: spike_gap_h/v art (tip glint frames), not the procedural floor strip
 readSafe074();
 
 function drawBigSkill074(i, x, y, cdFrac) { if (!skillIcon074(i, skillLocked(i))) return false; ctx.fillStyle = '#e8c840'; ctx.fillRect(x - 2, y - 2, 20, 20); ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y - 1, 18, 18); ctx.fillStyle = '#120c0e'; ctx.fillRect(x, y, 16, 16);
