@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v076</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:960px;height:540px"></iframe>
+<pre id="out">running</pre>
+<script>
+const out = document.getElementById('out');
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 280) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  out.textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try {
+    const x = new XMLHttpRequest();
+    x.open('GET', url, false);
+    x.send(null);
+    return x.status === 200 ? x.responseText : '';
+  } catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function sumRgb(px) { return px ? px[0] + px[1] + px[2] : -1; }
+function run(w) {
+  const g = w.game;
+  check('boot', !!(g && g.version === '0.7.6'), g && g.version);
+  check('f7 map alpha', g.mapAlpha <= 0.5 && g.mapBg <= 0.2, g.mapAlpha + ' / ' + g.mapBg);
+  check('f7 no grid stroke', !/stroke/.test(w.drawBigMap.toString()));
+  check('f5 acid glow', g.LCOL.acid && g.LCOL.acid.join(',') === '92,255,58', g.LCOL.acid && g.LCOL.acid.join(','));
+  check('f5 lava glow', g.LCOL.magma && g.LCOL.magma.join(',') === '255,122,26', g.LCOL.magma && g.LCOL.magma.join(','));
+  check('f2 cue', g.sfxCues.gulp === 'player_drink_gulp_01', g.sfxCues.gulp);
+  check('f3 cue', g.sfxCues.eat === 'player_eat_munch_01', g.sfxCues.eat);
+  check('f6 cue', g.sfxCues.sink === 'wld_tile_sink_01', g.sfxCues.sink);
+  check('f4 snore id', g.snoreId === 'player_rest_snore_v2_loop_01' && w.v073Loops.toString().indexOf('player_rest_snore_v2_loop_01') >= 0 && w.v073Loops.toString().indexOf('player_rest_snore_loop_01') < 0);
+  check('f4 refreshed id', g.refreshedId === 'player_rest_refreshed_v2_01' && w.v073Rested.toString().indexOf('player_rest_refreshed_v2_01') >= 0 && w.v073Rested.toString().indexOf('player_rest_refreshed_01') < 0);
+  check('f6 sink call', w.v071Update.toString().indexOf("sfxAt('sink'") >= 0);
+  check('f1 no flat fill', w.v073Emissive.toString().indexOf('fillRect') < 0 && w.v073Emissive.toString().indexOf('#A0FAAA') < 0);
+  check('f8 draw', w.drawV075Floor.toString().indexOf('spike_gap_') >= 0);
+  check('f5 fx draw', w.drawHazFx.toString().indexOf('fx_') >= 0 && w.drawHazFx.toString().indexOf('#5CFF3A') >= 0 && w.drawLavaRim.toString().indexOf('255,122,26') >= 0);
+
+  const man = fetchText('../assets/manifest.json');
+  const sfxj = fetchText('../assets/sfx/sfx.json');
+  check('f8 art manifest', man.indexOf('spike_gap_h.png') >= 0 && man.indexOf('spike_gap_v.png') >= 0);
+  check('f5 art manifest', man.indexOf('fx_acid_bubble_01.png') >= 0 && man.indexOf('fx_lava_bubble_01.png') >= 0 && man.indexOf('hazard_acid_tile_b_01.png') >= 0 && man.indexOf('hazard_lava_01.png') >= 0);
+  let cues = null;
+  try { cues = JSON.parse(sfxj).cues; } catch (e) { cues = null; }
+  check('sfx json', !!cues);
+  const gulp = cues && cues.player_drink_gulp_01, eat = cues && cues.player_eat_munch_01, sink = cues && cues.wld_tile_sink_01;
+  const snore = cues && cues.player_rest_snore_v2_loop_01, ref = cues && cues.player_rest_refreshed_v2_01;
+  check('f2 files', !!(gulp && gulp.files && gulp.files.length === 3));
+  check('f3 files', !!(eat && eat.files && eat.files.length === 3));
+  check('f6 files', !!(sink && sink.files && sink.files.length === 3));
+  check('f4 files', !!(snore && snore.loop && snore.files.length === 1 && ref && ref.files.length === 2));
+
+  w.__zoomDesk = true;
+  g.newGame();
+  g.setZoom(0.35);
+  g.startFloor(6, true);
+  const pl = g.player;
+  pl.torchT = 80;
+  w.render();
+  const V = g.lightFrame;
+  check('b1 frustum', !!(V && V.w > g.vw * 2 && V.h > g.vh * 2), V && (Math.round(V.w) + 'x' + Math.round(V.h) + ' vs ' + g.vw + 'x' + g.vh));
+  const near = g.lightSample(pl.x, pl.y - 2);
+  check('b1 torch bright', sumRgb(near) > 80, sumRgb(near));
+  const vis = g.zoomVis(0, 0);
+  let far = null, farN = 0;
+  const x0 = Math.max(0, Math.floor(vis.x / 16)), y0 = Math.max(0, Math.floor(vis.y / 16));
+  const x1 = Math.floor((vis.x + vis.w) / 16), y1 = Math.floor((vis.y + vis.h) / 16);
+  const edge = g.vw * 0.28;
+  for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
+    if (w.tileAt(tx, ty) !== 1) continue;
+    const wx = (tx + .5) * 16, wy = (ty + .5) * 16;
+    if (Math.hypot(wx - pl.x, wy - (pl.y - 2)) < 130) continue; // past the torch
+    const sc = g.worldToScreen(wx, wy);
+    if (sc.x < 8 || sc.y < 46 || sc.x > g.vw - edge || sc.y > g.vh - 36) continue;
+    const s = g.lightSample(wx, wy);
+    if (!s) continue;
+    farN++;
+    const sum = sumRgb(s);
+    if (!far || sum < far.sum) far = { sum, sc, tx, ty };
+  }
+  check('b1 far fog', !!(far && far.sum < 80), (far ? far.sum + ' @' + far.tx + ',' + far.ty : 'none') + ' n=' + farN);
+  if (far) {
+    const cv = w.document.getElementById('game');
+    const px = cv.getContext('2d').getImageData(Math.floor(far.sc.x), Math.floor(far.sc.y), 1, 1).data;
+    check('b1 screen dark', sumRgb(px) < 90, sumRgb(px) + ' at ' + Math.floor(far.sc.x) + ',' + Math.floor(far.sc.y));
+  } else lines.push('FAIL b1 screen dark :: no far floor tile');
+
+  delete w.__forceRitual; delete w.__forceHaz; delete w.__forceGlimmer; delete w.__prismForce;
+  w.__forceRitual = 1; w.__forceHaz = 'lava';
+  let lavaRooms = 0, ritualInHaz = 0, rituals = 0;
+  for (let i = 0; i < 4; i++) {
+    g.startFloor(8, true);
+    const rooms = g.hrooms || [];
+    lavaRooms += rooms.filter(h => h.k === 'lava' || h.k === 'acid').length;
+    for (const o of (g.setp || [])) {
+      if (o.kind !== 'ritual') continue;
+      rituals++;
+      const tx = Math.floor(o.x / 16), ty = Math.floor(o.y / 16);
+      if (rooms.some(h => (h.k === 'acid' || h.k === 'lava') && tx >= h.x0 && tx <= h.x1 && ty >= h.y0 && ty <= h.y1)) ritualInHaz++;
+    }
+  }
+  check('b2 hazard rooms', lavaRooms >= 1, lavaRooms);
+  check('b2 no ritual in acid/lava', ritualInHaz === 0, ritualInHaz + '/' + rituals);
+
+  let stones = g.stones || [];
+  for (let i = 0; i < 4 && !stones.length; i++) { g.startFloor(8, true); stones = g.stones || []; }
+  if (stones.length) {
+    const s = stones[0];
+    pl.x = (s.tx + .5) * 16; pl.y = s.ty * 16 + 4; pl.roll = 0;
+    g.sfxLog.length = 0;
+    for (let i = 0; i < 12; i++) w.v071Update(0.1, { x: 0, y: 0 });
+    const n = g.sfxLog.filter(t => t === 'sink').length;
+    check('f6 one sink', n === 1 && stones[0].st >= 1, n + ' st ' + stones[0].st);
+  } else lines.push('FAIL f6 one sink :: no stone');
+
+  g.sfxLog.length = 0;
+  pl.hunger = 10; pl.rations = 2;
+  check('f3 eat', g.eatRation() === true && pl.hunger === 55, pl.hunger);
+  check('f3 munch only', g.sfxLog.indexOf('eat') >= 0 && g.sfxLog.indexOf('gulp') < 0, g.sfxLog.join(','));
+  const eatN = g.sfxLog.filter(t => t === 'eat').length;
+  pl.hunger = 100;
+  check('f3 full skips', g.eatRation() === false && g.sfxLog.filter(t => t === 'eat').length === eatN);
+  g.sfxLog.length = 0;
+  pl.thirst = 10;
+  g.drinkWater(40);
+  check('f2 gulp once', pl.thirst === 50 && g.sfxLog.filter(t => t === 'gulp').length === 1 && g.sfxLog.indexOf('eat') < 0, g.sfxLog.join(',') + ' thirst ' + pl.thirst);
+  pl.thirst = 100;
+  g.sfxLog.length = 0;
+  g.drinkWater(40);
+  check('f2 full silent', pl.thirst === 100 && g.sfxLog.filter(t => t === 'gulp').length === 0, g.sfxLog.join(',') + ' thirst ' + pl.thirst);
+
+  delete w.__forceHaz; delete w.__forceRitual;
+  w.__forceGlimmer = 1;
+  let pool = null;
+  for (let i = 0; i < 6 && !pool; i++) { g.startFloor(5, true); pool = (g.glimmers || [])[0]; }
+  check('f9 pool', !!(pool && pool.uses === 1), pool && pool.uses);
+  if (pool) {
+    pl.thirst = 10; pl.xpBuffT = 0;
+    g.sfxLog.length = 0;
+    const ok = g.drinkGlimmer(pool);
+    check('f9 first drink', ok === true && pool.uses === 0 && pl.xpBuffT === g.XPBUFF_TIME && g.buffText().indexOf('25') >= 0, g.buffText() + ' uses ' + pool.uses);
+    check('f9 gulp with drink', g.sfxLog.filter(t => t === 'gulp').length === 1, g.sfxLog.join(','));
+    const buff = pl.xpBuffT;
+    check('f9 second drink', g.drinkGlimmer(pool) === false && pool.uses === 0 && pl.xpBuffT === buff);
+    check('xp buff 25', g.XPBUFF === 0.25, g.XPBUFF);
+  }
+
+  w.__prismForce = true;
+  let P = null;
+  for (let i = 0; i < 4 && !P; i++) { g.startFloor(7, true); P = g.prism; }
+  check('f1 prism', !!P);
+  if (P) {
+    P.solved = 0;
+    let L = w.gatherLights(P.ox - 500, P.oy - 500, 1000, 1000);
+    let dim = L.filter(l => l.col === 'lich').map(l => l.r);
+    check('f1 unsolved small', dim.length && Math.max.apply(null, dim) <= 80, dim.join(','));
+    P.solved = 1;
+    L = w.gatherLights(P.ox - 500, P.oy - 500, 1000, 1000);
+    const big = L.filter(l => l.col === 'lich' && l.r >= 200 && l.polys && l.polys[0]);
+    check('f1 solved light', big.length >= 1, L.filter(l => l.col === 'lich').map(l => l.r).join(','));
+    if (big.length) {
+      const poly = big[0].polys[0];
+      check('f1 origin lit', w.inPoly(poly, P.ox, P.oy) === true);
+      let wallsOut = 0, wallsIn = 0;
+      const tx0 = Math.floor(P.ox / 16) - 6, ty0 = Math.floor(P.oy / 16) - 6;
+      for (let ty = ty0; ty <= ty0 + 12; ty++) for (let tx = tx0; tx <= tx0 + 12; tx++) {
+        if (w.tileAt(tx, ty) !== 0) continue;
+        const wx = (tx + .5) * 16, wy = (ty + .5) * 16;
+        if (Math.hypot(wx - P.ox, wy - P.oy) > 90) continue;
+        if (w.inPoly(poly, wx, wy)) wallsIn++; else wallsOut++;
+      }
+      check('f1 shadows', wallsOut >= 10, wallsOut + ' out / ' + wallsIn + ' in');
+    }
+  }
+
+  delete w.__prismForce; delete w.__forceGlimmer; delete w.__forceHaz; delete w.__forceRitual;
+  g.setZoom(1);
+  g.startFloor(6, true);
+  if (g.player.hp < g.player.st.maxHp) g.player.hp = g.player.st.maxHp;
+  let spike = null;
+  for (let ty = 2; ty < 40 && !spike; ty++) for (let tx = 2; tx < 50; tx++) if (w.tileAt(tx, ty) === 1 && g.walkable(tx, ty)) { spike = { tx, ty }; break; }
+  check('b3 floor', !!spike);
+  if (spike) {
+    g.spikes.push({ tx: spike.tx, ty: spike.ty, axis: 'h' });
+    check('b3 walkable', g.walkable(spike.tx, spike.ty) === true);
+    const p = g.player;
+    p.roll = 0.2; p.x = (spike.tx + .5) * 16; p.y = (spike.ty + .5) * 16; p.safeX = p.x - 16; p.safeY = p.y;
+    w.v075AfterMove();
+    check('b3 roll hops', !g.pitAct, g.pitAct && g.pitAct.kind);
+    p.roll = 0;
+    const hp0 = p.hp, maxHp = p.st.maxHp, backX = p.safeX, backY = p.safeY;
+    w.v075AfterMove();
+    check('b3 walk-in falls', g.pitAct && g.pitAct.kind === 'spikefall');
+    for (let i = 0; i < 25 && g.pitAct; i++) w.updatePitAct(0.1);
+    const lost = hp0 - p.hp;
+    check('b3 5% snap back', !g.pitAct && lost >= 1 && lost <= Math.max(1, Math.ceil(maxHp * 0.05)) + 1 && p.hp >= 1 && Math.abs(p.x - backX) < 2 && Math.abs(p.y - backY) < 2, 'lost ' + lost + ' at ' + Math.round(p.x) + ',' + Math.round(p.y));
+  }
+  delete w.__zoomDesk;
+}
+</script>
+</body>
+</html>

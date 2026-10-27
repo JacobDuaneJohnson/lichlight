@@ -22,7 +22,7 @@ document.getElementById('g').addEventListener('load', () => {
 });
 function run(w) {
   const g = w.game;
-  check('boot', !!(g && g.version === '0.7.5'), g && g.version);
+  check('boot', !!(g && g.version), g && g.version); // version pin lives in v076.html
   const html = w.compareHTML(
     { min: 10, max: 14, spd: 1.2, def: 4, block: 8, mods: { ls: 7, ias: 10, hp: 20, crit: 5, dmg: 3 }, powers: [{ t: 'skillAmp', skill: 'frost', pct: 21 }] },
     { min: 8, max: 12, spd: 1.1, def: 2, block: 12, mods: { ls: 5, ias: 8, hp: 10, crit: 8, dmg: 1 }, powers: [{ t: 'skillAmp', skill: 'frost', pct: 14 }] }
@@ -209,7 +209,7 @@ function run(w) {
     check('f7 5% then back', !g.pitAct && lost >= 1 && lost <= Math.max(1, Math.ceil(maxHp * 0.05)) + 1 && plr.hp >= 1, 'lost ' + lost + ' hp ' + plr.hp + ' at ' + Math.round(plr.x) + ',' + Math.round(plr.y));
   }
   check('f7 spikes exist', spikes >= 1, spikes);
-  check('f7 not walkable', blocked === spikes && spikes > 0, blocked + '/' + spikes);
+  check('f7 walkable pit', blocked === 0 && spikes > 0, blocked + '/' + spikes); // v0.7.6 B3: gaps are enterable
 
   w.__prismForce = false;
   g.startFloor(4, true);
