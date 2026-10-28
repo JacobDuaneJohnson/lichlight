@@ -1216,6 +1216,13 @@ function itemIconURL(it) { const ic = itemIcon(it); if (ic === ICONS[it.icon]) {
 // ---------- dungeon generation ----------
 let MW = 64, MH = 48, map = [], seen = [], rooms = [], torches = [], mapVar = [];
 function tileAt(tx, ty) { return (tx < 0 || ty < 0 || tx >= MW || ty >= MH) ? TILE.WALL : map[ty * MW + tx]; }
+function carveOpen(tx, ty, r) { // test helper: open a disk so a light cone can be measured on both sides
+  for (let y = ty - r; y <= ty + r; y++) for (let x = tx - r; x <= tx + r; x++) {
+    if (x <= 0 || y <= 0 || x >= MW - 1 || y >= MH - 1) continue;
+    map[y * MW + x] = TILE.FLOOR; if (seen) seen[y * MW + x] = 1;
+  }
+  mapVer++; if (typeof polyCache !== 'undefined' && polyCache && polyCache.clear) polyCache.clear();
+}
 let vineGrid = new Uint8Array(0), vineN = 0; // v0.6.0 vines block like walls until cut / burned
 function solidAt(px, py) { const tx = Math.floor(px / TS), ty = Math.floor(py / TS); return tileAt(tx, ty) === TILE.WALL || (pblocks.length > 0 && blockSolidAt(tx, ty)) || (vineN > 0 && vineGrid[ty * MW + tx] === 1); }
 function genDungeon(depth) {
@@ -1492,7 +1499,7 @@ function visRayCount(n) { const m = (typeof GL_LOOK !== 'undefined' && GL_LOOK &
 function wallBite(dy) { const base = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.bite)) ? +GL_LOOK.bite : 10, extra = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.biteN)) ? +GL_LOOK.biteN : 8; return dy < -.35 ? base + extra : base; } /* north bias is biteN on top of the base bite (defaults 10 + 8 = 18) */
 function glPolyTouch() {
   if (typeof GL_LOOK === 'undefined' || !GL_LOOK) return;
-  const sig = [GL_LOOK.rayMul, GL_LOOK.bite, GL_LOOK.biteN, GL_LOOK.bandOff].join('|');
+  const sig = [GL_LOOK.rayMul, GL_LOOK.bite, GL_LOOK.biteN, GL_LOOK.bandOff, GL_LOOK.bands, GL_LOOK.envFall].join('|');
   if (glPolyTouch.sig === sig) return;
   glPolyTouch.sig = sig;
   if (typeof polyCache !== 'undefined' && polyCache && polyCache.clear) polyCache.clear();
@@ -1518,19 +1525,28 @@ function playerLights() { // [{r, col, a}] — exposed for tests
   const ml = (p.st && p.st.light) || 0; if (ml > 0) L.push({ r: 24 + ml * 2.6, col: 'cold', a: .8 });
   return L;
 }
-function lightRadius() { return Math.max(...playerLights().map(l => l.r)); }
+function lightRadius() { return Math.max(...playerLights().map(l => l.r * (l.col === 'warm' ? glNum('thFall', 1) : glNum('armFall', 1)))); }
+function glNum(k, d) { return (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK[k])) ? +GL_LOOK[k] : d; }
+function envTune(o) { // braziers, sconces, fire pits, prop flames. Not the player torch.
+  if (!o || o._env) return o;
+  o.env = 1; o._env = 1;
+  const b = glNum('envB', 1), f = glNum('envFall', 1);
+  if (f !== 1) o.r *= f;
+  if (b !== 1) o.a = Math.min(1, Math.max(0, o.a * b));
+  return o;
+}
 function gatherLights(sx, sy, vw, vh) {
   vw = vw || VW; vh = vh || VH;
   const p = player, L = [], view = (x, y, r) => x > sx - r && y > sy - r && x < sx + vw + r && y < sy + vh + r;
-  const pFall = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.pFall)) ? +GL_LOOK.pFall : 1;
-  const pl = playerLights().map(l => ({ r: l.r * pFall, col: l.col, a: l.a })), pr = Math.max(...pl.map(l => l.r));
+  const pl = playerLights().map(l => { const torch = l.col === 'warm'; return { r: l.r * glNum(torch ? 'thFall' : 'armFall', 1), col: l.col, a: l.a, mode: torch ? 'torch' : 'arm' }; }), pr = Math.max(...pl.map(l => l.r));
   const polys = bandPolys(p.x, p.y - 2, pr, pr > 60 ? 140 : 48), poly = polys[0]; // v0.7.2 §3: banded soft shadow edges
-  for (const l of pl) { const o = { x: p.x, y: p.y - 2, r: l.r, col: l.col, a: l.a, poly, polys: l.r > 30 ? polys : null, player: 1 }; if (l.col === 'warm' && typeof GL_LOOK !== 'undefined' && GL_LOOK) o.rgb = [GL_LOOK.plyrR, GL_LOOK.plyrG, GL_LOOK.plyrB]; L.push(o); }
+  for (const l of pl) { const o = { x: p.x, y: p.y - 2, r: l.r, col: l.col, a: l.a, poly, polys: l.r > 30 ? polys : null, player: 1, mode: l.mode }; if (GL_LOOK) o.rgb = l.mode === 'torch' ? [GL_LOOK.thR, GL_LOOK.thG, GL_LOOK.thB] : [GL_LOOK.armR, GL_LOOK.armG, GL_LOOK.armB]; L.push(o); }
   const statics = [];
-  for (let i = 0; i < torches.length; i++) { const t = torches[i]; if (t.out) continue; const lx = t.x, ly = t.y + 11; if (view(lx, ly, 80)) { const g = torchGlow(t.x * .37 + t.y * .11, 58, .72); statics.push({ x: lx, y: ly, r: g.r, col: 'fire', a: g.a, key: 't' + i, sx: t.x, sy: t.y + 1, f: g.a / .72 }); /* v0.7.3 §13: 74 / .85 -> 58 / .72 */ } }
-  for (let i = 0; i < braziers.length; i++) { const b = braziers[i]; if (view(b.x, b.y, 90)) { const g = torchGlow(b.x * .29 + b.y * .17 + 3, 66, .78); statics.push({ x: b.x, y: b.y - 4, r: g.r, col: 'fire', a: g.a, key: 'b' + i, sx: b.x, sy: b.y - 10, f: g.a / .78 }); /* v0.7.3 §13: 84 / .9 -> 66 / .78 */ } }
+  const envPad = Math.max(1, glNum('envFall', 1));
+  for (let i = 0; i < torches.length; i++) { const t = torches[i]; if (t.out) continue; const lx = t.x, ly = t.y + 11; if (view(lx, ly, 80 * envPad)) { const g = torchGlow(t.x * .37 + t.y * .11, 58, .72); statics.push({ x: lx, y: ly, r: g.r, col: 'fire', a: g.a, key: 't' + i, sx: t.x, sy: t.y + 1, f: g.a / .72 }); /* v0.7.3 §13: 74 / .85 -> 58 / .72 */ } }
+  for (let i = 0; i < braziers.length; i++) { const b = braziers[i]; if (view(b.x, b.y, 90 * envPad)) { const g = torchGlow(b.x * .29 + b.y * .17 + 3, 66, .78); statics.push({ x: b.x, y: b.y - 4, r: g.r, col: 'fire', a: g.a, key: 'b' + i, sx: b.x, sy: b.y - 10, f: g.a / .78 }); /* v0.7.3 §13: 84 / .9 -> 66 / .78 */ } }
   statics.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y));
-  for (const s of statics.slice(0, 10)) { s.polys = bandPolys(s.x, s.y, 72, 64, s.key); s.poly = s.polys[0]; L.push(s); L.push({ x: s.sx, y: s.sy, r: 18 * (.9 + .1 * s.f), col: 'amber', a: .42 * s.f, glow: 1 }); } // small hot glow on the flame itself
+  for (const s of statics.slice(0, 10)) { envTune(s); s.polys = bandPolys(s.x, s.y, Math.max(72, s.r + 8), 64, s.key); s.poly = s.polys[0]; L.push(s); L.push(envTune({ x: s.sx, y: s.sy, r: 18 * (.9 + .1 * s.f), col: 'amber', a: .42 * s.f, glow: 1 })); } // small hot glow on the flame itself
   let n = 0;
   for (const q of projs) { if (++n > 28) break; if (!view(q.x, q.y, 40)) continue;
     if (q.skill !== undefined && SKILLS[q.skill]) { const c = SKILLS[q.skill].light; L.push({ x: q.x, y: q.y, r: 62 + Math.sin(time * 21 + q.x) * 2, col: c, a: .95, skill: q.skill }); L.push({ x: q.x, y: q.y, r: 16, col: 'fire', a: .5, skill: q.skill }); continue; }
@@ -1568,7 +1584,7 @@ function worldToScreen(wx, wy) {
 // v0.7.8 hybrid: shader path on High + GL LIGHT auto/on. Low, OFF, or a missing WebGL2 context keep lcan.
 const GL_MAX_LIGHTS = 32, GL_MAX_OCC = 24; // 32 keeps the default-uniform vec4 budget under the WebGL2 minimum (224)
 // Dev look. WebGL-only keys are ignored by the Canvas lightmap. Ray, bite, band, bloom, and the outline feed both paths.
-const GL_LOOK_BASE = { penumbra: 12, spill: 1.36, core: 1, haze: 0.22, fill: 0.18, voidR: 5, voidG: 4, voidB: 8, seenR: 26, seenG: 21, seenB: 32, pFall: 1, pSoft: 1, pCone: 360, plyrR: 255, plyrG: 190, plyrB: 116, bloomK: 1, bloomR: 1, rayMul: 1, bite: 10, biteN: 8, bandOff: 6, outline: 0 };
+const GL_LOOK_BASE = { penumbra: 12, spill: 1.36, core: 1, haze: 0.22, fill: 0.18, voidR: 5, voidG: 4, voidB: 8, seenR: 26, seenG: 21, seenB: 32, armR: 110, armG: 96, armB: 110, armFall: 1, armSoft: 1, armCone: 360, thR: 255, thG: 190, thB: 116, thFall: 1, thSoft: 1, thCone: 360, envB: 1, envFall: 1, bloomK: 1, bloomR: 1, rayMul: 1, bite: 10, biteN: 8, bandOff: 6, bands: 0, outline: 0 };
 const GL_BOX_BASE = { x: null, y: null, w: 440, h: 520 };
 let glBox = { x: null, y: null, w: 440, h: 520 }, glDragged = false;
 const GL_DEV_ROWS = [
@@ -1577,15 +1593,21 @@ const GL_DEV_ROWS = [
   { k: 'core', label: 'CORE', hint: 'How hard the center shifts toward white. WebGL only.', min: 0, max: 1.5, step: 0.02, webgl: 1 },
   { k: 'haze', label: 'HAZE', hint: 'Colored spill along the cone. WebGL only.', min: 0, max: 0.6, step: 0.01, webgl: 1 },
   { k: 'fill', label: 'FILL', hint: 'Explored-floor bounce inside the mask. WebGL only.', min: 0, max: 0.55, step: 0.01, webgl: 1 },
-  { k: 'pFall', label: 'P FALL', hint: 'Player torch reach only. 1 is the shipped torch. Sconces and braziers stay put.', min: 0.35, max: 2.4, step: 0.05, sec: 'PLAYER LIGHT' },
-  { k: 'pSoft', label: 'P SOFT', hint: 'Player light edge softness. WebGL only. 1 matches the global curve.', min: 0.45, max: 2.6, step: 0.05, webgl: 1 },
-  { k: 'pCone', label: 'P CONE', hint: 'Player light aperture in degrees. 360 is a full circle. It faces where you look.', min: 20, max: 360, step: 5 },
+  { k: 'armFall', label: 'U FALL', hint: 'How far the personal light reaches when your torch is out. 1 is the shipped glow. Not the held torch.', min: 0.35, max: 2.4, step: 0.05, sec: 'UNARMED' },
+  { k: 'armSoft', label: 'U SOFT', hint: 'Edge softness of that personal light. WebGL only. 1 matches the global curve.', min: 0.45, max: 2.6, step: 0.05, webgl: 1 },
+  { k: 'armCone', label: 'U CONE', hint: 'Personal light aperture in degrees. 360 is a full circle, even all the way around. It faces where you look only when this is under 360.', min: 20, max: 360, step: 5 },
+  { k: 'thFall', label: 'T FALL', hint: 'How far the light reaches while your torch is lit. 1 is the shipped torch. Not sconces or the unarmed glow.', min: 0.35, max: 2.4, step: 0.05, sec: 'TORCH HELD' },
+  { k: 'thSoft', label: 'T SOFT', hint: 'Edge softness of the held torch. WebGL only.', min: 0.45, max: 2.6, step: 0.05, webgl: 1 },
+  { k: 'thCone', label: 'T CONE', hint: 'Held-torch aperture in degrees. 360 is a full circle. Under 360 it faces where you look. Does not change the unarmed glow.', min: 20, max: 360, step: 5 },
+  { k: 'envB', label: 'ENV BRIGHT', hint: 'Brightness of braziers, wall torches, fire pits, and other environment flames. Not the player torch.', min: 0, max: 2.5, step: 0.05, sec: 'ENVIRONMENT LIGHTS' },
+  { k: 'envFall', label: 'ENV FALL', hint: 'How far those environment flames reach. 1 is the shipped torch. Not the player torch.', min: 0.35, max: 2.4, step: 0.05, poly: 1 },
   { k: 'bloomK', label: 'BLOOM', hint: 'Multiplies the quality preset strength.', min: 0, max: 3, step: 0.05, sec: 'BLOOM' },
   { k: 'bloomR', label: 'BLOOM R', hint: 'Multiplies glow radius. That is the falloff distance.', min: 0.25, max: 3, step: 0.05 },
   { k: 'rayMul', label: 'RAYS', hint: 'Multiplies each light ray count. Result is clamped to 16-192.', min: 0.4, max: 2.5, step: 0.1, poly: 1, sec: 'VISIBILITY' },
   { k: 'bite', label: 'BITE', hint: 'How far rays push into the first wall, pixels.', min: 0, max: 40, step: 1, poly: 1 },
   { k: 'biteN', label: 'BITE N', hint: 'Extra pixels when the ray heads north. North bite is BITE + BITE N.', min: 0, max: 28, step: 1, poly: 1 },
-  { k: 'bandOff', label: 'BAND', hint: 'Canvas band origin offset, pixels. Was SHADOW_OFF 6.', min: 0, max: 24, step: 1, poly: 1 },
+  { k: 'bandOff', label: 'BAND', hint: 'Where each shadow band starts, in pixels. This is the old SHADOW_OFF of 6, not the step count.', min: 0, max: 24, step: 1, poly: 1 },
+  { k: 'bands', label: 'BANDS', hint: 'How many shadow steps. 0 keeps High 4 and Low 3. Canvas stacks that many polygons. WebGL posterizes the pool when this is 2 or more.', min: 0, max: 8, step: 1, poly: 1 },
   { k: 'outline', label: 'OUTLINE', hint: 'Draw live visibility polygons.', kind: 'check' }
 ];
 const GL_LOOK = Object.assign({}, GL_LOOK_BASE);
@@ -1594,7 +1616,7 @@ function glLookDefaults() { return GL_LOOK_BASE; }
 function glDevFmt(row, v) { const s = String(row.step), d = s.indexOf('.') < 0 ? 0 : s.length - s.indexOf('.') - 1; return Number(v).toFixed(d); }
 function glHex(r, g, b) { const h = n => ('0' + (Math.max(0, Math.min(255, n | 0))).toString(16)).slice(-2); return '#' + h(r) + h(g) + h(b); }
 function glParseHex(s) { const m = /^#?([0-9a-f]{6})$/i.exec(String(s || '').trim()); if (!m) return null; const n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
-function glLookClamp(k, v) { const row = GL_DEV_ROWS.find(r => r.k === k); if (row && row.kind === 'check') return v ? 1 : 0; if (row && isFinite(v)) return Math.min(row.max, Math.max(row.min, v)); if (/^(void|seen|plyr)[RGB]$/.test(k) && isFinite(v)) return Math.max(0, Math.min(255, v | 0)); return GL_LOOK_BASE[k]; }
+function glLookClamp(k, v) { const row = GL_DEV_ROWS.find(r => r.k === k); if (row && row.kind === 'check') return v ? 1 : 0; if (row && isFinite(v)) return Math.min(row.max, Math.max(row.min, v)); if (/^(void|seen|arm|th)[RGB]$/.test(k) && isFinite(v)) return Math.max(0, Math.min(255, v | 0)); return GL_LOOK_BASE[k]; }
 function lichDevOn(host, search) {
   const h = String(host == null ? (location.hostname || '') : host).toLowerCase();
   if (h === 'github.io' || h.endsWith('.github.io')) return false;
@@ -1609,6 +1631,10 @@ function glLookLoad() {
     const s = JSON.parse(localStorage.getItem('lichlight-gl-look') || 'null');
     if (!s || typeof s !== 'object') return;
     for (const k in GL_LOOK_BASE) if (typeof s[k] === 'number') GL_LOOK[k] = glLookClamp(k, s[k]);
+    if (typeof s.thFall !== 'number' && typeof s.pFall === 'number') GL_LOOK.thFall = glLookClamp('thFall', s.pFall);
+    if (typeof s.thSoft !== 'number' && typeof s.pSoft === 'number') GL_LOOK.thSoft = glLookClamp('thSoft', s.pSoft);
+    if (typeof s.thCone !== 'number' && typeof s.pCone === 'number') GL_LOOK.thCone = glLookClamp('thCone', s.pCone);
+    if (typeof s.thR !== 'number' && typeof s.plyrR === 'number') { GL_LOOK.thR = glLookClamp('thR', s.plyrR); GL_LOOK.thG = glLookClamp('thG', s.plyrG); GL_LOOK.thB = glLookClamp('thB', s.plyrB); }
     const b = s._box; if (b && typeof b === 'object') { if (isFinite(+b.x)) glBox.x = +b.x; if (isFinite(+b.y)) glBox.y = +b.y; if (isFinite(+b.w)) glBox.w = Math.max(280, +b.w); if (isFinite(+b.h)) glBox.h = Math.max(220, +b.h); }
   } catch (e) {}
 }
@@ -1675,8 +1701,9 @@ function glDevBuild() {
   for (const row of GL_DEV_ROWS) {
     if (row.sec === 'VISIBILITY') { const bn = document.createElement('p'); bn.id = 'glBloomNote'; bn.className = 'gldevnote'; host.appendChild(bn); }
     if (row.sec) glDevSec(host, row.sec);
-    if (row.sec === 'WEBGL LOOK') { glDevColor(host, 'seen', 'SEEN', 'Explored floor with no torch on it. Default #1A1520.', true); glDevColor(host, 'void', 'VOID', 'Unexplored fog. Default #050408.', true); }
-    if (row.sec === 'PLAYER LIGHT') glDevColor(host, 'plyr', 'P COLOR', 'Player torch tint only. Default #FFBE74. Not sconces or braziers.', false);
+    if (row.sec === 'WEBGL LOOK') { glDevColor(host, 'seen', 'SEEN', 'Explored floor with no torch on it. Default #1A1520. Canvas and WebGL.', false); glDevColor(host, 'void', 'VOID', 'Unexplored fog. Default #050408. Canvas and WebGL.', false); }
+    if (row.sec === 'UNARMED') glDevColor(host, 'arm', 'U COLOR', 'Personal light with no torch lit. Default #6E606E. A full circle unless U CONE is under 360.', false);
+    if (row.sec === 'TORCH HELD') glDevColor(host, 'th', 'T COLOR', 'Light while your torch is lit. Default #FFBE74. Not the unarmed glow, sconces, or braziers.', false);
     glDevRow(host, row);
   }
 }
@@ -1706,7 +1733,7 @@ function syncGlDev() {
   const box = $('glDev'); if (!box) return;
   const want = wantWebGLLighting(), failed = !!(want && GL && GL.failed), use = want && !failed;
   let msg = 'WebGL lighting. Look dials and colors apply on the next frame.';
-  if (!want) msg = 'Canvas lightmap. WebGL look and colors are paused. Rays, bite, bands, bloom, and the outline still apply.';
+  if (!want) msg = 'Canvas lightmap. Penumbra, spill, core, haze, fill, and player softness are paused. Seen, Void, environment lights, bands, rays, bite, bloom, and the outline still apply.';
   else if (failed) msg = 'WebGL failed (' + (GL.reason || 'unavailable') + '). Canvas is drawing.';
   else if (lightFramePath !== 'webgl') msg = 'WebGL lighting arms on the next frame.';
   const note = $('glDevNote'); if (note && note.textContent !== msg) note.textContent = msg;
@@ -1752,7 +1779,7 @@ function packGlLights(L, V, W, H) { // screen-space uniforms + one occlusion lay
   const ranked = [];
   for (let i = 0; i < L.length; i++) { const l = L[i]; if (!l || l.a <= .01 || l.r <= .5) continue; const key = l.polys || (l.poly || null); ranked.push({ l, key, score: (key ? 1e6 : 0) + l.r * l.a }); }
   ranked.sort((a, b) => b.score - a.score);
-  const pos = new Float32Array(GL_MAX_LIGHTS * 2), col = new Float32Array(GL_MAX_LIGHTS * 3), rad = new Float32Array(GL_MAX_LIGHTS * 2), amp = new Float32Array(GL_MAX_LIGHTS), occ = new Float32Array(GL_MAX_LIGHTS);
+  const pos = new Float32Array(GL_MAX_LIGHTS * 2), col = new Float32Array(GL_MAX_LIGHTS * 3), rad = new Float32Array(GL_MAX_LIGHTS * 2), amp = new Float32Array(GL_MAX_LIGHTS), occ = new Float32Array(GL_MAX_LIGHTS), kind = new Float32Array(GL_MAX_LIGHTS);
   occ.fill(-1);
   const masks = [], map = new Map(); let n = 0, dropped = 0, skipped = 0;
   for (const it of ranked) {
@@ -1767,9 +1794,9 @@ function packGlLights(L, V, W, H) { // screen-space uniforms + one occlusion lay
     pos[n * 2] = px; pos[n * 2 + 1] = H - pyTop;
     col[n * 3] = rgb[0] / 255; col[n * 3 + 1] = rgb[1] / 255; col[n * 3 + 2] = rgb[2] / 255;
     rad[n * 2] = Math.max(.001, l.r / V.w * W); rad[n * 2 + 1] = Math.max(.001, l.r / V.h * H);
-    amp[n] = Math.min(1, l.a); occ[n] = layer; n++;
+    amp[n] = Math.min(1, l.a); occ[n] = layer; kind[n] = l.mode === 'torch' ? 2 : l.mode === 'arm' ? 1 : 0; n++;
   }
-  return { n, pos, col, rad, amp, occ, masks, dropped, skipped, occN: masks.length };
+  return { n, pos, col, rad, amp, occ, kind, masks, dropped, skipped, occN: masks.length };
 }
 const GL_VS = `#version 300 es
 void main() {
@@ -1787,6 +1814,7 @@ uniform vec3 uCol[MAXL];
 uniform vec2 uRad[MAXL];
 uniform float uAmp[MAXL];
 uniform float uOcc[MAXL];
+uniform float uKind[MAXL];
 uniform int uCount;
 uniform vec2 uResolution;
 uniform vec4 uView;
@@ -1803,18 +1831,23 @@ uniform float uHaze;
 uniform float uFill;
 uniform vec2 uPPos;
 uniform vec2 uPFace;
-uniform float uPCone;
-uniform float uPSoft;
-float plyHere(vec2 lp) { return distance(lp, uPPos) < 6.0 ? 1.0 : 0.0; }
-float coneCover(vec2 frag, vec2 lp) {
-  if (uPCone >= 359.0 || plyHere(lp) < 0.5) return 1.0;
+uniform float uArmCone;
+uniform float uArmSoft;
+uniform float uThCone;
+uniform float uThSoft;
+uniform float uBands;
+float coneCover(vec2 frag, vec2 lp, float kind) {
+  if (kind < 0.5) return 1.0;
+  float aperture = kind > 1.5 ? uThCone : uArmCone;
+  if (aperture >= 359.0) return 1.0; // unarmed default is a full disk; a torch cone never cuts it
   vec2 d = frag - lp;
-  if (dot(d, d) < 1.0) return 1.0;
-  float ang = atan(d.y, d.x), face = atan(uPFace.y, uPFace.x);
-  float diff = abs(atan(sin(ang - face), cos(ang - face)));
-  float halfA = radians(clamp(uPCone, 1.0, 360.0)) * 0.5;
-  float feather = radians(12.0);
-  return 1.0 - smoothstep(max(0.0, halfA - feather), halfA + 0.0001, diff);
+  float dist = length(d);
+  if (dist < 1.0) return 1.0;
+  vec2 faceV = vec2(uPFace.x, uPFace.y);
+  float c = dot(d / dist, faceV / max(length(faceV), 0.001));
+  float lim = cos(radians(clamp(aperture, 1.0, 360.0)) * 0.5);
+  float edge = cos(min(radians(clamp(aperture, 1.0, 360.0)) * 0.5 + radians(12.0), 3.14159));
+  return smoothstep(edge, max(edge + 0.001, lim), c);
 }
 out vec4 outColor;
 float bayer8(vec2 p) {
@@ -1864,11 +1897,14 @@ void main() {
     if (distR > spill + 0.08) continue;
     float t = distR / spill;
     float cover = uOcc[i] >= 0.0 ? softCover(uv, uOcc[i]) : 1.0;
-    cover *= coneCover(frag, uPos[i]);
+    float plyK = uKind[i];
+    cover *= coneCover(frag, uPos[i], plyK);
+    if (uBands >= 2.0) cover = floor(cover * uBands) / uBands;
     if (cover <= 0.0) continue;
-    float soft = max(mix(1.0, max(uPSoft, 0.2), plyHere(uPos[i])), 0.2);
+    float soft = plyK < 0.5 ? 1.0 : max(plyK > 1.5 ? uThSoft : uArmSoft, 0.2);
     float body = exp(-t * t * 2.05 / soft);
     float core = exp(-t * t * 26.0 / soft);
+    if (uBands >= 2.0) { body = floor(body * uBands) / uBands; core = floor(core * uBands) / uBands; }
     vec3 col = mix(uCol[i], hotWhite, clamp(core * uCore, 0.0, 1.0));
     acc += col * (uAmp[i] * cover * (body + core * 0.85));
     acc += uCol[i] * (uAmp[i] * cover * uHaze * exp(-t * t * 0.9)); // colored haze along the cone
@@ -1924,7 +1960,7 @@ function glInit() {
   try {
     GL.progL = glProgram(gl, GL_FS_LIGHT); GL.progC = glProgram(gl, GL_FS_COMP);
     const locs = (p, names) => { const o = {}; for (const n of names) o[n] = gl.getUniformLocation(p, n); return o; };
-    GL.locL = locs(GL.progL, ['uPos', 'uCol', 'uRad', 'uAmp', 'uOcc', 'uCount', 'uResolution', 'uView', 'uAmbient', 'uExplored', 'uTile', 'uMap', 'uMask', 'uSeen', 'uPen', 'uSpill', 'uCore', 'uHaze', 'uFill', 'uPPos', 'uPFace', 'uPCone', 'uPSoft']);
+    GL.locL = locs(GL.progL, ['uPos', 'uCol', 'uRad', 'uAmp', 'uOcc', 'uKind', 'uCount', 'uResolution', 'uView', 'uAmbient', 'uExplored', 'uTile', 'uMap', 'uMask', 'uSeen', 'uPen', 'uSpill', 'uCore', 'uHaze', 'uFill', 'uPPos', 'uPFace', 'uArmCone', 'uArmSoft', 'uThCone', 'uThSoft', 'uBands']);
     GL.locC = locs(GL.progC, ['uScene', 'uLight', 'uResolution']);
     GL.sceneTex = glTex2D(gl); GL.seenTex = glTex2D(gl); GL.lightTex = glTex2D(gl);
     GL.occTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D_ARRAY, GL.occTex);
@@ -2019,14 +2055,16 @@ function renderLightingGL(V, L) {
   gl.viewport(0, 0, W, H); gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST); gl.disable(gl.DITHER); gl.colorMask(true, true, true, true);
   gl.useProgram(GL.progL);
   const u = GL.locL;
-  gl.uniform2fv(u.uPos, pack.pos); gl.uniform3fv(u.uCol, pack.col); gl.uniform2fv(u.uRad, pack.rad); gl.uniform1fv(u.uAmp, pack.amp); gl.uniform1fv(u.uOcc, pack.occ);
+  gl.uniform2fv(u.uPos, pack.pos); gl.uniform3fv(u.uCol, pack.col); gl.uniform2fv(u.uRad, pack.rad); gl.uniform1fv(u.uAmp, pack.amp); gl.uniform1fv(u.uOcc, pack.occ); gl.uniform1fv(u.uKind, pack.kind);
   gl.uniform1i(u.uCount, pack.n); gl.uniform2f(u.uResolution, W, H); gl.uniform4f(u.uView, V.x, V.y, V.w, V.h);
   gl.uniform3f(u.uAmbient, GL_LOOK.voidR / 255, GL_LOOK.voidG / 255, GL_LOOK.voidB / 255); gl.uniform3f(u.uExplored, GL_LOOK.seenR / 255, GL_LOOK.seenG / 255, GL_LOOK.seenB / 255);
   gl.uniform1f(u.uTile, TS); gl.uniform2f(u.uMap, seenSz.mw, seenSz.mh);
   gl.uniform1f(u.uPen, GL_LOOK.penumbra); gl.uniform1f(u.uSpill, GL_LOOK.spill); gl.uniform1f(u.uCore, GL_LOOK.core); gl.uniform1f(u.uHaze, GL_LOOK.haze); gl.uniform1f(u.uFill, GL_LOOK.fill);
   const pxy = player ? [(player.x - V.x) / V.w * W, H - ((player.y - 2) - V.y) / V.h * H] : [-99999, -99999];
   gl.uniform2f(u.uPPos, pxy[0], pxy[1]); gl.uniform2f(u.uPFace, player ? (player.fx || 1) : 1, player ? -(player.fy || 0) : 0);
-  gl.uniform1f(u.uPCone, isFinite(+GL_LOOK.pCone) ? +GL_LOOK.pCone : 360); gl.uniform1f(u.uPSoft, isFinite(+GL_LOOK.pSoft) ? +GL_LOOK.pSoft : 1);
+  gl.uniform1f(u.uArmCone, glNum('armCone', 360)); gl.uniform1f(u.uArmSoft, glNum('armSoft', 1));
+  gl.uniform1f(u.uThCone, glNum('thCone', 360)); gl.uniform1f(u.uThSoft, glNum('thSoft', 1));
+  gl.uniform1f(u.uBands, isFinite(+GL_LOOK.bands) ? +GL_LOOK.bands : 0);
   gl.uniform1i(u.uMask, 0); gl.uniform1i(u.uSeen, 1);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D_ARRAY, GL.occTex);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -2073,30 +2111,41 @@ function plyGrad(rgb) {
   gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(.35, `rgba(${r},${g},${b},.92)`); gr.addColorStop(.68, `rgba(${r},${g},${b},.6)`); gr.addColorStop(.88, `rgba(${r},${g},${b},.22)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64); plyGrad.k = key; plyGrad.c = c; return c;
 }
-function lightImg(l) { if (l.player && l.rgb && !(l.rgb[0] === 255 && l.rgb[1] === 190 && l.rgb[2] === 116)) return plyGrad(l.rgb); return LGRAD[l.col] || LGRAD.dim; }
-function plyConeOn() { return typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.pCone) && +GL_LOOK.pCone < 359; }
-function plyConeClip() {
-  if (!plyConeOn() || !player) return;
-  const ang = Math.atan2(player.fy || 0, player.fx || 1), half = (+GL_LOOK.pCone) * Math.PI / 360;
+function lightImg(l) {
+  if (l.mode === 'torch' && l.rgb && !(l.rgb[0] === 255 && l.rgb[1] === 190 && l.rgb[2] === 116)) return plyGrad(l.rgb);
+  if (l.mode === 'arm' && l.rgb && !(l.rgb[0] === 110 && l.rgb[1] === 96 && l.rgb[2] === 110)) return plyGrad(l.rgb);
+  return LGRAD[l.col] || LGRAD.dim;
+}
+function glCss(prefix, fallback) {
+  if (typeof GL_LOOK === 'undefined' || !GL_LOOK) return fallback;
+  const r = GL_LOOK[prefix + 'R'], g = GL_LOOK[prefix + 'G'], b = GL_LOOK[prefix + 'B'];
+  if (!isFinite(r) || !isFinite(g) || !isFinite(b)) return fallback;
+  return 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
+}
+function plyConeClip(l) {
+  if (!l || (l.mode !== 'arm' && l.mode !== 'torch') || !player) return;
+  const cone = glNum(l.mode === 'torch' ? 'thCone' : 'armCone', 360);
+  if (!(cone < 359)) return;
+  const ang = Math.atan2(player.fy || 0, player.fx || 1), half = cone * Math.PI / 360;
   lctx.beginPath(); lctx.moveTo(player.x, player.y - 2); lctx.arc(player.x, player.y - 2, 8000, ang - half, ang + half); lctx.closePath(); lctx.clip();
 }
 function renderLightingCanvas(V, L) {
   const LQ = lightScale(), LW = Math.ceil(VW * LQ), LH = Math.ceil(VH * LQ);
   if (lcan.width !== LW || lcan.height !== LH) { lcan.width = LW; lcan.height = LH; }
   lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.globalCompositeOperation = 'source-over'; lctx.globalAlpha = 1;
-  lctx.fillStyle = '#050408'; lctx.fillRect(0, 0, LW, LH);
+  lctx.fillStyle = glCss('void', '#050408'); lctx.fillRect(0, 0, LW, LH);
   const scx = LW / V.w, scy = LH / V.h;
   lctx.setTransform(scx, 0, 0, scy, -V.x * scx, -V.y * scy);
   // explored-but-dark tiles stay faintly remembered
-  lctx.fillStyle = '#1a1520';
+  lctx.fillStyle = glCss('seen', '#1a1520');
   const t0x = Math.floor(V.x / TS) - 1, t0y = Math.floor(V.y / TS) - 1, t1x = Math.ceil((V.x + V.w) / TS) + 1, t1y = Math.ceil((V.y + V.h) / TS) + 1;
   for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) if (tx >= 0 && ty >= 0 && tx < MW && ty < MH && seen[ty * MW + tx]) lctx.fillRect(tx * TS, ty * TS, TS, TS);
   lctx.globalCompositeOperation = 'lighter';
   for (const l of L) { if (l.a <= .01) continue; const img = lightImg(l); lctx.globalAlpha = Math.min(1, l.a);
     if (l.polys) drawLightPolys(l, img);
-    else if (l.poly) { lctx.save(); if (l.player) plyConeClip(); lctx.beginPath(); const P = l.poly; lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
+    else if (l.poly) { lctx.save(); plyConeClip(l); lctx.beginPath(); const P = l.poly; lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
       lctx.drawImage(img, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); }
-    else { lctx.save(); if (l.player) plyConeClip(); lctx.drawImage(img, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); } }
+    else { lctx.save(); plyConeClip(l); lctx.drawImage(img, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); } }
   lctx.globalAlpha = 1; lctx.globalCompositeOperation = 'source-over'; lctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingEnabled = true; ctx.drawImage(lcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
 }
@@ -4808,12 +4857,12 @@ function drawFog() { for (const o of setp) if (o.kind === 'fog' && !offView(o.x,
   for (let i = 0; i < 5; i++) { const a = time * .15 + i * 1.3 + o.ph, rx = o.r * (.5 + .1 * i), x = o.x + Math.cos(a) * o.r * .35, y = o.y + Math.sin(a * .8) * o.r * .2;
     ctx.beginPath(); ctx.ellipse(x, y, rx, rx * .45 * (1 + .1 * k), 0, 0, 6.28); ctx.fill(); } } }
 function v05Lights(L, view) {
-  for (const o of setp) { if (o.kind === 'ritual' && view(o.x, o.y, 70)) { L.push({ x: o.x, y: o.y - 2, r: 52 + Math.sin(time * 6) * 2, col: 'warm', a: .55 }); L.push({ x: o.x, y: o.y, r: 30, col: 'red', a: .25 }); }
+  for (const o of setp) { if (o.kind === 'ritual' && view(o.x, o.y, 70 * Math.max(1, glNum('envFall', 1)))) { L.push(envTune({ x: o.x, y: o.y - 2, r: 52 + Math.sin(time * 6) * 2, col: 'warm', a: .55 })); L.push(envTune({ x: o.x, y: o.y, r: 30, col: 'red', a: .25 })); }
     else if (o.kind === 'fog' && view(o.x, o.y, o.r + 30)) L.push({ x: o.x, y: o.y, r: o.r * 1.6, col: o.green ? 'teal' : 'cold', a: .12 + .04 * Math.sin(time * .5 + o.ph) });
     else if (o.kind === 'pool' && o.uses && view(o.x, o.y, 30)) L.push({ x: o.x, y: o.y, r: 22, col: 'cold', a: .25 });
     else if (o.kind === 'niche' && o.lit && view(o.x, o.y, 30)) L.push({ x: o.x + 2, y: o.y + 2, r: 22, col: 'warm', a: .4 });
     else if (o.kind === 'window' && view(o.x, o.y, 30)) L.push({ x: o.x, y: o.y + 6, r: 26, col: 'cold', a: .18 }); }
-  for (const o of puzzles) if (o.kind === 'sconce' && o.on && view(o.x, o.y, 60)) L.push({ x: o.x, y: o.y - 10, r: 56, col: 'fire', a: .7 });
+  for (const o of puzzles) if (o.kind === 'sconce' && o.on && view(o.x, o.y, 60 * Math.max(1, glNum('envFall', 1)))) L.push(envTune({ x: o.x, y: o.y - 10, r: 56, col: 'fire', a: .7 }));
   for (const w of webs) if (w.burn > 0 && view(w.x, w.y, 30)) L.push({ x: w.x, y: w.y, r: 26, col: 'fire', a: .5 });
   // amulet secret-sense: revealed cracks pulse a soft violet
   if (pwMax('secrets', 'radius') > 0) for (const s of secrets) if (secretGlowing(s)) { const x = (s.tx + .5) * TS, y = (s.ty + .5) * TS; if (view(x, y, 30)) L.push({ x, y, r: 20 + 4 * Math.sin(time * 3 + s.tx), col: 'violet', a: .35 + .15 * Math.sin(time * 3 + s.tx) }); }
@@ -4859,13 +4908,15 @@ function texWall(tx, ty) { const BW = biomeWall(tx, ty); if (BW) return varyTile
 const BLOOM = { high: { cap: 24, k: .5 }, low: { cap: 8, k: .25 } };
 let bloomStats = { n: 0, k: 0, q: 'high' };
 function bloomSources() { const p = player, out = [], q = lightingQ(), C = BLOOM[q], B = zoomVis(cam.x, cam.y), v = (x, y, m) => x > B.x - m && x < B.x + B.w + m && y > B.y - m && y < B.y + B.h + m;
-  for (const t of torches) if (!t.out && v(t.x, t.y, 12)) out.push({ x: t.x, y: t.y - 1, r: 10 + Math.sin(time * 9 + t.x) * .8, col: 'fire', a: .55 });
-  for (const b of braziers) if (v(b.x, b.y, 16)) out.push({ x: b.x, y: b.y - 10, r: 14, col: 'fire', a: .6 });
-  for (const o of setp) if (o.kind === 'ritual' && v(o.x, o.y, 30)) for (const c of o.candles) out.push({ x: c.x, y: c.y - 5, r: 6, col: 'amber', a: .5 });
-  for (const o of puzzles) if (o.kind === 'sconce' && o.on && v(o.x, o.y, 16)) out.push({ x: o.x, y: o.y - 13, r: 10, col: 'fire', a: .55 });
+  for (const t of torches) if (!t.out && v(t.x, t.y, 12)) out.push({ x: t.x, y: t.y - 1, r: 10 + Math.sin(time * 9 + t.x) * .8, col: 'fire', a: .55, env: 1 });
+  for (const b of braziers) if (v(b.x, b.y, 16)) out.push({ x: b.x, y: b.y - 10, r: 14, col: 'fire', a: .6, env: 1 });
+  for (const o of setp) if (o.kind === 'ritual' && v(o.x, o.y, 30)) for (const c of o.candles) out.push({ x: c.x, y: c.y - 5, r: 6, col: 'amber', a: .5, env: 1 });
+  for (const o of puzzles) if (o.kind === 'sconce' && o.on && v(o.x, o.y, 16)) out.push({ x: o.x, y: o.y - 13, r: 10, col: 'fire', a: .55, env: 1 });
   for (const q2 of projs) if (q2.owner === 'p' && q2.skill !== undefined && SKILLS[q2.skill] && v(q2.x, q2.y, 16)) out.push({ x: q2.x, y: q2.y, r: 14, col: SKILLS[q2.skill].light, a: .8 });
   for (const f of effects) if (f.skill !== undefined && SKILLS[f.skill] && v(f.x, f.y, f.r)) out.push({ x: f.x, y: f.y, r: Math.max(10, f.r * .7), col: SKILLS[f.skill].light, a: .5 * (1 - f.t / f.dur) });
-  if (p && p.torchT > 0) out.push({ x: p.x + p.fx * 4, y: p.y - 9, r: 8, col: 'fire', a: .4 });
+  if (p && p.torchT > 0) out.push({ x: p.x + p.fx * 4, y: p.y - 9, r: 8 * glNum('thFall', 1), col: 'fire', a: .4 });
+  const eb = glNum('envB', 1), ef = glNum('envFall', 1);
+  if (eb !== 1 || ef !== 1) for (const l of out) if (l.env) { l.r *= ef; l.a = Math.min(1, Math.max(0, l.a * eb)); }
   out.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y)); out.length = Math.min(out.length, C.cap); return out; }
 function drawBloom() { const L = bloomSources(), q = lightingQ(), C = BLOOM[q], kMul = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.bloomK)) ? +GL_LOOK.bloomK : 1, rMul = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.bloomR)) ? +GL_LOOK.bloomR : 1, k = C.k * kMul;
   bloomStats = { n: L.length, k, q, kMul, rMul }; if (!L.length) return;
@@ -5946,10 +5997,10 @@ function ddaClear(x0, y0, x1, y1) { let tx = Math.floor(x0 / TS), ty = Math.floo
 function sightLOS(a, b) { if (!los(a, b)) return false; const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1, nx = -dy / l * LOS_FAT, ny = dx / l * LOS_FAT;
   return ddaClear(a.x, a.y, b.x, b.y) && ddaClear(a.x + nx, a.y + ny, b.x + nx, b.y + ny) && ddaClear(a.x - nx, a.y - ny, b.x - nx, b.y - ny); }
 // ---------- §3 banded shadow edges ----------
-function shadowBands() { return SHADOW_BANDS[lightingQ()] || 4; }
+function shadowBands() { const n = glNum('bands', 0); if (n >= 1) return Math.max(1, Math.min(8, Math.round(n))); return SHADOW_BANDS[lightingQ()] || 4; }
 function bandOrigins(x, y, n) { const off = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.bandOff)) ? +GL_LOOK.bandOff : SHADOW_OFF, out = []; for (let i = 0; i < n; i++) { const a = (i / n) * 6.2832 + .785, ox = x + Math.cos(a) * off, oy = y + Math.sin(a) * off; out.push(solidAt(ox, oy) ? [x, y] : [ox, oy]); } return out; }
 function bandPolys(x, y, r, rays, key) { const n = shadowBands(); return bandOrigins(x, y, n).map((o, i) => key ? cachedPoly(key + '~' + n + '~' + i, o[0], o[1], r, rays) : visPoly(o[0], o[1], r, rays)); }
-function drawLightPolys(l, img) { const P0 = l.polys, n = P0.length, a = Math.min(1, l.a), im = img || LGRAD[l.col]; for (const P of P0) { lctx.save(); if (l.player) plyConeClip(); lctx.globalAlpha = a / n; lctx.beginPath(); lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
+function drawLightPolys(l, img) { const P0 = l.polys, n = P0.length, a = Math.min(1, l.a), im = img || LGRAD[l.col]; for (const P of P0) { lctx.save(); plyConeClip(l); lctx.globalAlpha = a / n; lctx.beginPath(); lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
     lctx.drawImage(im, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); } }
 // ---------- §4 biomes ----------
 function biomeForV072(d) { return d < 4 ? null : BIOMES[Math.floor((d - 4) / 4) % 4]; } /* v0.7.2 cycle (v0.7.3 §3: replaced, see biomeFor) */
@@ -6115,8 +6166,8 @@ function v072Interact(L, close) { if (climb || pitAct) return; const p = player;
   if (!torchFull()) for (const f of V71.firepits) { const F = FIREPIT_FLAME[f.n] || FIREPIT_FLAME[2], X = f.tx * TS, Y = f.ty * TS, x = clamp(p.x, X + F.x0, X + F.x1), y = clamp(p.y + 2, Y + F.y0, Y + F.y1) - 2; if (!close(x, y, 18)) continue; /* v0.7.3 §12: measured to the flames */
     if (Math.hypot(x - p.x, y - p.y) < FIRE_RELIGHT_R && !firepitFlameAt(p.x, p.y)) L.push({ x, y, r: FIRE_RELIGHT_R, label: 'LIGHT TORCH', use: () => { v072Stats.relights++; relightFrom(); }, ref: f, tier: 1, gp: 1 }); } }
 function v072Lights(L, view) {
-  for (const o of V72.bprops) { const Lt = BPROP_LIGHT[o.k] || (o.lit ? ['amber', 20, .55] : null); if (!Lt) continue; const x = (o.tx + .5) * TS, y = (o.ty + .5) * TS - (o.hang ? 14 : 4); if (!view(x, y, Lt[1])) continue;
-    const f = flickN(time * 1.1, o.tx * .7 + o.ty), r = Lt[1] * (1 + .06 * f), a = Lt[2] * (1 + .08 * f); if (Lt[1] >= 40) { const polys = bandPolys(x, y, Lt[1] + 4, 56, 'bp' + o.tx + ',' + o.ty); L.push({ x, y, r, col: Lt[0], a, polys, poly: polys[0] }); } else L.push({ x, y, r, col: Lt[0], a }); }
+  for (const o of V72.bprops) { const Lt = BPROP_LIGHT[o.k] || (o.lit ? ['amber', 20, .55] : null); if (!Lt) continue; const x = (o.tx + .5) * TS, y = (o.ty + .5) * TS - (o.hang ? 14 : 4); if (!view(x, y, Lt[1] * Math.max(1, glNum('envFall', 1)))) continue;
+    const f = flickN(time * 1.1, o.tx * .7 + o.ty), lit = envTune({ x, y, r: Lt[1] * (1 + .06 * f), col: Lt[0], a: Lt[2] * (1 + .08 * f) }); if (Lt[1] >= 40) { const polys = bandPolys(x, y, lit.r + 4, 56, 'bp' + o.tx + ',' + o.ty); lit.polys = polys; lit.poly = polys[0]; } L.push(lit); }
   for (const q of V72.pads) if (q.st >= 1 && view((q.tx + .5) * TS, (q.ty + .5) * TS, 20)) L.push({ x: (q.tx + .5) * TS, y: (q.ty + .5) * TS, r: 14, col: 'teal', a: q.st === 2 ? .4 : .25 }); }
 function drawV072Floor(t0x, t0y, t1x, t1y) { const inV = (tx, ty, m) => tx >= t0x - m && tx <= t1x + m && ty >= t0y - m && ty <= t1y + m;
   // pads + sleds sit on the pit tiles
@@ -6143,9 +6194,10 @@ function drawV072Floor(t0x, t0y, t1x, t1y) { const inV = (tx, ty, m) => tx >= t0
 function drawGapTile(tx, ty, X, Y) { const g = gapAtT(tx, ty); if (!g) return false; const inside = !!inSecret();
   if (ty === g.ty) { const im = ART[g.alt ? 'wall_gap_face_alt' : 'wall_gap_face']; if (!im) return false; ctx.drawImage(im, X, Y); if (ART.wall_gap_debris && tileAt(tx, ty + 1) === TILE.FLOOR) ctx.drawImage(ART.wall_gap_debris, X, Y + TS); return true; }
   const im = inside ? ART.wall_gap_interior || ART.wall_gap_top : ART.wall_gap_top; if (!im) return false; ctx.drawImage(im, X, Y); return true; }
-function firepitLights(L, view) { for (const f of V71.firepits) { const x = (f.tx + f.n / 2) * TS, y = (f.ty + f.n / 2) * TS, C = FIREPIT_LIGHT[f.n] || FIREPIT_LIGHT[2]; if (!view(x, y, C.r)) continue;
-    const fl = flickN(time * 1.3, f.tx * .9 + f.ty), polys = bandPolys(x, y - 4, C.r + 6, 72, 'fp' + f.tx + ',' + f.ty);
-    L.push({ x, y: y - 4, r: C.r * (1 + .05 * fl), col: 'amber', a: Math.min(1, C.a * (1 + .06 * fl)), polys, poly: polys[0] }); L.push({ x, y: y - 2, r: C.hot * (1 + .08 * fl), col: 'fire', a: .6, glow: 1 }); } }
+function firepitLights(L, view) { for (const f of V71.firepits) { const x = (f.tx + f.n / 2) * TS, y = (f.ty + f.n / 2) * TS, C = FIREPIT_LIGHT[f.n] || FIREPIT_LIGHT[2]; if (!view(x, y, C.r * Math.max(1, glNum('envFall', 1)))) continue;
+    const fl = flickN(time * 1.3, f.tx * .9 + f.ty), main = envTune({ x, y: y - 4, r: C.r * (1 + .05 * fl), col: 'amber', a: Math.min(1, C.a * (1 + .06 * fl)) });
+    const polys = bandPolys(x, y - 4, main.r + 6, 72, 'fp' + f.tx + ',' + f.ty); main.polys = polys; main.poly = polys[0];
+    L.push(main); L.push(envTune({ x, y: y - 2, r: C.hot * (1 + .08 * fl), col: 'fire', a: .6, glow: 1 })); } }
 // ---------- §10 inventory: touch drag-scroll (selection waits for the finger to lift; desktop wheel / click unchanged) ----------
 const invDrag = { id: null, y0: 0, top0: 0, moved: false, act: null, vy: 0, lt: 0, ly: 0, raf: 0, n: 0 };
 function invDragArm(e, act) { const g = $('grid'); if (!g) return false; cancelAnimationFrame(invDrag.raf); Object.assign(invDrag, { id: e.pointerId, y0: e.clientY, top0: g.scrollTop, moved: false, act, vy: 0, lt: performance.now(), ly: e.clientY }); return true; }

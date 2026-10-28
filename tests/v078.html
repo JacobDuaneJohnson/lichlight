@@ -231,21 +231,97 @@ function run(w) {
   voidPick.value = '#102030'; voidPick.dispatchEvent(new Event('input'));
   check('seen picker', g.glLook().seenR === 0x33 && g.glLook().seenG === 0x22 && g.glLook().seenB === 0x11 && seenPick.parentNode.querySelector('b').textContent === '#332211');
   check('void picker', g.glLook().voidR === 0x10 && g.glLook().voidG === 0x20 && g.glLook().voidB === 0x30);
-  const ply = w.document.querySelector('#glDevRows input[data-color="plyr"]');
-  g.player.torchT = 80;
-  const r0 = w.gatherLights(0, 0, 4000, 4000).filter(l => l.player && l.col === 'warm').map(l => l.r)[0];
-  ply.value = '#00ff40'; ply.dispatchEvent(new Event('input'));
-  const fall = w.document.querySelector('#glDevRows input[data-k="pFall"]');
-  fall.value = '1.8'; fall.dispatchEvent(new Event('input'));
-  const cone = w.document.querySelector('#glDevRows input[data-k="pCone"]');
-  cone.value = '90'; cone.dispatchEvent(new Event('input'));
-  const plyL = w.gatherLights(0, 0, 4000, 4000).find(l => l.player && l.col === 'warm');
-  const env = w.gatherLights(0, 0, 4000, 4000).find(l => !l.player && (l.col === 'fire' || l.col === 'amber'));
-  check('player color', !!(plyL && plyL.rgb && plyL.rgb[0] === 0 && plyL.rgb[1] === 255 && plyL.rgb[2] === 64), plyL && plyL.rgb && plyL.rgb.join(','));
-  check('player fall', !!(plyL && r0 && plyL.r > r0 * 1.6), (r0 && Math.round(r0)) + ' -> ' + (plyL && Math.round(plyL.r)));
-  check('player cone', g.glLook().pCone === 90 && (!env || !env.rgb), g.glLook().pCone);
   w.render();
-  check('player cone draw', g.glLook().pCone === 90);
+  const visM = g.lightFrame, lightsM = g.frameLights || [];
+  const farM = (wx, wy) => lightsM.every(l => Math.hypot(wx - l.x, wy - l.y) > (l.r || 0) + 8);
+  const floorsM = [];
+  if (visM) {
+    const x0 = Math.max(1, Math.floor(visM.x / 16)), y0 = Math.max(1, Math.floor(visM.y / 16));
+    const x1 = Math.floor((visM.x + visM.w) / 16), y1 = Math.floor((visM.y + visM.h) / 16);
+    for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
+      if (w.tileAt(tx, ty) !== 1) continue;
+      const wx = (tx + .5) * 16, wy = (ty + .5) * 16;
+      if (wx < visM.x + 24 || wy < visM.y + 24 || wx > visM.x + visM.w - 24 || wy > visM.y + visM.h - 24) continue;
+      if (!farM(wx, wy) || g.seenAt(tx, ty)) continue;
+      floorsM.push({ tx, ty, wx, wy });
+    }
+  }
+  if (floorsM.length >= 2) {
+    g.seeTile(floorsM[0].tx, floorsM[0].ty);
+    g.glLook().seenR = 0; g.glLook().seenG = 255; g.glLook().seenB = 40;
+    g.glLook().voidR = 255; g.glLook().voidG = 0; g.glLook().voidB = 80;
+    w.render();
+    const seenS = g.lightSample(floorsM[0].wx, floorsM[0].wy);
+    const voidS = g.lightSample(floorsM[1].wx, floorsM[1].wy);
+    const cv = w.document.getElementById('game'), ictx = cv.getContext('2d');
+    const frameAt = (wx, wy) => { const s = w.worldToScreen(wx, wy), ix = Math.max(0, Math.min(cv.width - 1, Math.round(s.x))), iy = Math.max(0, Math.min(cv.height - 1, Math.round(s.y))), d = ictx.getImageData(ix, iy, 1, 1).data; return [d[0], d[1], d[2]]; };
+    const seenPx = frameAt(floorsM[0].wx, floorsM[0].wy), voidPx = frameAt(floorsM[1].wx, floorsM[1].wy);
+    check('mood webgl', !!(seenS && voidS && seenS[1] > 180 && seenS[1] > seenS[0] + 80 && voidS[0] > 180 && voidS[0] > voidS[1] + 80), (seenS && seenS.join(',')) + ' / ' + (voidS && voidS.join(',')));
+    check('mood frame', seenPx[1] > seenPx[0] + 4 && voidPx[0] > voidPx[1] + 4, seenPx.join(',') + ' / ' + voidPx.join(','));
+    g.settings.lighting = 'low'; g.settings.glLight = 'off';
+    w.render();
+    const seenC = g.lightSample(floorsM[0].wx, floorsM[0].wy);
+    const voidC = g.lightSample(floorsM[1].wx, floorsM[1].wy);
+    check('mood canvas', g.lightPath() === 'canvas' && !!(seenC && voidC && seenC[1] > 200 && voidC[0] > 200 && seenC[1] > seenC[0] && voidC[0] > voidC[1]), g.lightPath() + ' ' + (seenC && seenC.join(',')) + ' / ' + (voidC && voidC.join(',')));
+    g.settings.lighting = 'high'; g.settings.glLight = 'auto';
+    g.glLook().seenR = 0x33; g.glLook().seenG = 0x22; g.glLook().seenB = 0x11;
+    g.glLook().voidR = 0x10; g.glLook().voidG = 0x20; g.glLook().voidB = 0x30;
+    w.render();
+  } else {
+    check('mood webgl', false, 'no dark floor ' + floorsM.length);
+    check('mood frame', false, 'skipped');
+    check('mood canvas', false, 'skipped');
+  }
+  g.torches.push({ x: g.player.x + 140, y: g.player.y, out: false });
+  const env0 = w.gatherLights(0, 0, 8000, 8000).find(l => l.env && !l.glow);
+  const ply0 = w.gatherLights(0, 0, 8000, 8000).find(l => l.player && l.col === 'warm');
+  g.glLook().envFall = 1.6; g.glLook().envB = 0.4;
+  const env1 = env0 && w.gatherLights(0, 0, 8000, 8000).find(l => l.env && !l.glow && Math.hypot(l.x - env0.x, l.y - env0.y) < 2);
+  const ply1 = w.gatherLights(0, 0, 8000, 8000).find(l => l.player && l.col === 'warm');
+  check('env lights', !!(env0 && env1 && env1.r > env0.r * 1.45 && env1.a < env0.a * 0.6 && ply0 && ply1 && !ply1.env && ply1.r < ply0.r * 1.25), (env0 && Math.round(env0.r)) + ' -> ' + (env1 && Math.round(env1.r)) + ' a ' + (env1 && env1.a.toFixed(2)));
+  g.glLook().envFall = 1; g.glLook().envB = 1;
+  check('bands auto', w.shadowBands() === 4);
+  g.glLook().bands = 7;
+  check('bands count', w.shadowBands() === 7 && w.bandPolys(80, 80, 36, 12).length === 7);
+  g.glLook().bands = 0;
+  const thPick = w.document.querySelector('#glDevRows input[data-color="th"]');
+  const armPick = w.document.querySelector('#glDevRows input[data-color="arm"]');
+  for (const t of g.torches) t.out = true;
+  g.player.torchT = 0; g.player.fatigue = 100; g.player.fx = 1; g.player.fy = 0;
+  g.glLook().thCone = 360;
+  w.render();
+  const armR = g.lightSample(g.player.x + 12, g.player.y - 2), armL = g.lightSample(g.player.x - 12, g.player.y - 2);
+  check('unarmed sphere', !!(armR && armL && sumRgb(armR) > 30 && sumRgb(armL) > 30 && Math.abs(sumRgb(armR) - sumRgb(armL)) < 90), (armR && armR.join(',')) + ' / ' + (armL && armL.join(',')));
+  g.player.torchT = 80;
+  const r0 = w.gatherLights(0, 0, 4000, 4000).filter(l => l.mode === 'torch').map(l => l.r)[0];
+  const arm0 = w.gatherLights(0, 0, 4000, 4000).find(l => l.mode === 'arm');
+  thPick.value = '#00ff40'; thPick.dispatchEvent(new Event('input'));
+  armPick.value = '#4000ff'; armPick.dispatchEvent(new Event('input'));
+  const fall = w.document.querySelector('#glDevRows input[data-k="thFall"]');
+  fall.value = '1.8'; fall.dispatchEvent(new Event('input'));
+  const cone = w.document.querySelector('#glDevRows input[data-k="thCone"]');
+  cone.value = '90'; cone.dispatchEvent(new Event('input'));
+  const plyL = w.gatherLights(0, 0, 4000, 4000).find(l => l.mode === 'torch');
+  const armLgt = w.gatherLights(0, 0, 4000, 4000).find(l => l.mode === 'arm');
+  check('torch color', !!(plyL && plyL.rgb && plyL.rgb[0] === 0 && plyL.rgb[1] === 255 && plyL.rgb[2] === 64), plyL && plyL.rgb && plyL.rgb.join(','));
+  check('torch fall', !!(plyL && r0 && plyL.r > r0 * 1.6 && armLgt && arm0 && Math.abs(armLgt.r - arm0.r) < 1), (r0 && Math.round(r0)) + ' -> ' + (plyL && Math.round(plyL.r)));
+  check('torch cone', g.glLook().thCone === 90 && g.glLook().armCone === 360 && armLgt.rgb[2] === 255 && plyL.rgb[1] === 255, g.glLook().thCone + '/' + g.glLook().armCone);
+  w.carveOpen(Math.floor(g.player.x / 16), Math.floor(g.player.y / 16), 6);
+  const samp = (dx, dy) => g.lightSample(g.player.x + dx, g.player.y - 2 + dy);
+  const pairs = [[[40, 0], [-40, 0]], [[0, 40], [0, -40]], [[28, 0], [-28, 0]]];
+  g.glLook().thCone = 360; w.render();
+  let pair = null;
+  for (const [a, b] of pairs) {
+    const sa = samp(a[0], a[1]), sb = samp(b[0], b[1]);
+    if (sa && sb && sumRgb(sa) > 180 && sumRgb(sb) > 180) { pair = [a, b]; break; }
+  }
+  if (pair) {
+    const len = Math.hypot(pair[0][0], pair[0][1]) || 1;
+    g.player.fx = pair[0][0] / len; g.player.fy = pair[0][1] / len;
+    g.glLook().thCone = 90; w.render();
+    const fa = samp(pair[0][0], pair[0][1]), fb = samp(pair[1][0], pair[1][1]);
+    check('torch cone draw', !!(fa && fb && sumRgb(fa) > 150 && sumRgb(fb) + 80 < sumRgb(fa)), 'face ' + pair[0].join(',') + ' ' + (fa && fa.join(',')) + ' / ' + (fb && fb.join(',')));
+  } else check('torch cone draw', false, 'no open pair');
   const bloom = w.document.querySelector('#glDevRows input[data-k="bloomK"]');
   const bloomR = w.document.querySelector('#glDevRows input[data-k="bloomR"]');
   bloom.value = '2'; bloom.dispatchEvent(new Event('input'));
@@ -269,7 +345,7 @@ function run(w) {
   g.settings.lighting = 'low';
   w.syncGlDev();
   const pen = w.document.querySelector('#glDevRows input[data-k="penumbra"]');
-  check('dev grey on canvas', !!(pen && pen.disabled && !bloom.disabled && w.document.getElementById('glDevNote').textContent.indexOf('Canvas') >= 0), w.document.getElementById('glDevNote').textContent);
+  check('dev grey on canvas', !!(pen && pen.disabled && !bloom.disabled && seenPick && !seenPick.disabled && voidPick && !voidPick.disabled && w.document.getElementById('glDevNote').textContent.indexOf('Canvas') >= 0), w.document.getElementById('glDevNote').textContent);
   g.settings.lighting = 'high';
   g.settings.glLight = 'on';
   w.render();
@@ -280,7 +356,7 @@ function run(w) {
   check('dev slider', g.glLook().penumbra === 21 && pen.parentNode.querySelector('b').textContent === '21', g.glLook().penumbra);
   w.document.getElementById('glDevReset').click();
   const dflt = g.glLookDefaults();
-  check('dev reset', g.glLook().penumbra === dflt.penumbra && g.glLook().fill === dflt.fill && g.glLook().pFall === 1 && g.glLook().pCone === 360 && g.glLook().plyrR === 255 && g.glLook().plyrG === 190 && g.glLook().bloomK === 1 && g.glLook().rayMul === 1 && g.glLook().bite === 10 && g.glLook().biteN === 8 && g.glLook().bandOff === 6 && g.glLook().outline === 0 && g.glLook().voidR === 5 && g.glLook().seenR === 26 && g.glLook().seenB === 32 && pen.value === '12' && seenPick.parentNode.querySelector('b').textContent === '#1A1520' && Math.abs(box.getBoundingClientRect().width - 440) < 3, g.glLook().pCone + ' w ' + Math.round(box.getBoundingClientRect().width));
+  check('dev reset', g.glLook().penumbra === dflt.penumbra && g.glLook().fill === dflt.fill && g.glLook().armFall === 1 && g.glLook().armCone === 360 && g.glLook().armR === 110 && g.glLook().thFall === 1 && g.glLook().thCone === 360 && g.glLook().thR === 255 && g.glLook().thG === 190 && g.glLook().envB === 1 && g.glLook().envFall === 1 && g.glLook().bands === 0 && g.glLook().bloomK === 1 && g.glLook().rayMul === 1 && g.glLook().bite === 10 && g.glLook().biteN === 8 && g.glLook().bandOff === 6 && g.glLook().outline === 0 && g.glLook().voidR === 5 && g.glLook().seenR === 26 && g.glLook().seenB === 32 && pen.value === '12' && seenPick.parentNode.querySelector('b').textContent === '#1A1520' && armPick.parentNode.querySelector('b').textContent === '#6E606E' && Math.abs(box.getBoundingClientRect().width - 440) < 3, g.glLook().armCone + '/' + g.glLook().thCone);
   g.settings.glLight = 'auto';
 }
 </script>
