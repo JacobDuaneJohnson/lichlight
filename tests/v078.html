@@ -31,6 +31,7 @@ document.getElementById('g').addEventListener('load', () => {
 });
 function run(w) {
   const g = w.game;
+  if (g && g.glLookReset) g.glLookReset();
   const src = fetchText('../index.html');
   check('version stays 0.7.7', g && g.version === '0.7.7' && src.indexOf("const VERSION = '0.7.7'") >= 0, g && g.version);
   check('shader source', src.indexOf('#version 300 es') >= 0 && src.indexOf('uScene') >= 0 && src.indexOf('bayer8') >= 0 && src.indexOf('sampler2DArray') >= 0);
@@ -177,6 +178,26 @@ function run(w) {
   w.render();
   check('low is canvas', g.lightPath() === 'canvas', g.lightPath() + ' ' + g.lightingQ());
   g.settings.lighting = 'high';
+  g.settings.glLight = 'auto';
+  if (g.glLookReset) g.glLookReset();
+  const dev = w.document.getElementById('glDev');
+  const devRows = w.document.querySelectorAll('#glDevRows input');
+  check('dev section', !!(dev && dev.textContent.indexOf('LIGHTING (DEV)') >= 0 && devRows.length >= 11), devRows.length);
+  g.settings.lighting = 'low';
+  w.syncGlDev();
+  const pen = w.document.querySelector('#glDevRows input[data-k="penumbra"]');
+  check('dev grey on canvas', !!(pen && pen.disabled && w.document.getElementById('glDevNote').textContent.indexOf('Canvas') >= 0), w.document.getElementById('glDevNote').textContent);
+  g.settings.lighting = 'high';
+  g.settings.glLight = 'on';
+  w.render();
+  w.syncGlDev();
+  check('dev live path', pen && !pen.disabled && g.lightPath() === 'webgl', g.lightPath() + ' disabled=' + (pen && pen.disabled));
+  pen.value = '21';
+  pen.dispatchEvent(new Event('input'));
+  check('dev slider', g.glLook().penumbra === 21 && pen.parentNode.querySelector('b').textContent === '21', g.glLook().penumbra);
+  w.document.getElementById('glDevReset').click();
+  const dflt = g.glLookDefaults();
+  check('dev reset', g.glLook().penumbra === dflt.penumbra && g.glLook().fill === dflt.fill && g.glLook().spill === dflt.spill && g.glLook().voidR === 5 && g.glLook().seenR === 26 && g.glLook().seenB === 32 && pen.value === '12', g.glLook().penumbra + ' ' + pen.value);
   g.settings.glLight = 'auto';
 }
 </script>

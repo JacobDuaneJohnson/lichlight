@@ -174,6 +174,15 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @media (max-width:420px){#menu .mbtn{font-size:16px;padding:10px 12px}#menu .aopts{gap:5px 8px}}
 #safeProbe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .btn .ico .skimg{width:32px;height:32px;image-rendering:pixelated;image-rendering:crisp-edges;display:block;pointer-events:none}
+#glDev{width:min(96vw,560px);margin:8px auto 0;padding:8px 10px 6px;text-align:left;background:#141014;border:2px solid #5a4a38;color:#c8b8a0;font:12px/1.3 "Courier New",monospace}
+#glDev .gldevh{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#e0b040;letter-spacing:1px;font-weight:bold;margin-bottom:2px}
+#glDev .gldevnote{margin:0 0 6px;color:#a89880;font-size:11px}
+#glDev .gldevrow{display:flex;align-items:center;gap:8px;margin:2px 0}
+#glDev .gldevrow span{flex:0 0 108px}
+#glDev .gldevrow input{flex:1;min-width:0;accent-color:#c08030}
+#glDev .gldevrow b{flex:0 0 48px;text-align:right;color:#e8dcc0;font-weight:bold}
+#glDev.off .gldevrow{opacity:.38}
+#glDev.off .gldevrow input{pointer-events:none}
 </style>
 </head>
 <body>
@@ -227,6 +236,11 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <label>MUSIC <input type="range" id="volMusic" min="0" max="100" step="5"></label>
     <label>SFX <input type="range" id="volSfx" min="0" max="100" step="5"></label>
     <label>AMBIENCE <input type="range" id="volAmb" min="0" max="100" step="5"></label>
+  </div>
+  <div id="glDev">
+    <div class="gldevh">LIGHTING (DEV) <button type="button" class="mbtn small" id="glDevReset">RESET</button></div>
+    <p class="gldevnote" id="glDevNote"></p>
+    <div id="glDevRows"></div>
   </div>
   <div class="help" id="helpTxt"></div>
   <div class="verbar"><a id="whatsNew" href="https://github.com/gamedevjake/lichlight/releases" target="_blank" rel="noopener">WHAT'S NEW</a><span id="verTxt"></span></div>
@@ -1535,9 +1549,70 @@ function worldToScreen(wx, wy) {
 }
 // v0.7.8 hybrid: shader path on High + GL LIGHT auto/on. Low, OFF, or a missing WebGL2 context keep lcan.
 const GL_MAX_LIGHTS = 32, GL_MAX_OCC = 24; // 32 keeps the default-uniform vec4 budget under the WebGL2 minimum (224)
-// WebGL look only. Canvas lcan does not read these. penumbra is inward pixels; spill scales falloff radius.
-const GL_LOOK = { penumbra: 12, spill: 1.36, core: 1, haze: 0.22, fill: 0.18 };
+// WebGL look only. Canvas lcan does not read these. The dev panel writes the same object.
+const GL_LOOK_BASE = { penumbra: 12, spill: 1.36, core: 1, haze: 0.22, fill: 0.18, voidR: 5, voidG: 4, voidB: 8, seenR: 26, seenG: 21, seenB: 32 };
+const GL_DEV_ROWS = [
+  { k: 'penumbra', label: 'PENUMBRA', hint: 'Inward shadow fade, pixels', min: 0, max: 32, step: 1 },
+  { k: 'spill', label: 'SPILL', hint: 'Falloff reach, multiple of the light radius', min: 0.8, max: 2.4, step: 0.02 },
+  { k: 'core', label: 'CORE', hint: 'How hard the center shifts toward white', min: 0, max: 1.5, step: 0.02 },
+  { k: 'haze', label: 'HAZE', hint: 'Colored spill along the cone', min: 0, max: 0.6, step: 0.01 },
+  { k: 'fill', label: 'FILL', hint: 'Explored-floor bounce inside the mask', min: 0, max: 0.55, step: 0.01 },
+  { k: 'voidR', label: 'VOID R', hint: 'Unlit unexplored red, 0-255', min: 0, max: 48, step: 1 },
+  { k: 'voidG', label: 'VOID G', hint: 'Unlit unexplored green', min: 0, max: 48, step: 1 },
+  { k: 'voidB', label: 'VOID B', hint: 'Unlit unexplored blue', min: 0, max: 48, step: 1 },
+  { k: 'seenR', label: 'SEEN R', hint: 'Explored-floor memory red', min: 0, max: 80, step: 1 },
+  { k: 'seenG', label: 'SEEN G', hint: 'Explored-floor memory green', min: 0, max: 80, step: 1 },
+  { k: 'seenB', label: 'SEEN B', hint: 'Explored-floor memory blue', min: 0, max: 80, step: 1 }
+];
+const GL_LOOK = Object.assign({}, GL_LOOK_BASE);
 function glLook() { return GL_LOOK; }
+function glLookDefaults() { return GL_LOOK_BASE; }
+function glDevFmt(row, v) { const s = String(row.step), d = s.indexOf('.') < 0 ? 0 : s.length - s.indexOf('.') - 1; return Number(v).toFixed(d); }
+function glLookClamp(k, v) { const row = GL_DEV_ROWS.find(r => r.k === k); if (!row || !isFinite(v)) return GL_LOOK_BASE[k]; return Math.min(row.max, Math.max(row.min, v)); }
+function glLookLoad() {
+  try {
+    const s = JSON.parse(localStorage.getItem('lichlight-gl-look') || 'null');
+    if (!s || typeof s !== 'object') return;
+    for (const k in GL_LOOK_BASE) if (typeof s[k] === 'number') GL_LOOK[k] = glLookClamp(k, s[k]);
+  } catch (e) {}
+}
+function glLookSave() { try { localStorage.setItem('lichlight-gl-look', JSON.stringify(GL_LOOK)); } catch (e) {} }
+function glLookReset() { for (const k in GL_LOOK_BASE) GL_LOOK[k] = GL_LOOK_BASE[k]; try { localStorage.removeItem('lichlight-gl-look'); } catch (e) {} glDevPaint(); }
+function glDevBuild() {
+  const host = $('glDevRows'); if (!host || host.childElementCount) return;
+  for (const row of GL_DEV_ROWS) {
+    const d = document.createElement('label'); d.className = 'gldevrow';
+    const name = document.createElement('span'); name.textContent = row.label; name.title = row.hint;
+    const inp = document.createElement('input'); inp.type = 'range'; inp.min = row.min; inp.max = row.max; inp.step = row.step; inp.dataset.k = row.k; inp.value = GL_LOOK[row.k]; inp.setAttribute('aria-label', row.label + '. ' + row.hint);
+    const num = document.createElement('b'); num.textContent = glDevFmt(row, GL_LOOK[row.k]);
+    inp.addEventListener('input', () => { const v = glLookClamp(row.k, parseFloat(inp.value)); GL_LOOK[row.k] = v; num.textContent = glDevFmt(row, v); glLookSave(); });
+    d.appendChild(name); d.appendChild(inp); d.appendChild(num); host.appendChild(d);
+  }
+}
+function glDevPaint() {
+  const host = $('glDevRows'); if (!host) return;
+  host.querySelectorAll('input').forEach(inp => {
+    const row = GL_DEV_ROWS.find(r => r.k === inp.dataset.k); if (!row) return;
+    const v = GL_LOOK[row.k];
+    if (document.activeElement !== inp) inp.value = v;
+    const b = inp.parentNode.querySelector('b'); if (b) b.textContent = glDevFmt(row, v);
+  });
+  syncGlDev();
+}
+function syncGlDev() {
+  const box = $('glDev'); if (!box) return;
+  const want = wantWebGLLighting(), failed = !!(want && GL && GL.failed), use = want && !failed;
+  let msg = 'WebGL lighting. Dials apply on the next frame. Canvas is unchanged.';
+  if (!want) msg = 'Canvas lightmap is on (Low, GL LIGHT off, or forced). These dials do not change that look.';
+  else if (failed) msg = 'WebGL failed (' + (GL.reason || 'unavailable') + '). Canvas is drawing.';
+  else if (lightFramePath !== 'webgl') msg = 'WebGL lighting arms on the next frame.';
+  const note = $('glDevNote'); if (note && note.textContent !== msg) note.textContent = msg;
+  if (box.dataset.on !== (use ? '1' : '0')) {
+    box.dataset.on = use ? '1' : '0'; box.classList.toggle('off', !use);
+    box.querySelectorAll('.gldevrow input').forEach(el => { el.disabled = !use; });
+  }
+}
+glLookLoad();
 let lightFramePath = 'canvas', GL = null;
 function glLightMode() { const m = settings.glLight; return m === 'on' || m === 'off' ? m : 'auto'; }
 function wantWebGLLighting() {
@@ -1808,7 +1883,7 @@ function renderLightingGL(V, L) {
   const u = GL.locL;
   gl.uniform2fv(u.uPos, pack.pos); gl.uniform3fv(u.uCol, pack.col); gl.uniform2fv(u.uRad, pack.rad); gl.uniform1fv(u.uAmp, pack.amp); gl.uniform1fv(u.uOcc, pack.occ);
   gl.uniform1i(u.uCount, pack.n); gl.uniform2f(u.uResolution, W, H); gl.uniform4f(u.uView, V.x, V.y, V.w, V.h);
-  gl.uniform3f(u.uAmbient, 5 / 255, 4 / 255, 8 / 255); gl.uniform3f(u.uExplored, 0x1a / 255, 0x15 / 255, 0x20 / 255);
+  gl.uniform3f(u.uAmbient, GL_LOOK.voidR / 255, GL_LOOK.voidG / 255, GL_LOOK.voidB / 255); gl.uniform3f(u.uExplored, GL_LOOK.seenR / 255, GL_LOOK.seenG / 255, GL_LOOK.seenB / 255);
   gl.uniform1f(u.uTile, TS); gl.uniform2f(u.uMap, seenSz.mw, seenSz.mh);
   gl.uniform1f(u.uPen, GL_LOOK.penumbra); gl.uniform1f(u.uSpill, GL_LOOK.spill); gl.uniform1f(u.uCore, GL_LOOK.core); gl.uniform1f(u.uHaze, GL_LOOK.haze); gl.uniform1f(u.uFill, GL_LOOK.fill);
   gl.uniform1i(u.uMask, 0); gl.uniform1i(u.uSeen, 1);
@@ -4321,12 +4396,15 @@ $('mSkills').addEventListener('click', openSkills); $('skClose').addEventListene
 $('mBattle').addEventListener('click', () => { settings.battleMusic = !settings.battleMusic; saveSettings(); syncBattleBtn(); });
 function syncBattleBtn() { $('mBattle').textContent = 'BATTLE MUSIC: ' + (settings.battleMusic ? 'ON' : 'OFF'); }
 syncBattleBtn();
-$('mLight').addEventListener('click', () => { settings.lighting = lightingQ() === 'high' ? 'low' : 'high'; saveSettings(); syncLightBtn(); });
+$('mLight').addEventListener('click', () => { settings.lighting = lightingQ() === 'high' ? 'low' : 'high'; saveSettings(); syncLightBtn(); syncGlDev(); });
 function syncLightBtn() { $('mLight').textContent = 'LIGHTING: ' + lightingQ().toUpperCase(); }
 syncLightBtn();
-$('mGl').addEventListener('click', () => { cycleGlLight(); });
+$('mGl').addEventListener('click', () => { cycleGlLight(); syncGlDev(); });
 function syncGlBtn() { const b = $('mGl'); if (b) b.textContent = 'GL LIGHT: ' + glLightMode().toUpperCase(); }
 syncGlBtn();
+glDevBuild(); glDevPaint();
+$('glDevReset').addEventListener('click', e => { e.preventDefault(); glLookReset(); });
+$('glDev').addEventListener('keydown', e => e.stopPropagation());
 $('tMap').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'play') mapOpen = !mapOpen; });
 // =====================================================================
 //  v0.5.0 — amulets, shields, power tags, sleep fade, set pieces, cobwebs, sliding doors, passage puzzles,
@@ -5218,6 +5296,7 @@ function render() {
   ctx.restore();
   drawVignette(); drawPlaneFX(); /* v0.7.3 §7 plane screen FX + timer */
   UIA = uiAlpha(); ctx.globalAlpha = UIA; hudInset074(drawHUD); /* v0.7.4 B2: HUD inside the safe area */ drawZoomTag(); ctx.globalAlpha = 1; drawSleep(); // v0.6.0 dim UI
+  if (typeof syncGlDev === 'function' && $('menu') && !$('menu').classList.contains('hidden')) syncGlDev();
 }
 function drawPlayer() {
   const p = player, flick = p.inv0 > 0 && Math.floor(time * 20) % 2;
@@ -6313,7 +6392,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   astar, planWalk, selectSkill, enemyAtCursor, dm, get rskill() { return rskill; }, get mapOpen() { return mapOpen; }, get hoverEnemy() { return hoverEnemy; }, get walk() { return player && player.walk; },
   groundItemAt, requestPickup, pickupItem, get tipItem() { return tipItem; },
   newCount, markSeen, updateNewBadge,
-  SKILLS, LCOL, skillTint, torchGlow, flickN, FLICK, get glimmers() { return glimmers; }, placeGlimmer, drinkGlimmer, buffText, XPBUFF, XPBUFF_TIME, GLIM_CHANCE, lightingQ, lightScale, glLightMode, cycleGlLight, lightPath, glStatus, glLook, packGlLights, gatherLights, interactables,
+  SKILLS, LCOL, skillTint, torchGlow, flickN, FLICK, get glimmers() { return glimmers; }, placeGlimmer, drinkGlimmer, buffText, XPBUFF, XPBUFF_TIME, GLIM_CHANCE, lightingQ, lightScale, glLightMode, cycleGlLight, lightPath, glStatus, glLook, glLookDefaults, glLookReset, packGlLights, gatherLights, interactables,
   playerLights, lightRadius, lightAt, giveTorch, lightTorch, visPoly, get frameLights() { return frameLights; }, get braziers() { return braziers; }, TORCH_TIME, TORCH_CAP, lcan,
   get chests() { return chests; }, get secrets() { return secrets; }, openChest, breakSecret, breakSecretsAt, placeTreasure,
   bestiary, ETYPES, MOB_IDS, MOBS, BOSSES, spawnEnemy, spawnBoss, damageEnemy, bossForDepth, addTrauma, shakeOffset, mouse, get trauma() { return trauma; }, get teles() { return teles; }, get hazards() { return hazards; }, get projs() { return projs; }, settings,
