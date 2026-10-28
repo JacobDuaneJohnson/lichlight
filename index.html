@@ -174,15 +174,19 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @media (max-width:420px){#menu .mbtn{font-size:16px;padding:10px 12px}#menu .aopts{gap:5px 8px}}
 #safeProbe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .btn .ico .skimg{width:32px;height:32px;image-rendering:pixelated;image-rendering:crisp-edges;display:block;pointer-events:none}
-#glDev{width:min(96vw,560px);margin:8px auto 0;padding:8px 10px 6px;text-align:left;background:#141014;border:2px solid #5a4a38;color:#c8b8a0;font:12px/1.3 "Courier New",monospace}
-#glDev .gldevh{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#e0b040;letter-spacing:1px;font-weight:bold;margin-bottom:2px}
-#glDev .gldevnote{margin:0 0 6px;color:#a89880;font-size:11px}
-#glDev .gldevrow{display:flex;align-items:center;gap:8px;margin:2px 0}
+#glDev{z-index:35;overflow:hidden;align-items:center;justify-content:center;padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
+#glDev .gldevbox{width:min(94vw,520px);max-height:calc(100vh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;text-align:left;padding:10px 12px 14px}
+#glDev .gldevh{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:-10px;z-index:1;margin:-10px -12px 6px;padding:10px 12px 8px;background:#1c1614;color:#e0b040;letter-spacing:1px}
+#glDev .gldevh h2{margin:0;font-size:16px}
+#glDev .gldevx{width:auto;min-width:0;padding:4px 10px;margin:0}
+#glDev .gldevnote{margin:0 0 8px;color:#a89880;font-size:11px}
+#glDev .gldevrow{display:flex;align-items:center;gap:8px;margin:4px 0;font:12px/1.3 "Courier New",monospace;color:#c8b8a0}
 #glDev .gldevrow span{flex:0 0 108px}
-#glDev .gldevrow input{flex:1;min-width:0;accent-color:#c08030}
+#glDev .gldevrow input{flex:1;min-width:0;accent-color:#c08030;touch-action:pan-x}
 #glDev .gldevrow b{flex:0 0 48px;text-align:right;color:#e8dcc0;font-weight:bold}
 #glDev.off .gldevrow{opacity:.38}
 #glDev.off .gldevrow input{pointer-events:none}
+#glDev .gldevreset{display:block;margin:10px auto 0}
 </style>
 </head>
 <body>
@@ -227,6 +231,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small" id="mBattle">BATTLE MUSIC: OFF</button>
     <button class="mbtn small" id="mLight">LIGHTING: HIGH</button>
     <button class="mbtn small" id="mGl">GL LIGHT: AUTO</button>
+    <button class="mbtn small" id="mGlDev" type="button">LIGHTING (DEV)</button>
     <button class="mbtn small" id="mZoom">TEST ZOOM: 1X</button>
     <button class="mbtn small" id="mSkills">SKILL KEYS</button>
     <button class="mbtn small hidden" id="mTouch">TOUCH CONTROLS</button>
@@ -237,14 +242,17 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <label>SFX <input type="range" id="volSfx" min="0" max="100" step="5"></label>
     <label>AMBIENCE <input type="range" id="volAmb" min="0" max="100" step="5"></label>
   </div>
-  <div id="glDev">
-    <div class="gldevh">LIGHTING (DEV) <button type="button" class="mbtn small" id="glDevReset">RESET</button></div>
-    <p class="gldevnote" id="glDevNote"></p>
-    <div id="glDevRows"></div>
-  </div>
   <div class="help" id="helpTxt"></div>
   <div class="verbar"><a id="whatsNew" href="https://github.com/gamedevjake/lichlight/releases" target="_blank" rel="noopener">WHAT'S NEW</a><span id="verTxt"></span></div>
   <div class="a2hs hidden" id="a2hs"><span>For true fullscreen: tap <b>Share</b> <span class="shr">&#x2191;&#x20DE;</span>, then <b>Add to Home Screen</b>.</span><button id="a2hsX" aria-label="Dismiss">&times;</button></div>
+</div>
+<div id="glDev" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="glDevT">
+  <div class="v4box gldevbox">
+    <div class="gldevh"><h2 id="glDevT">LIGHTING (DEV)</h2><button type="button" class="shb gldevx" id="glDevX" aria-label="Close">&times;</button></div>
+    <p class="gldevnote" id="glDevNote"></p>
+    <div id="glDevRows"></div>
+    <button type="button" class="mbtn small gldevreset" id="glDevReset">RESET</button>
+  </div>
 </div>
 <div id="profiles" class="overlay hidden" style="z-index:30"><div class="v4box profbox"><h2>CHARACTERS <button class="shb" id="profX" aria-label="Close">&times;</button></h2><div class="v4sub">Each character keeps its own run. Your old save lives on as the first one.</div><div id="profList"></div><div id="profForm"></div></div></div>
 <div id="updModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="updT"><div class="updBox">
@@ -2666,6 +2674,7 @@ function normKey(e) { return e.key.length === 1 ? e.key.toLowerCase() : e.key; }
 window.addEventListener('keydown', e => {
   if (UPD.shown) { if (e.key === 'Escape') updateLater(); else if (e.key === 'Enter') { e.preventDefault(); updateNow(); } return; }
   if (profOpen) { if (e.key === 'Escape') closeProfiles(); return; } // v0.6.0 character screen
+  if ($('glDev') && !$('glDev').classList.contains('hidden')) { if (e.key === 'Escape') { e.preventDefault(); closeGlDev(); } return; }
   const k = normKey(e);
   if (state === 'sleep') { e.preventDefault(); return; } // v0.5.0: no input while the screen is dark
   if (state === 'tlayout') { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); closeTouchEditor(); } return; }
@@ -4402,9 +4411,14 @@ syncLightBtn();
 $('mGl').addEventListener('click', () => { cycleGlLight(); syncGlDev(); });
 function syncGlBtn() { const b = $('mGl'); if (b) b.textContent = 'GL LIGHT: ' + glLightMode().toUpperCase(); }
 syncGlBtn();
+function openGlDev() { glDevPaint(); $('glDev').classList.remove('hidden'); }
+function closeGlDev() { $('glDev').classList.add('hidden'); }
 glDevBuild(); glDevPaint();
+$('mGlDev').addEventListener('click', openGlDev);
+$('glDevX').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); closeGlDev(); });
 $('glDevReset').addEventListener('click', e => { e.preventDefault(); glLookReset(); });
-$('glDev').addEventListener('keydown', e => e.stopPropagation());
+$('glDev').addEventListener('click', e => { if (e.target === $('glDev')) closeGlDev(); });
+$('glDev').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); closeGlDev(); } });
 $('tMap').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'play') mapOpen = !mapOpen; });
 // =====================================================================
 //  v0.5.0 — amulets, shields, power tags, sleep fade, set pieces, cobwebs, sliding doors, passage puzzles,
@@ -5296,7 +5310,7 @@ function render() {
   ctx.restore();
   drawVignette(); drawPlaneFX(); /* v0.7.3 §7 plane screen FX + timer */
   UIA = uiAlpha(); ctx.globalAlpha = UIA; hudInset074(drawHUD); /* v0.7.4 B2: HUD inside the safe area */ drawZoomTag(); ctx.globalAlpha = 1; drawSleep(); // v0.6.0 dim UI
-  if (typeof syncGlDev === 'function' && $('menu') && !$('menu').classList.contains('hidden')) syncGlDev();
+  if (typeof syncGlDev === 'function' && $('menu') && (!$('menu').classList.contains('hidden') || ($('glDev') && !$('glDev').classList.contains('hidden')))) syncGlDev();
 }
 function drawPlayer() {
   const p = player, flick = p.inv0 > 0 && Math.floor(time * 20) % 2;
