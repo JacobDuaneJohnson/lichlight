@@ -217,6 +217,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small" id="mMusic">MUSIC: ON</button>
     <button class="mbtn small" id="mBattle">BATTLE MUSIC: OFF</button>
     <button class="mbtn small" id="mLight">LIGHTING: HIGH</button>
+    <button class="mbtn small" id="mGl">GL LIGHT: AUTO</button>
     <button class="mbtn small" id="mZoom">TEST ZOOM: 1X</button>
     <button class="mbtn small" id="mSkills">SKILL KEYS</button>
     <button class="mbtn small hidden" id="mTouch">TOUCH CONTROLS</button>
@@ -1449,8 +1450,11 @@ function drawSecrets() { // hairline cracks: subtle but visible
 }
 function drawChests() { for (const c of chests) ctx.drawImage(c.open ? CHEST.open : c.free ? CHEST.free : CHEST.shut, Math.round(c.x - 6), Math.round(c.y - 8)); }
 // =====================================================================
-//  Lighting: low-res colour lightmap (additive), multiplied over the scene,
-//  with tile-grid raycast occlusion. Torches burn out; magic 'light' mod adds a cold glow.
+//  Lighting. v0.7.8: a WebGL2 fullscreen multiply when quality is High and
+//  GL LIGHT is auto/on (and the context exists). Otherwise the Canvas 2D
+//  lightmap (lcan): near-black, explored tiles faintly remembered, additive
+//  radial gradients clipped to tile-grid raycast polygons, multiplied over
+//  the scene. Torches burn out; magic 'light' mod adds a cold glow.
 // =====================================================================
 const TORCH_TIME = 85, TORCH_WARN = 15, TORCH_CAP = 5, BASE_LIGHT = 20, TORCH_LIGHT = 96; /* v0.7.3 §13: torch reach 128 -> 96 */
 // v0.4.5: a notch more saturated (warmer ambers, richer colds) at the same brightness, plus skill / glimmer tints
@@ -1529,17 +1533,298 @@ function worldToScreen(wx, wy) {
   const p = player; if (!p || ZOOM === 1) return { x: wx - cam.x, y: wy - cam.y };
   return { x: VW / 2 + ZOOM * (wx - p.x), y: VH / 2 + ZOOM * (wy - (p.y - 4)) };
 }
+// v0.7.8 hybrid: shader path on High + GL LIGHT auto/on. Low, OFF, or a missing WebGL2 context keep lcan.
+const GL_MAX_LIGHTS = 32, GL_MAX_OCC = 24; // 32 keeps the default-uniform vec4 budget under the WebGL2 minimum (224)
+let lightFramePath = 'canvas', GL = null;
+function glLightMode() { const m = settings.glLight; return m === 'on' || m === 'off' ? m : 'auto'; }
+function wantWebGLLighting() {
+  if (window.__noWebGL || window.__forceCanvasLight) return false;
+  if (glLightMode() === 'off') return false;
+  if (lightingQ() === 'low') return false;
+  return true;
+}
+function lightPath() { return lightFramePath; }
+function cycleGlLight() { const m = glLightMode(); settings.glLight = m === 'auto' ? 'on' : m === 'on' ? 'off' : 'auto'; saveSettings(); syncGlBtn(); }
+function glStatus() {
+  const g = GL;
+  return { ok: !!(g && g.gl && !g.failed && !g.lost && !g.gl.isContextLost()), reason: (g && g.reason) || '', path: lightFramePath, mode: glLightMode(), q: lightingQ(), packed: g ? g.packed : 0, occ: g ? g.occN : 0, dropped: g ? g.dropped : 0, skipped: g ? g.skipped : 0, max: GL_MAX_LIGHTS, occMax: GL_MAX_OCC };
+}
+function packGlLights(L, V, W, H) { // screen-space uniforms + one occlusion layer per distinct vis polygon. Identity-keyed so shared bands share a mask.
+  const ranked = [];
+  for (let i = 0; i < L.length; i++) { const l = L[i]; if (!l || l.a <= .01 || l.r <= .5) continue; const key = l.polys || (l.poly || null); ranked.push({ l, key, score: (key ? 1e6 : 0) + l.r * l.a }); }
+  ranked.sort((a, b) => b.score - a.score);
+  const pos = new Float32Array(GL_MAX_LIGHTS * 2), col = new Float32Array(GL_MAX_LIGHTS * 3), rad = new Float32Array(GL_MAX_LIGHTS * 2), amp = new Float32Array(GL_MAX_LIGHTS), occ = new Float32Array(GL_MAX_LIGHTS);
+  occ.fill(-1);
+  const masks = [], map = new Map(); let n = 0, dropped = 0, skipped = 0;
+  for (const it of ranked) {
+    if (n >= GL_MAX_LIGHTS) { dropped++; continue; }
+    const l = it.l; let layer = -1;
+    if (it.key) {
+      if (map.has(it.key)) layer = map.get(it.key);
+      else if (masks.length >= GL_MAX_OCC) { skipped++; continue; } // skip rather than shine through a wall
+      else { layer = masks.length; map.set(it.key, layer); masks.push({ layer, polys: l.polys || null, poly: l.polys ? null : l.poly }); }
+    }
+    const rgb = LCOL[l.col] || LCOL.dim, px = (l.x - V.x) / V.w * W, pyTop = (l.y - V.y) / V.h * H;
+    pos[n * 2] = px; pos[n * 2 + 1] = H - pyTop;
+    col[n * 3] = rgb[0] / 255; col[n * 3 + 1] = rgb[1] / 255; col[n * 3 + 2] = rgb[2] / 255;
+    rad[n * 2] = Math.max(.001, l.r / V.w * W); rad[n * 2 + 1] = Math.max(.001, l.r / V.h * H);
+    amp[n] = Math.min(1, l.a); occ[n] = layer; n++;
+  }
+  return { n, pos, col, rad, amp, occ, masks, dropped, skipped, occN: masks.length };
+}
+const GL_VS = `#version 300 es
+void main() {
+  float x = float((gl_VertexID & 1) << 2) - 1.0;
+  float y = float((gl_VertexID & 2) << 1) - 1.0;
+  gl_Position = vec4(x, y, 0.0, 1.0);
+}`;
+const GL_FS_LIGHT = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+precision highp sampler2DArray;
+const int MAXL = ${GL_MAX_LIGHTS};
+uniform vec2 uPos[MAXL];
+uniform vec3 uCol[MAXL];
+uniform vec2 uRad[MAXL];
+uniform float uAmp[MAXL];
+uniform float uOcc[MAXL];
+uniform int uCount;
+uniform vec2 uResolution;
+uniform vec4 uView;
+uniform vec3 uAmbient;
+uniform vec3 uExplored;
+uniform float uTile;
+uniform vec2 uMap;
+uniform sampler2DArray uMask;
+uniform sampler2D uSeen;
+out vec4 outColor;
+float bayer8(vec2 p) {
+  int x = int(p.x) & 7, y = int(p.y) & 7;
+  const int B[64] = int[](
+    0, 32, 8, 40, 2, 34, 10, 42,
+    48, 16, 56, 24, 50, 18, 58, 26,
+    12, 44, 4, 36, 14, 46, 6, 38,
+    60, 28, 52, 20, 62, 30, 54, 22,
+    3, 35, 11, 43, 1, 33, 9, 41,
+    51, 19, 59, 27, 49, 17, 57, 25,
+    15, 47, 7, 39, 13, 45, 5, 37,
+    63, 31, 55, 23, 61, 29, 53, 21);
+  return float(B[x + y * 8]) / 64.0;
+}
+float falloff(float t) {
+  if (t >= 1.0) return 0.0;
+  float u;
+  if (t < 0.35) { u = t / 0.35; u = u * u * (3.0 - 2.0 * u); return mix(1.0, 0.92, u); }
+  if (t < 0.68) { u = (t - 0.35) / 0.33; u = u * u * (3.0 - 2.0 * u); return mix(0.92, 0.60, u); }
+  if (t < 0.88) { u = (t - 0.68) / 0.20; u = u * u * (3.0 - 2.0 * u); return mix(0.60, 0.22, u); }
+  u = (t - 0.88) / 0.12; u = u * u * (3.0 - 2.0 * u); return mix(0.22, 0.0, clamp(u, 0.0, 1.0));
+}
+void main() {
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = frag / uResolution;
+  vec2 top = vec2(frag.x, uResolution.y - frag.y);
+  vec2 world = uView.xy + (top / uResolution) * uView.zw;
+  vec2 tile = floor(world / uTile);
+  float seenV = 0.0;
+  if (tile.x >= 0.0 && tile.y >= 0.0 && tile.x < uMap.x && tile.y < uMap.y) seenV = texelFetch(uSeen, ivec2(tile), 0).r;
+  vec3 acc = seenV > 0.5 ? uExplored : uAmbient;
+  for (int i = 0; i < MAXL; i++) {
+    if (i >= uCount) continue;
+    vec2 rad = uRad[i];
+    vec2 q = (frag - uPos[i]) / rad;
+    float f = falloff(length(q));
+    if (f <= 0.0) continue;
+    float cover = 1.0;
+    if (uOcc[i] >= 0.0) cover = clamp(texture(uMask, vec3(uv, uOcc[i])).r, 0.0, 1.0);
+    acc += uCol[i] * (uAmp[i] * f * cover);
+  }
+  acc += (bayer8(frag) - 0.5) / 255.0;
+  outColor = vec4(clamp(acc, 0.0, 1.0), 1.0);
+}`;
+const GL_FS_COMP = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+uniform sampler2D uScene;
+uniform sampler2D uLight;
+uniform vec2 uResolution;
+out vec4 outColor;
+void main() {
+  vec2 uv = gl_FragCoord.xy / uResolution;
+  outColor = vec4(texture(uScene, uv).rgb * texture(uLight, uv).rgb, 1.0);
+}`;
+function glShader(gl, type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { const log = gl.getShaderInfoLog(s) || 'shader'; gl.deleteShader(s); throw new Error(log); }
+  return s;
+}
+function glProgram(gl, fs) {
+  const p = gl.createProgram(), v = glShader(gl, gl.VERTEX_SHADER, GL_VS), f = glShader(gl, gl.FRAGMENT_SHADER, fs);
+  gl.attachShader(p, v); gl.attachShader(p, f); gl.linkProgram(p); gl.deleteShader(v); gl.deleteShader(f);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { const log = gl.getProgramInfoLog(p) || 'link'; gl.deleteProgram(p); throw new Error(log); }
+  return p;
+}
+function glTex2D(gl) {
+  const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  return t;
+}
+function glInit() {
+  if (window.__noWebGL) { GL = GL || {}; GL.reason = 'forced off'; GL.gl = null; return false; }
+  const glcan = document.createElement('canvas');
+  let gl = null;
+  try { gl = glcan.getContext('webgl2', { alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' }); }
+  catch (e) { gl = null; }
+  if (!gl) { GL = { failed: true, reason: 'no webgl2', gl: null, packed: 0, occN: 0, dropped: 0, skipped: 0 }; return false; }
+  GL = { gl, glcan, failed: false, lost: false, reason: '', packed: 0, occN: 0, dropped: 0, skipped: 0, gen: 0, sampleGen: -1, sceneW: 0, sceneH: 0, seenW: 0, seenH: 0, lightW: 0, lightH: 0, occW: 0, occH: 0 };
+  glcan.addEventListener('webglcontextlost', e => { e.preventDefault(); if (GL) { GL.lost = true; GL.reason = 'context lost'; } });
+  glcan.addEventListener('webglcontextrestored', () => { if (GL) { GL.lost = false; GL.failed = false; GL.gl = null; GL.reason = ''; } });
+  try {
+    GL.progL = glProgram(gl, GL_FS_LIGHT); GL.progC = glProgram(gl, GL_FS_COMP);
+    const locs = (p, names) => { const o = {}; for (const n of names) o[n] = gl.getUniformLocation(p, n); return o; };
+    GL.locL = locs(GL.progL, ['uPos', 'uCol', 'uRad', 'uAmp', 'uOcc', 'uCount', 'uResolution', 'uView', 'uAmbient', 'uExplored', 'uTile', 'uMap', 'uMask', 'uSeen']);
+    GL.locC = locs(GL.progC, ['uScene', 'uLight', 'uResolution']);
+    GL.sceneTex = glTex2D(gl); GL.seenTex = glTex2D(gl); GL.lightTex = glTex2D(gl);
+    GL.occTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D_ARRAY, GL.occTex);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    GL.fbo = gl.createFramebuffer();
+    GL.occan = document.createElement('canvas');
+    GL.occtx = GL.occan.getContext('2d', { willReadFrequently: true, alpha: true });
+  } catch (e) {
+    GL.failed = true; GL.reason = String(e && e.message || e).slice(0, 400); GL.gl = null;
+    try { console.warn('Lichlight WebGL lighting unavailable:', GL.reason); } catch (e2) {}
+    return false;
+  }
+  return true;
+}
+function glEnsure() {
+  if (window.__noWebGL) return false;
+  if (GL && GL.failed && !GL.lost) return false;
+  if (GL && GL.gl && !GL.lost && !GL.gl.isContextLost()) return true;
+  if (GL && GL.lost) return false;
+  return glInit();
+}
+function glRasterMasks(pack, V, W, H) {
+  const need = W * H * GL_MAX_OCC;
+  if (!GL.stack || GL.stack.length !== need) GL.stack = new Uint8Array(need); else GL.stack.fill(0);
+  const stack = GL.stack, c = GL.occan, x = GL.occtx;
+  if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+  for (const m of pack.masks) {
+    x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, W, H);
+    x.globalCompositeOperation = 'lighter'; x.globalAlpha = 1;
+    const list = m.polys || [m.poly], n = list.length || 1, g = Math.max(1, Math.round(255 / n));
+    x.fillStyle = 'rgb(' + g + ',' + g + ',' + g + ')';
+    let minX = W, minY = H, maxX = 0, maxY = 0, drew = false;
+    for (const P of list) {
+      if (!P || P.length < 6) continue; drew = true; x.beginPath();
+      const x0 = (P[0] - V.x) / V.w * W, y0 = (P[1] - V.y) / V.h * H; x.moveTo(x0, y0);
+      minX = Math.min(minX, x0); maxX = Math.max(maxX, x0); minY = Math.min(minY, y0); maxY = Math.max(maxY, y0);
+      for (let i = 2; i < P.length; i += 2) { const px = (P[i] - V.x) / V.w * W, py = (P[i + 1] - V.y) / V.h * H; x.lineTo(px, py);
+        if (px < minX) minX = px; if (px > maxX) maxX = px; if (py < minY) minY = py; if (py > maxY) maxY = py; }
+      x.closePath(); x.fill();
+    }
+    if (!drew) continue;
+    const x0 = Math.max(0, Math.floor(minX) - 2), y0 = Math.max(0, Math.floor(minY) - 2);
+    const rw = Math.min(W - x0, Math.ceil(maxX) - x0 + 4), rh = Math.min(H - y0, Math.ceil(maxY) - y0 + 4);
+    if (rw <= 0 || rh <= 0) continue;
+    const img = x.getImageData(x0, y0, rw, rh).data, layerOff = m.layer * W * H;
+    for (let row = 0; row < rh; row++) {
+      const gy = H - 1 - (y0 + row), dst = layerOff + gy * W + x0, src = row * rw * 4;
+      for (let col = 0; col < rw; col++) stack[dst + col] = img[src + col * 4];
+    }
+  }
+  return stack;
+}
+function glUploadSeen(gl) {
+  const mw = MW | 0, mh = MH | 0;
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, GL.seenTex);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  if (!(mw > 0 && mh > 0 && seen && seen.length >= mw * mh)) {
+    if (GL.seenW !== 1) { const z = new Uint8Array(1); gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 1, 1, 0, gl.RED, gl.UNSIGNED_BYTE, z); GL.seenW = 1; GL.seenH = 1; }
+    return { mw: 1, mh: 1 };
+  }
+  const need = mw * mh;
+  if (!GL.seenBuf || GL.seenBuf.length !== need) GL.seenBuf = new Uint8Array(need);
+  const b = GL.seenBuf; for (let i = 0; i < need; i++) b[i] = seen[i] ? 255 : 0;
+  if (GL.seenW !== mw || GL.seenH !== mh) { gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, mw, mh, 0, gl.RED, gl.UNSIGNED_BYTE, b); GL.seenW = mw; GL.seenH = mh; }
+  else gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, mw, mh, gl.RED, gl.UNSIGNED_BYTE, b);
+  return { mw, mh };
+}
+function renderLightingGL(V, L) {
+  if (!glEnsure()) return false;
+  const gl = GL.gl, W = canvas.width | 0, H = canvas.height | 0;
+  if (W < 2 || H < 2 || !(V.w > 0) || !(V.h > 0)) return false;
+  if (gl.isContextLost()) { GL.lost = true; GL.reason = 'context lost'; return false; }
+  const pack = packGlLights(L, V, W, H);
+  GL.packed = pack.n; GL.occN = pack.occN; GL.dropped = pack.dropped; GL.skipped = pack.skipped;
+  if (GL.glcan.width !== W || GL.glcan.height !== H) { GL.glcan.width = W; GL.glcan.height = H; GL.lightW = 0; GL.sceneW = 0; }
+  const stack = glRasterMasks(pack, V, W, H);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D_ARRAY, GL.occTex);
+  if (GL.occW !== W || GL.occH !== H) {
+    gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.R8, W, H, GL_MAX_OCC, 0, gl.RED, gl.UNSIGNED_BYTE, stack);
+    GL.occW = W; GL.occH = H;
+  } else gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, 0, W, H, GL_MAX_OCC, gl.RED, gl.UNSIGNED_BYTE, stack);
+  gl.bindTexture(gl.TEXTURE_2D, GL.lightTex);
+  if (GL.lightW !== W || GL.lightH !== H) { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, W, H, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); GL.lightW = W; GL.lightH = H; }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, GL.fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, GL.lightTex, 0);
+  if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) { GL.reason = 'light fbo'; gl.bindFramebuffer(gl.FRAMEBUFFER, null); return false; }
+  const seenSz = glUploadSeen(gl);
+  gl.viewport(0, 0, W, H); gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST); gl.disable(gl.DITHER); gl.colorMask(true, true, true, true);
+  gl.useProgram(GL.progL);
+  const u = GL.locL;
+  gl.uniform2fv(u.uPos, pack.pos); gl.uniform3fv(u.uCol, pack.col); gl.uniform2fv(u.uRad, pack.rad); gl.uniform1fv(u.uAmp, pack.amp); gl.uniform1fv(u.uOcc, pack.occ);
+  gl.uniform1i(u.uCount, pack.n); gl.uniform2f(u.uResolution, W, H); gl.uniform4f(u.uView, V.x, V.y, V.w, V.h);
+  gl.uniform3f(u.uAmbient, 5 / 255, 4 / 255, 8 / 255); gl.uniform3f(u.uExplored, 0x1a / 255, 0x15 / 255, 0x20 / 255);
+  gl.uniform1f(u.uTile, TS); gl.uniform2f(u.uMap, seenSz.mw, seenSz.mh);
+  gl.uniform1i(u.uMask, 0); gl.uniform1i(u.uSeen, 1);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D_ARRAY, GL.occTex);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, GL.sceneTex);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+  if (GL.sceneW !== W || GL.sceneH !== H) { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas); GL.sceneW = W; GL.sceneH = H; }
+  else gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H);
+  gl.useProgram(GL.progC);
+  gl.uniform1i(GL.locC.uScene, 0); gl.uniform1i(GL.locC.uLight, 1); gl.uniform2f(GL.locC.uResolution, W, H);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, GL.lightTex);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, GL.sceneTex);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.flush();
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = false; ctx.drawImage(GL.glcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
+  GL.gen++; GL.sampleGen = -1; GL.reason = '';
+  return true;
+}
+function glLightSample(wx, wy, V) {
+  const g = GL; if (!g || !g.gl || !g.lightW || g.gl.isContextLost()) return null;
+  if (g.sampleGen !== g.gen) {
+    const W = g.lightW, H = g.lightH;
+    if (!g.sample || g.sample.length !== W * H * 4) g.sample = new Uint8Array(W * H * 4);
+    g.gl.bindFramebuffer(g.gl.FRAMEBUFFER, g.fbo); g.gl.readPixels(0, 0, W, H, g.gl.RGBA, g.gl.UNSIGNED_BYTE, g.sample); g.gl.bindFramebuffer(g.gl.FRAMEBUFFER, null);
+    g.sampleGen = g.gen;
+  }
+  const W = g.lightW, H = g.lightH, x = Math.floor((wx - V.x) / V.w * W), yTop = Math.floor((wy - V.y) / V.h * H);
+  if (x < 0 || yTop < 0 || x >= W || yTop >= H) return null;
+  const i = ((H - 1 - yTop) * W + x) * 4, d = g.sample; return [d[i], d[i + 1], d[i + 2], d[i + 3]];
+}
 function lightSample(wx, wy) { // lightmap RGBA at a world point after the last renderLighting (null if off the buffer)
-  const V = lightFrame; if (!V || !lcan.width) return null;
+  const V = lightFrame; if (!V) return null;
+  if (lightFramePath === 'webgl') return glLightSample(wx, wy, V);
+  if (!lcan.width) return null;
   const x = Math.floor((wx - V.x) / V.w * lcan.width), y = Math.floor((wy - V.y) / V.h * lcan.height);
   if (x < 0 || y < 0 || x >= lcan.width || y >= lcan.height) return null;
   const d = lctx.getImageData(x, y, 1, 1).data; return [d[0], d[1], d[2], d[3]];
 }
-function renderLighting(sx, sy) {
-  const V = zoomVis(sx, sy); lightFrame = V; // v0.7.6 B1: fog / torch / shadows cover the zoomed camera, then blit 1:1 over the screen
+function renderLightingCanvas(V, L) {
   const LQ = lightScale(), LW = Math.ceil(VW * LQ), LH = Math.ceil(VH * LQ);
   if (lcan.width !== LW || lcan.height !== LH) { lcan.width = LW; lcan.height = LH; }
-  const L = gatherLights(V.x, V.y, V.w, V.h); frameLights = L;
   lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.globalCompositeOperation = 'source-over'; lctx.globalAlpha = 1;
   lctx.fillStyle = '#050408'; lctx.fillRect(0, 0, LW, LH);
   const scx = LW / V.w, scy = LH / V.h;
@@ -1556,6 +1841,13 @@ function renderLighting(sx, sy) {
     else lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); }
   lctx.globalAlpha = 1; lctx.globalCompositeOperation = 'source-over'; lctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingEnabled = true; ctx.drawImage(lcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
+}
+function renderLighting(sx, sy) {
+  const V = zoomVis(sx, sy); lightFrame = V; // v0.7.6 B1: fog / torch / shadows cover the zoomed camera, then blit 1:1 over the screen
+  const L = gatherLights(V.x, V.y, V.w, V.h); frameLights = L;
+  lightFramePath = 'canvas';
+  if (wantWebGLLighting()) { try { if (renderLightingGL(V, L)) { lightFramePath = 'webgl'; return; } } catch (e) { if (GL) { GL.reason = String(e && e.message || e).slice(0, 400); if (!GL.warned) { GL.warned = true; try { console.warn('Lichlight WebGL lighting fell back to canvas:', GL.reason); } catch (e2) {} } } } }
+  renderLightingCanvas(V, L);
 }
 function drawEmissive(sx, sy) { // things that glow on their own, drawn above the darkness
   const p = player, tf = Math.floor(time * 8), V = zoomVis(sx, sy), x0 = V.x - 12, y0 = V.y - 12, x1 = V.x + V.w + 12, y1 = V.y + V.h + 12;
@@ -4004,6 +4296,9 @@ syncBattleBtn();
 $('mLight').addEventListener('click', () => { settings.lighting = lightingQ() === 'high' ? 'low' : 'high'; saveSettings(); syncLightBtn(); });
 function syncLightBtn() { $('mLight').textContent = 'LIGHTING: ' + lightingQ().toUpperCase(); }
 syncLightBtn();
+$('mGl').addEventListener('click', () => { cycleGlLight(); });
+function syncGlBtn() { const b = $('mGl'); if (b) b.textContent = 'GL LIGHT: ' + glLightMode().toUpperCase(); }
+syncGlBtn();
 $('tMap').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'play') mapOpen = !mapOpen; });
 // =====================================================================
 //  v0.5.0 — amulets, shields, power tags, sleep fade, set pieces, cobwebs, sliding doors, passage puzzles,
@@ -4873,7 +5168,7 @@ function render() {
   for (const q of parts) { ctx.fillStyle = q.col; ctx.fillRect(Math.round(q.x), Math.round(q.y), 1, 1); }
   drawSqueezeDust(); drawFog();
   ctx.restore();
-  // lighting (occluded colour lightmap, multiplied)
+  // lighting: WebGL2 multiply when High + GL LIGHT auto/on; else the occluded lcan lightmap. Emissive draws after this, above the darkness.
   renderLighting(sx, sy);
   // emissive + labels drawn above the darkness
   ctx.save(); zoomApply(ctx, sx, sy); ctx.translate(-sx, -sy);
@@ -5990,7 +6285,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   astar, planWalk, selectSkill, enemyAtCursor, dm, get rskill() { return rskill; }, get mapOpen() { return mapOpen; }, get hoverEnemy() { return hoverEnemy; }, get walk() { return player && player.walk; },
   groundItemAt, requestPickup, pickupItem, get tipItem() { return tipItem; },
   newCount, markSeen, updateNewBadge,
-  SKILLS, LCOL, skillTint, torchGlow, flickN, FLICK, get glimmers() { return glimmers; }, placeGlimmer, drinkGlimmer, buffText, XPBUFF, XPBUFF_TIME, GLIM_CHANCE, lightingQ, lightScale, gatherLights, interactables,
+  SKILLS, LCOL, skillTint, torchGlow, flickN, FLICK, get glimmers() { return glimmers; }, placeGlimmer, drinkGlimmer, buffText, XPBUFF, XPBUFF_TIME, GLIM_CHANCE, lightingQ, lightScale, glLightMode, cycleGlLight, lightPath, glStatus, packGlLights, gatherLights, interactables,
   playerLights, lightRadius, lightAt, giveTorch, lightTorch, visPoly, get frameLights() { return frameLights; }, get braziers() { return braziers; }, TORCH_TIME, TORCH_CAP, lcan,
   get chests() { return chests; }, get secrets() { return secrets; }, openChest, breakSecret, breakSecretsAt, placeTreasure,
   bestiary, ETYPES, MOB_IDS, MOBS, BOSSES, spawnEnemy, spawnBoss, damageEnemy, bossForDepth, addTrauma, shakeOffset, mouse, get trauma() { return trauma; }, get teles() { return teles; }, get hazards() { return hazards; }, get projs() { return projs; }, settings,

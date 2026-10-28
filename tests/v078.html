@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v078</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:960px;height:540px"></iframe>
+<pre id="out">running</pre>
+<script>
+const out = document.getElementById('out');
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 280) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  out.textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try {
+    const x = new XMLHttpRequest();
+    x.open('GET', url, false);
+    x.send(null);
+    return x.status === 200 ? x.responseText : '';
+  } catch (e) { return ''; }
+}
+function sumRgb(px) { return px ? px[0] + px[1] + px[2] : -1; }
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  check('version stays 0.7.7', g && g.version === '0.7.7' && src.indexOf("const VERSION = '0.7.7'") >= 0, g && g.version);
+  check('shader source', src.indexOf('#version 300 es') >= 0 && src.indexOf('uScene') >= 0 && src.indexOf('bayer8') >= 0 && src.indexOf('sampler2DArray') >= 0);
+  check('api', !!(g && g.lightPath && g.glStatus && g.packGlLights && g.cycleGlLight && g.glLightMode));
+  const notes = fetchText('../notes/0.7.8-webgl-lighting.md');
+  const log = fetchText('../CHANGELOG.md');
+  check('notes', notes.indexOf('WebGL2') >= 0 && notes.indexOf('iPhone') >= 0 && notes.indexOf('occlusion') >= 0);
+  check('changelog draft', log.indexOf('v0.7.8 draft') >= 0 && log.indexOf('## [0.7.7]') >= 0);
+
+  const probeC = document.createElement('canvas');
+  const probe = probeC.getContext('webgl2');
+  const hasGL = !!probe;
+  if (probe) { const ext = probe.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); }
+
+  g.settings.lighting = 'high';
+  g.settings.glLight = 'auto';
+  delete w.__noWebGL; delete w.__forceCanvasLight;
+  g.newGame();
+  g.startFloor(1, true);
+  const p = g.player;
+  p.torchT = 80; p.fatigue = 1;
+  const V = g.zoomVis(p.x - g.vw / 2, p.y - g.vh / 2);
+  const packed = g.packGlLights(w.gatherLights(V.x, V.y, V.w, V.h), V, g.vw, g.vh);
+  check('pack count', packed.n > 0 && packed.n <= g.glStatus().max, packed.n + '/' + g.glStatus().max);
+  check('pack finite', isFinite(packed.pos[0]) && isFinite(packed.pos[1]) && packed.rad[0] > 0 && packed.amp[0] > 0, packed.pos[0] + ',' + packed.rad[0]);
+  let occLayers = 0;
+  for (let i = 0; i < packed.n; i++) if (packed.occ[i] >= 0) occLayers++;
+  check('pack occlusion slots', occLayers >= 1 && packed.occN >= 1 && packed.occN <= 24, occLayers + ' lights / ' + packed.occN + ' masks');
+  check('pack skips bleed', packed.skipped === 0 || packed.occN === 24, 'skipped ' + packed.skipped);
+
+  w.render();
+  const st = g.glStatus();
+  if (hasGL) {
+    check('webgl init', st.ok === true, st.reason);
+    check('webgl path', g.lightPath() === 'webgl', g.lightPath() + ' ' + st.reason);
+    const near = g.lightSample(p.x, p.y - 2);
+    check('near bright', sumRgb(near) > 80, sumRgb(near));
+    let spot = null;
+    for (let ty = 2; ty < 52 && !spot; ty++) for (let tx = 2; tx < 70; tx++) {
+      if (w.tileAt(tx, ty) !== 0 || w.tileAt(tx - 1, ty) !== 0 || w.tileAt(tx + 1, ty) !== 0) continue;
+      if (w.tileAt(tx - 2, ty) !== 0 || w.tileAt(tx + 2, ty) !== 0) continue;
+      if (w.tileAt(tx, ty + 1) !== 1 || w.tileAt(tx, ty - 1) !== 1) continue;
+      spot = { tx, ty }; break;
+    }
+    check('occ wall', !!spot, spot && (spot.tx + ',' + spot.ty));
+    if (spot) {
+      for (const t of (g.torches || [])) t.out = true;
+      if (g.braziers) g.braziers.length = 0;
+      if (g.firepits) g.firepits.length = 0;
+      p.x = (spot.tx + .5) * 16; p.y = (spot.ty + 1.5) * 16; p.torchT = 90; p.fatigue = 0;
+      g.step(0.2, { x: 0, y: 0 });
+      p.torchT = 90; p.x = (spot.tx + .5) * 16; p.y = (spot.ty + 1.5) * 16;
+      w.render();
+      const ix = p.x, iy = p.y - 2, ox = (spot.tx + .5) * 16, oy = (spot.ty - .5) * 16;
+      const torch = (g.frameLights || []).find(l => l.col === 'warm' && l.polys);
+      const outsideBands = torch && torch.polys.every(P => !w.inPoly(P, ox, oy));
+      const insideCore = torch && w.inPoly(torch.polys[0], ix, iy);
+      check('occ geometry', !!(torch && insideCore && outsideBands), (insideCore ? 'in' : 'no-in') + '/' + (outsideBands ? 'out' : 'no-out'));
+      const si = sumRgb(g.lightSample(ix, iy)), so = sumRgb(g.lightSample(ox, oy));
+      check('occlusion blocks', si > so + 40, si + ' in / ' + so + ' out');
+    } else check('occlusion blocks', false, 'no wall');
+    p.torchT = 0; p.fatigue = 0;
+    for (const t of (g.torches || [])) t.out = true;
+    if (g.braziers) g.braziers.length = 0;
+    if (g.firepits) g.firepits.length = 0;
+    w.render();
+    let seenDark = null, unseenDark = null;
+    const vis = g.lightFrame, lightsNow = g.frameLights || [];
+    const farFromLights = (wx, wy) => lightsNow.every(l => Math.hypot(wx - l.x, wy - l.y) > l.r + 6);
+    if (vis) {
+      const x0 = Math.max(1, Math.floor(vis.x / 16)), y0 = Math.max(1, Math.floor(vis.y / 16));
+      const x1 = Math.floor((vis.x + vis.w) / 16), y1 = Math.floor((vis.y + vis.h) / 16);
+      const floors = [];
+      for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
+        if (w.tileAt(tx, ty) !== 1) continue;
+        const wx = (tx + .5) * 16, wy = (ty + .5) * 16;
+        if (wx < vis.x + 20 || wy < vis.y + 20 || wx > vis.x + vis.w - 20 || wy > vis.y + vis.h - 20) continue;
+        if (Math.hypot(wx - p.x, wy - p.y) < 48 || !farFromLights(wx, wy)) continue;
+        floors.push([tx, ty, wx, wy]);
+      }
+      const fresh = floors.filter(f => !g.seenAt(f[0], f[1]));
+      if (fresh.length >= 2) {
+        g.seeTile(fresh[0][0], fresh[0][1]);
+        w.render();
+        seenDark = { s: sumRgb(g.lightSample(fresh[0][2], fresh[0][3])) };
+        unseenDark = { s: sumRgb(g.lightSample(fresh[1][2], fresh[1][3])), seen: g.seenAt(fresh[1][0], fresh[1][1]) };
+      } else unseenDark = { s: -1, seen: false, n: floors.length + '/' + fresh.length };
+    }
+    check('explored memory', !!(seenDark && unseenDark && !unseenDark.seen && seenDark.s > unseenDark.s + 20 && seenDark.s < 130 && unseenDark.s < 50),
+      (seenDark ? seenDark.s : 'none') + ' seen / ' + (unseenDark ? unseenDark.s + (unseenDark.seen ? ' already' : '') : 'none') + ' unseen');
+  } else {
+    check('webgl init', g.lightPath() === 'canvas', 'no webgl2 here');
+    check('webgl path', g.lightPath() === 'canvas', g.lightPath());
+    check('near bright', true, 'skipped');
+    check('torch poly', true, 'skipped');
+    check('occ samples', true, 'skipped');
+    check('occlusion blocks', true, 'skipped');
+    check('explored memory', true, 'skipped');
+  }
+
+  w.__noWebGL = true;
+  g.settings.glLight = 'on';
+  g.settings.lighting = 'high';
+  p.torchT = 80;
+  w.render();
+  check('force off', g.lightPath() === 'canvas', g.lightPath());
+  const canvasNear = g.lightSample(p.x, p.y - 2);
+  check('canvas fallback bright', sumRgb(canvasNear) > 80, sumRgb(canvasNear));
+  delete w.__noWebGL;
+
+  g.settings.glLight = 'on';
+  w.document.getElementById('mGl').click();
+  w.render();
+  check('toggle off', g.glLightMode() === 'off' && g.lightPath() === 'canvas' && w.document.getElementById('mGl').textContent.indexOf('OFF') >= 0, g.lightPath() + ' ' + w.document.getElementById('mGl').textContent);
+  w.document.getElementById('mGl').click();
+  check('toggle cycle', g.glLightMode() === 'auto' && w.document.getElementById('mGl').textContent.indexOf('AUTO') >= 0, g.glLightMode());
+
+  g.settings.glLight = 'on';
+  g.settings.lighting = 'low';
+  delete w.__noWebGL;
+  w.render();
+  check('low is canvas', g.lightPath() === 'canvas', g.lightPath() + ' ' + g.lightingQ());
+  g.settings.lighting = 'high';
+  g.settings.glLight = 'auto';
+}
+</script>
+</body>
+</html>

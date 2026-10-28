@@ -4,6 +4,19 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — v0.7.8 draft
+
+_WebGL2 hybrid lighting. Not tagged. Not on the live site. `VERSION` stays 0.7.7 until `release.sh`._
+
+### Added
+- **WebGL2 lighting**: on High, with GL LIGHT set to AUTO or ON, darkness is a fullscreen WebGL2 fragment shader. Smooth falloff, 8×8 Bayer dither, and a deep navy ambient (`#050408`, explored tiles `#1a1520`) multiply over the Canvas 2D scene. No new libraries.
+- **GL LIGHT setting**: AUTO / ON / OFF in the title and pause menus, saved with the other settings. OFF forces the Canvas lightmap. Low lighting quality always uses the Canvas lightmap, including on phones where quality auto-selects Low.
+- **Wall occlusion on the shader path**: each occluded light (player torch, sconces, braziers, fire pits, hazard pools, prism, large props) uploads a visibility mask built from the existing raycast polygons, including the banded shadow edge. Lights are not drawn through walls if a mask slot is full; they are skipped instead.
+
+### Notes
+- Emissive sprites (torch flames, eyes, motes, bloom, glimmer) still draw on the 2D canvas after the lighting composite.
+- Playtest on desktop and iPhone Safari before this ships. See `notes/0.7.8-webgl-lighting.md`.
+
 ## [0.7.7] - 2026-10-27
 
 _Move during a spike bite, map icons for what you have seen, flames that light your torch, room tile sets, a wider ambience mix, acid and lava pits that are not a black void_
