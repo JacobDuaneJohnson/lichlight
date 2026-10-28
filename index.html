@@ -174,18 +174,23 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 @media (max-width:420px){#menu .mbtn{font-size:16px;padding:10px 12px}#menu .aopts{gap:5px 8px}}
 #safeProbe{position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .btn .ico .skimg{width:32px;height:32px;image-rendering:pixelated;image-rendering:crisp-edges;display:block;pointer-events:none}
-#glDev{z-index:35;overflow:hidden;align-items:center;justify-content:center;padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
-#glDev .gldevbox{width:min(94vw,520px);max-height:calc(100vh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;text-align:left;padding:10px 12px 14px}
-#glDev .gldevh{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:-10px;z-index:1;margin:-10px -12px 6px;padding:10px 12px 8px;background:#1c1614;color:#e0b040;letter-spacing:1px}
-#glDev .gldevh h2{margin:0;font-size:16px}
+#glHud{position:absolute;z-index:8;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));width:28px;height:28px;padding:0;border-radius:6px;border:1px solid rgba(224,176,64,.7);background:rgba(12,8,10,.4);color:#ffe7a8;font:bold 15px/26px "Courier New",monospace;text-shadow:0 1px 2px #000;touch-action:manipulation}
+#glHud.hidden{display:none}
+#glDev.overlay{z-index:35;overflow:hidden;align-items:center;justify-content:center;background:rgba(0,0,0,.3);padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
+#glDev .gldevbox{width:min(94vw,520px);max-height:calc(100vh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;text-align:left;padding:10px 12px 14px;background:rgba(28,20,24,.42);border-color:rgba(210,176,120,.45);outline:none;box-shadow:0 0 16px rgba(0,0,0,.25)}
+#glDev .gldevh{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:-10px;z-index:1;margin:-10px -12px 6px;padding:10px 12px 8px;background:rgba(28,20,24,.55);color:#ffe7a8;letter-spacing:1px}
+#glDev .gldevh h2{margin:0;font-size:16px;text-shadow:0 1px 2px #000}
 #glDev .gldevx{width:auto;min-width:0;padding:4px 10px;margin:0}
-#glDev .gldevnote{margin:0 0 8px;color:#a89880;font-size:11px}
-#glDev .gldevrow{display:flex;align-items:center;gap:8px;margin:4px 0;font:12px/1.3 "Courier New",monospace;color:#c8b8a0}
-#glDev .gldevrow span{flex:0 0 108px}
-#glDev .gldevrow input{flex:1;min-width:0;accent-color:#c08030;touch-action:pan-x}
-#glDev .gldevrow b{flex:0 0 48px;text-align:right;color:#e8dcc0;font-weight:bold}
-#glDev.off .gldevrow{opacity:.38}
-#glDev.off .gldevrow input{pointer-events:none}
+#glDev .gldevnote,#glDev .gldevsec{margin:8px 0 4px;color:#fff1d4;font-size:11px;text-shadow:0 1px 2px #000}
+#glDev .gldevsec{letter-spacing:1px;font-weight:bold;color:#e0b040}
+#glDev .gldevrow{display:flex;align-items:center;gap:8px;margin:4px 0;font:12px/1.3 "Courier New",monospace;color:#fff6e8}
+#glDev .gldevrow span{flex:0 0 108px;text-shadow:0 1px 2px #000}
+#glDev .gldevrow input[type=range]{flex:1;min-width:0;accent-color:#e0b040;touch-action:pan-x}
+#glDev .gldevrow input[type=color]{flex:0 0 46px;width:46px;height:28px;padding:0;border:1px solid rgba(255,220,160,.55);background:transparent}
+#glDev .gldevrow input[type=checkbox]{flex:0 0 auto;width:18px;height:18px;accent-color:#e0b040}
+#glDev .gldevrow b{flex:0 0 64px;text-align:right;color:#fff;font-weight:bold;text-shadow:0 1px 2px #000}
+#glDev .gldevrow.dim{opacity:.38}
+#glDev .gldevrow.dim input{pointer-events:none}
 #glDev .gldevreset{display:block;margin:10px auto 0}
 </style>
 </head>
@@ -231,7 +236,6 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small" id="mBattle">BATTLE MUSIC: OFF</button>
     <button class="mbtn small" id="mLight">LIGHTING: HIGH</button>
     <button class="mbtn small" id="mGl">GL LIGHT: AUTO</button>
-    <button class="mbtn small" id="mGlDev" type="button">LIGHTING (DEV)</button>
     <button class="mbtn small" id="mZoom">TEST ZOOM: 1X</button>
     <button class="mbtn small" id="mSkills">SKILL KEYS</button>
     <button class="mbtn small hidden" id="mTouch">TOUCH CONTROLS</button>
@@ -245,14 +249,6 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="help" id="helpTxt"></div>
   <div class="verbar"><a id="whatsNew" href="https://github.com/gamedevjake/lichlight/releases" target="_blank" rel="noopener">WHAT'S NEW</a><span id="verTxt"></span></div>
   <div class="a2hs hidden" id="a2hs"><span>For true fullscreen: tap <b>Share</b> <span class="shr">&#x2191;&#x20DE;</span>, then <b>Add to Home Screen</b>.</span><button id="a2hsX" aria-label="Dismiss">&times;</button></div>
-</div>
-<div id="glDev" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="glDevT">
-  <div class="v4box gldevbox">
-    <div class="gldevh"><h2 id="glDevT">LIGHTING (DEV)</h2><button type="button" class="shb gldevx" id="glDevX" aria-label="Close">&times;</button></div>
-    <p class="gldevnote" id="glDevNote"></p>
-    <div id="glDevRows"></div>
-    <button type="button" class="mbtn small gldevreset" id="glDevReset">RESET</button>
-  </div>
 </div>
 <div id="profiles" class="overlay hidden" style="z-index:30"><div class="v4box profbox"><h2>CHARACTERS <button class="shb" id="profX" aria-label="Close">&times;</button></h2><div class="v4sub">Each character keeps its own run. Your old save lives on as the first one.</div><div id="profList"></div><div id="profForm"></div></div></div>
 <div id="updModal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="updT"><div class="updBox">
@@ -1489,14 +1485,24 @@ for (const k in LCOL) { const [r, g, b] = LCOL[k], c = document.createElement('c
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64); LGRAD[k] = c; }
 const lcan = document.createElement('canvas'), lctx = lcan.getContext('2d');
 let vign = null, vignKey = '', mapVer = 0, polyCache = new Map(), braziers = [], motes = [], seenT = 0, frameLights = [];
-function visPoly(x, y, r, n) { // raycast on the tile grid; rays bite ~10px into the first wall so the wall faces are lit
+function visRayCount(n) { const m = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.rayMul)) ? +GL_LOOK.rayMul : 1; return Math.max(16, Math.min(192, Math.round((n || 48) * m))); }
+function wallBite(dy) { const base = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.bite)) ? +GL_LOOK.bite : 10, extra = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.biteN)) ? +GL_LOOK.biteN : 8; return dy < -.35 ? base + extra : base; } /* north bias is biteN on top of the base bite (defaults 10 + 8 = 18) */
+function glPolyTouch() {
+  if (typeof GL_LOOK === 'undefined' || !GL_LOOK) return;
+  const sig = [GL_LOOK.rayMul, GL_LOOK.bite, GL_LOOK.biteN, GL_LOOK.bandOff].join('|');
+  if (glPolyTouch.sig === sig) return;
+  glPolyTouch.sig = sig;
+  if (typeof polyCache !== 'undefined' && polyCache && polyCache.clear) polyCache.clear();
+}
+function visPoly(x, y, r, n) { // raycast on the tile grid; rays bite into the first wall so the wall faces are lit
+  glPolyTouch(); n = visRayCount(n);
   const pts = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) { const a = i / n * 6.2832, dx = Math.cos(a), dy = Math.sin(a); let d = 0;
-    while (d < r) { d += 3; if (solidAt(x + dx * d, y + dy * d)) { d = Math.min(r, d + (dy < -.35 ? 18 : 10)); break; } /* v0.7.3 §2: rays heading north light the whole wall face (WALL_BITE_N 18, was 10) */ }
+    while (d < r) { d += 3; if (solidAt(x + dx * d, y + dy * d)) { d = Math.min(r, d + wallBite(dy)); break; } }
     pts[i * 2] = x + dx * Math.min(d, r); pts[i * 2 + 1] = y + dy * Math.min(d, r); }
   return pts;
 }
-function cachedPoly(key, x, y, r, n) { const k = key + '|' + mapVer; let p = polyCache.get(k); if (!p) { if (polyCache.size > 300) polyCache.clear(); p = visPoly(x, y, r, n); polyCache.set(k, p); } return p; }
+function cachedPoly(key, x, y, r, n) { glPolyTouch(); const k = key + '|' + mapVer; let p = polyCache.get(k); if (!p) { if (polyCache.size > 300) polyCache.clear(); p = visPoly(x, y, r, n); polyCache.set(k, p); } return p; }
 // v0.4.5: smooth layered flicker (-1..1, no frame-to-frame jumps) so flames feel alive without strobing
 function flickN(t, s) { return Math.sin(t * 5.3 + s) * .5 + Math.sin(t * 8.9 + s * .7) * .3 + Math.sin(t * 13.7 + s * 1.9) * .2; }
 const FLICK = { r: .075, a: .1 }; // relative radius / alpha wobble for wall torches + braziers
@@ -1557,26 +1563,38 @@ function worldToScreen(wx, wy) {
 }
 // v0.7.8 hybrid: shader path on High + GL LIGHT auto/on. Low, OFF, or a missing WebGL2 context keep lcan.
 const GL_MAX_LIGHTS = 32, GL_MAX_OCC = 24; // 32 keeps the default-uniform vec4 budget under the WebGL2 minimum (224)
-// WebGL look only. Canvas lcan does not read these. The dev panel writes the same object.
-const GL_LOOK_BASE = { penumbra: 12, spill: 1.36, core: 1, haze: 0.22, fill: 0.18, voidR: 5, voidG: 4, voidB: 8, seenR: 26, seenG: 21, seenB: 32 };
+// Dev look. WebGL-only keys are ignored by the Canvas lightmap. Ray, bite, band, bloom, and the outline feed both paths.
+const GL_LOOK_BASE = { penumbra: 12, spill: 1.36, core: 1, haze: 0.22, fill: 0.18, voidR: 5, voidG: 4, voidB: 8, seenR: 26, seenG: 21, seenB: 32, bloomK: 1, bloomR: 1, rayMul: 1, bite: 10, biteN: 8, bandOff: 6, outline: 0 };
 const GL_DEV_ROWS = [
-  { k: 'penumbra', label: 'PENUMBRA', hint: 'Inward shadow fade, pixels', min: 0, max: 32, step: 1 },
-  { k: 'spill', label: 'SPILL', hint: 'Falloff reach, multiple of the light radius', min: 0.8, max: 2.4, step: 0.02 },
-  { k: 'core', label: 'CORE', hint: 'How hard the center shifts toward white', min: 0, max: 1.5, step: 0.02 },
-  { k: 'haze', label: 'HAZE', hint: 'Colored spill along the cone', min: 0, max: 0.6, step: 0.01 },
-  { k: 'fill', label: 'FILL', hint: 'Explored-floor bounce inside the mask', min: 0, max: 0.55, step: 0.01 },
-  { k: 'voidR', label: 'VOID R', hint: 'Unlit unexplored red, 0-255', min: 0, max: 48, step: 1 },
-  { k: 'voidG', label: 'VOID G', hint: 'Unlit unexplored green', min: 0, max: 48, step: 1 },
-  { k: 'voidB', label: 'VOID B', hint: 'Unlit unexplored blue', min: 0, max: 48, step: 1 },
-  { k: 'seenR', label: 'SEEN R', hint: 'Explored-floor memory red', min: 0, max: 80, step: 1 },
-  { k: 'seenG', label: 'SEEN G', hint: 'Explored-floor memory green', min: 0, max: 80, step: 1 },
-  { k: 'seenB', label: 'SEEN B', hint: 'Explored-floor memory blue', min: 0, max: 80, step: 1 }
+  { k: 'penumbra', label: 'PENUMBRA', hint: 'Inward shadow fade, pixels. WebGL only.', min: 0, max: 32, step: 1, webgl: 1, sec: 'WEBGL LOOK' },
+  { k: 'spill', label: 'SPILL', hint: 'Falloff reach, multiple of the light radius. WebGL only.', min: 0.8, max: 2.4, step: 0.02, webgl: 1 },
+  { k: 'core', label: 'CORE', hint: 'How hard the center shifts toward white. WebGL only.', min: 0, max: 1.5, step: 0.02, webgl: 1 },
+  { k: 'haze', label: 'HAZE', hint: 'Colored spill along the cone. WebGL only.', min: 0, max: 0.6, step: 0.01, webgl: 1 },
+  { k: 'fill', label: 'FILL', hint: 'Explored-floor bounce inside the mask. WebGL only.', min: 0, max: 0.55, step: 0.01, webgl: 1 },
+  { k: 'bloomK', label: 'BLOOM', hint: 'Multiplies the quality preset strength.', min: 0, max: 3, step: 0.05, sec: 'BLOOM' },
+  { k: 'bloomR', label: 'BLOOM R', hint: 'Multiplies glow radius. That is the falloff distance.', min: 0.25, max: 3, step: 0.05 },
+  { k: 'rayMul', label: 'RAYS', hint: 'Multiplies each light ray count. Result is clamped to 16-192.', min: 0.4, max: 2.5, step: 0.1, poly: 1, sec: 'VISIBILITY' },
+  { k: 'bite', label: 'BITE', hint: 'How far rays push into the first wall, pixels.', min: 0, max: 40, step: 1, poly: 1 },
+  { k: 'biteN', label: 'BITE N', hint: 'Extra pixels when the ray heads north. North bite is BITE + BITE N.', min: 0, max: 28, step: 1, poly: 1 },
+  { k: 'bandOff', label: 'BAND', hint: 'Canvas band origin offset, pixels. Was SHADOW_OFF 6.', min: 0, max: 24, step: 1, poly: 1 },
+  { k: 'outline', label: 'OUTLINE', hint: 'Draw live visibility polygons.', kind: 'check' }
 ];
 const GL_LOOK = Object.assign({}, GL_LOOK_BASE);
 function glLook() { return GL_LOOK; }
 function glLookDefaults() { return GL_LOOK_BASE; }
 function glDevFmt(row, v) { const s = String(row.step), d = s.indexOf('.') < 0 ? 0 : s.length - s.indexOf('.') - 1; return Number(v).toFixed(d); }
-function glLookClamp(k, v) { const row = GL_DEV_ROWS.find(r => r.k === k); if (!row || !isFinite(v)) return GL_LOOK_BASE[k]; return Math.min(row.max, Math.max(row.min, v)); }
+function glHex(r, g, b) { const h = n => ('0' + (Math.max(0, Math.min(255, n | 0))).toString(16)).slice(-2); return '#' + h(r) + h(g) + h(b); }
+function glParseHex(s) { const m = /^#?([0-9a-f]{6})$/i.exec(String(s || '').trim()); if (!m) return null; const n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
+function glLookClamp(k, v) { const row = GL_DEV_ROWS.find(r => r.k === k); if (row && row.kind === 'check') return v ? 1 : 0; if (row && isFinite(v)) return Math.min(row.max, Math.max(row.min, v)); if (/^(void|seen)[RGB]$/.test(k) && isFinite(v)) return Math.max(0, Math.min(255, v | 0)); return GL_LOOK_BASE[k]; }
+function lichDevOn(host, search) {
+  const h = String(host == null ? (location.hostname || '') : host).toLowerCase();
+  if (h === 'github.io' || h.endsWith('.github.io')) return false;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === '[::1]') return true;
+  if (h === 'githack.com' || h.endsWith('.githack.com')) return true;
+  let q = search;
+  if (q == null) { try { q = location.search || ''; } catch (e) { q = ''; } }
+  return /(^|[?&])lichDev=1(&|$)/.test(String(q));
+}
 function glLookLoad() {
   try {
     const s = JSON.parse(localStorage.getItem('lichlight-gl-look') || 'null');
@@ -1585,40 +1603,93 @@ function glLookLoad() {
   } catch (e) {}
 }
 function glLookSave() { try { localStorage.setItem('lichlight-gl-look', JSON.stringify(GL_LOOK)); } catch (e) {} }
-function glLookReset() { for (const k in GL_LOOK_BASE) GL_LOOK[k] = GL_LOOK_BASE[k]; try { localStorage.removeItem('lichlight-gl-look'); } catch (e) {} glDevPaint(); }
+function glLookReset() {
+  for (const k in GL_LOOK_BASE) GL_LOOK[k] = GL_LOOK_BASE[k];
+  try { localStorage.removeItem('lichlight-gl-look'); } catch (e) {}
+  glPolyTouch.sig = '';
+  if (typeof polyCache !== 'undefined' && polyCache && polyCache.clear) polyCache.clear();
+  glDevPaint();
+}
+function glDevSec(host, text) { const h = document.createElement('div'); h.className = 'gldevsec'; h.textContent = text; host.appendChild(h); }
+function glDevRow(host, row) {
+  const d = document.createElement('label'); d.className = 'gldevrow'; if (row.webgl) d.dataset.webgl = '1';
+  const name = document.createElement('span'); name.textContent = row.label; name.title = row.hint;
+  const inp = document.createElement('input'); inp.dataset.k = row.k; inp.setAttribute('aria-label', row.label + '. ' + row.hint);
+  const num = document.createElement('b');
+  if (row.kind === 'check') { inp.type = 'checkbox'; inp.checked = !!GL_LOOK[row.k]; num.textContent = inp.checked ? 'ON' : 'OFF';
+    inp.addEventListener('change', () => { GL_LOOK[row.k] = inp.checked ? 1 : 0; num.textContent = inp.checked ? 'ON' : 'OFF'; glLookSave(); }); }
+  else { inp.type = 'range'; inp.min = row.min; inp.max = row.max; inp.step = row.step; inp.value = GL_LOOK[row.k]; num.textContent = glDevFmt(row, GL_LOOK[row.k]);
+    inp.addEventListener('input', () => { const v = glLookClamp(row.k, parseFloat(inp.value)); GL_LOOK[row.k] = v; num.textContent = glDevFmt(row, v); if (row.poly) { glPolyTouch.sig = ''; if (polyCache && polyCache.clear) polyCache.clear(); } glLookSave(); }); }
+  d.appendChild(name); d.appendChild(inp); d.appendChild(num); host.appendChild(d);
+}
+function glDevColor(host, prefix, label, hint) {
+  const d = document.createElement('label'); d.className = 'gldevrow'; d.dataset.webgl = '1';
+  const name = document.createElement('span'); name.textContent = label; name.title = hint;
+  const inp = document.createElement('input'); inp.type = 'color'; inp.dataset.color = prefix; inp.value = glHex(GL_LOOK[prefix + 'R'], GL_LOOK[prefix + 'G'], GL_LOOK[prefix + 'B']); inp.setAttribute('aria-label', label + '. ' + hint);
+  const num = document.createElement('b'); num.textContent = inp.value.toUpperCase();
+  inp.addEventListener('input', () => { const c = glParseHex(inp.value); if (!c) return; GL_LOOK[prefix + 'R'] = c.r; GL_LOOK[prefix + 'G'] = c.g; GL_LOOK[prefix + 'B'] = c.b; num.textContent = glHex(c.r, c.g, c.b).toUpperCase(); glLookSave(); });
+  d.appendChild(name); d.appendChild(inp); d.appendChild(num); host.appendChild(d);
+}
 function glDevBuild() {
   const host = $('glDevRows'); if (!host || host.childElementCount) return;
   for (const row of GL_DEV_ROWS) {
-    const d = document.createElement('label'); d.className = 'gldevrow';
-    const name = document.createElement('span'); name.textContent = row.label; name.title = row.hint;
-    const inp = document.createElement('input'); inp.type = 'range'; inp.min = row.min; inp.max = row.max; inp.step = row.step; inp.dataset.k = row.k; inp.value = GL_LOOK[row.k]; inp.setAttribute('aria-label', row.label + '. ' + row.hint);
-    const num = document.createElement('b'); num.textContent = glDevFmt(row, GL_LOOK[row.k]);
-    inp.addEventListener('input', () => { const v = glLookClamp(row.k, parseFloat(inp.value)); GL_LOOK[row.k] = v; num.textContent = glDevFmt(row, v); glLookSave(); });
-    d.appendChild(name); d.appendChild(inp); d.appendChild(num); host.appendChild(d);
+    if (row.sec === 'VISIBILITY') { const bn = document.createElement('p'); bn.id = 'glBloomNote'; bn.className = 'gldevnote'; host.appendChild(bn); }
+    if (row.sec) glDevSec(host, row.sec);
+    if (row.sec === 'WEBGL LOOK') { glDevColor(host, 'seen', 'SEEN', 'Explored floor with no torch on it. Default #1A1520.'); glDevColor(host, 'void', 'VOID', 'Unexplored fog. Default #050408.'); }
+    glDevRow(host, row);
   }
 }
 function glDevPaint() {
   const host = $('glDevRows'); if (!host) return;
   host.querySelectorAll('input').forEach(inp => {
+    if (inp.dataset.color) {
+      const p = inp.dataset.color, hex = glHex(GL_LOOK[p + 'R'], GL_LOOK[p + 'G'], GL_LOOK[p + 'B']);
+      if (document.activeElement !== inp) inp.value = hex;
+      const b = inp.parentNode.querySelector('b'); if (b) b.textContent = hex.toUpperCase();
+      return;
+    }
     const row = GL_DEV_ROWS.find(r => r.k === inp.dataset.k); if (!row) return;
-    const v = GL_LOOK[row.k];
-    if (document.activeElement !== inp) inp.value = v;
-    const b = inp.parentNode.querySelector('b'); if (b) b.textContent = glDevFmt(row, v);
+    const b = inp.parentNode.querySelector('b');
+    if (row.kind === 'check') { if (document.activeElement !== inp) inp.checked = !!GL_LOOK[row.k]; if (b) b.textContent = inp.checked ? 'ON' : 'OFF'; return; }
+    if (document.activeElement !== inp) inp.value = GL_LOOK[row.k];
+    if (b) b.textContent = glDevFmt(row, GL_LOOK[row.k]);
   });
   syncGlDev();
+}
+function bloomDevNote() {
+  if (!bloomDevNote.ok) return 'Bloom dials multiply the quality preset. Low uses a smaller cap and half the base strength.';
+  const q = lightingQ(), C = BLOOM[q] || BLOOM.high;
+  return 'Bloom base (' + q + '): strength ' + C.k + ', cap ' + C.cap + '. Dials multiply that.';
 }
 function syncGlDev() {
   const box = $('glDev'); if (!box) return;
   const want = wantWebGLLighting(), failed = !!(want && GL && GL.failed), use = want && !failed;
-  let msg = 'WebGL lighting. Dials apply on the next frame. Canvas is unchanged.';
-  if (!want) msg = 'Canvas lightmap is on (Low, GL LIGHT off, or forced). These dials do not change that look.';
+  let msg = 'WebGL lighting. Look dials and colors apply on the next frame.';
+  if (!want) msg = 'Canvas lightmap. WebGL look and colors are paused. Rays, bite, bands, bloom, and the outline still apply.';
   else if (failed) msg = 'WebGL failed (' + (GL.reason || 'unavailable') + '). Canvas is drawing.';
   else if (lightFramePath !== 'webgl') msg = 'WebGL lighting arms on the next frame.';
   const note = $('glDevNote'); if (note && note.textContent !== msg) note.textContent = msg;
-  if (box.dataset.on !== (use ? '1' : '0')) {
-    box.dataset.on = use ? '1' : '0'; box.classList.toggle('off', !use);
-    box.querySelectorAll('.gldevrow input').forEach(el => { el.disabled = !use; });
-  }
+  const bn = $('glBloomNote'); if (bn) { const t = bloomDevNote(); if (bn.textContent !== t) bn.textContent = t; }
+  box.querySelectorAll('.gldevrow').forEach(row => { const off = row.dataset.webgl === '1' && !use; row.classList.toggle('dim', off); row.querySelectorAll('input').forEach(el => { el.disabled = off; }); });
+}
+function syncGlHud() { const b = $('glHud'); if (!b) return; b.classList.toggle('hidden', !(lichDevOn() && state === 'play' && (! $('glDev') || $('glDev').classList.contains('hidden')))); }
+function openGlDev() { if (!lichDevOn() || !$('glDev')) return; glDevPaint(); $('glDev').classList.remove('hidden'); syncGlHud(); }
+function closeGlDev() { const el = $('glDev'); if (el) el.classList.add('hidden'); syncGlHud(); }
+function glDevMount() {
+  if (!lichDevOn() || $('glDev')) return !!$('glDev');
+  const hud = document.createElement('button'); hud.id = 'glHud'; hud.type = 'button'; hud.className = 'hidden'; hud.textContent = '\u2600'; hud.setAttribute('aria-label', 'Lighting dev');
+  hud.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); if ($('glDev').classList.contains('hidden')) openGlDev(); else closeGlDev(); });
+  document.body.appendChild(hud);
+  const ov = document.createElement('div'); ov.id = 'glDev'; ov.className = 'overlay hidden'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-labelledby', 'glDevT');
+  ov.innerHTML = '<div class="v4box gldevbox"><div class="gldevh"><h2 id="glDevT">LIGHTING (DEV)</h2><button type="button" class="shb gldevx" id="glDevX" aria-label="Close">&times;</button></div><p class="gldevnote" id="glDevNote"></p><div id="glDevRows"></div><button type="button" class="mbtn small gldevreset" id="glDevReset">RESET</button></div>';
+  document.body.appendChild(ov);
+  glDevBuild();
+  $('glDevX').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); closeGlDev(); });
+  $('glDevReset').addEventListener('click', e => { e.preventDefault(); glLookReset(); });
+  ov.addEventListener('click', e => { if (e.target === ov) closeGlDev(); });
+  ov.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); closeGlDev(); } });
+  glDevPaint();
+  return true;
 }
 glLookLoad();
 let lightFramePath = 'canvas', GL = null;
@@ -4411,14 +4482,7 @@ syncLightBtn();
 $('mGl').addEventListener('click', () => { cycleGlLight(); syncGlDev(); });
 function syncGlBtn() { const b = $('mGl'); if (b) b.textContent = 'GL LIGHT: ' + glLightMode().toUpperCase(); }
 syncGlBtn();
-function openGlDev() { glDevPaint(); $('glDev').classList.remove('hidden'); }
-function closeGlDev() { $('glDev').classList.add('hidden'); }
-glDevBuild(); glDevPaint();
-$('mGlDev').addEventListener('click', openGlDev);
-$('glDevX').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); closeGlDev(); });
-$('glDevReset').addEventListener('click', e => { e.preventDefault(); glLookReset(); });
-$('glDev').addEventListener('click', e => { if (e.target === $('glDev')) closeGlDev(); });
-$('glDev').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); closeGlDev(); } });
+glDevMount();
 $('tMap').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'play') mapOpen = !mapOpen; });
 // =====================================================================
 //  v0.5.0 — amulets, shields, power tags, sleep fade, set pieces, cobwebs, sliding doors, passage puzzles,
@@ -4727,8 +4791,10 @@ function bloomSources() { const p = player, out = [], q = lightingQ(), C = BLOOM
   for (const f of effects) if (f.skill !== undefined && SKILLS[f.skill] && v(f.x, f.y, f.r)) out.push({ x: f.x, y: f.y, r: Math.max(10, f.r * .7), col: SKILLS[f.skill].light, a: .5 * (1 - f.t / f.dur) });
   if (p && p.torchT > 0) out.push({ x: p.x + p.fx * 4, y: p.y - 9, r: 8, col: 'fire', a: .4 });
   out.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y)); out.length = Math.min(out.length, C.cap); return out; }
-function drawBloom() { const L = bloomSources(), q = lightingQ(), C = BLOOM[q]; bloomStats = { n: L.length, k: C.k, q }; if (!L.length) return;
-  ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (const l of L) { const g = LGRAD[l.col] || LGRAD.fire; ctx.globalAlpha = Math.min(1, l.a * C.k); ctx.drawImage(g, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); } ctx.restore(); }
+function drawBloom() { const L = bloomSources(), q = lightingQ(), C = BLOOM[q], kMul = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.bloomK)) ? +GL_LOOK.bloomK : 1, rMul = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.bloomR)) ? +GL_LOOK.bloomR : 1, k = C.k * kMul;
+  bloomStats = { n: L.length, k, q, kMul, rMul }; if (!L.length) return;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (const l of L) { const g = LGRAD[l.col] || LGRAD.fire, r = Math.max(1, l.r * rMul); ctx.globalAlpha = Math.min(1, l.a * k); ctx.drawImage(g, l.x - r, l.y - r, r * 2, r * 2); } ctx.restore(); }
+bloomDevNote.ok = true;
 // ---- 11: new SFX (procedural; every voice goes through sfxTone / sfxNoise / sfxSweep -> SFX bus, so Sound Off + SFX slider gate them) ----
 let bossPitch = 1;
 const BOSS_VOX = { blob: { f: 70, w: 'sine', n: 320, q: 3 }, beast: { f: 92, w: 'sawtooth', n: 650, q: 1.2 }, bell: { f: 220, w: 'triangle', n: 1800, q: 6 }, wraith: { f: 420, w: 'sine', n: 3200, q: 1.5 },
@@ -5292,7 +5358,7 @@ function render() {
   renderLighting(sx, sy);
   // emissive + labels drawn above the darkness
   ctx.save(); zoomApply(ctx, sx, sy); ctx.translate(-sx, -sy);
-  drawEmissive(sx, sy); v073Emissive(); v074Emissive(); drawBloom(); drawV06Emissive(); drawCritters(true);
+  drawEmissive(sx, sy); v073Emissive(); v074Emissive(); drawBloom(); drawVisDebug(); drawV06Emissive(); drawCritters(true);
   for (const g of ground) { if (!g.item) continue; const d = Math.hypot(g.x - p.x, g.y - p.y);
     if (labelShown(g)) { const nm = g.item.name.toUpperCase(), w = textW(nm);
       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(g.x - w / 2 - 1), Math.round(g.y - 17), w + 3, 7); drawTextC(nm, g.x, g.y - 16, RCOL[g.item.rarity], false); } }
@@ -5310,7 +5376,18 @@ function render() {
   ctx.restore();
   drawVignette(); drawPlaneFX(); /* v0.7.3 §7 plane screen FX + timer */
   UIA = uiAlpha(); ctx.globalAlpha = UIA; hudInset074(drawHUD); /* v0.7.4 B2: HUD inside the safe area */ drawZoomTag(); ctx.globalAlpha = 1; drawSleep(); // v0.6.0 dim UI
-  if (typeof syncGlDev === 'function' && $('menu') && (!$('menu').classList.contains('hidden') || ($('glDev') && !$('glDev').classList.contains('hidden')))) syncGlDev();
+  if (typeof syncGlHud === 'function') syncGlHud();
+  if (typeof syncGlDev === 'function' && $('glDev') && !$('glDev').classList.contains('hidden')) syncGlDev();
+}
+function drawVisDebug() {
+  if (!GL_LOOK.outline || !lichDevOn() || !frameLights) return;
+  ctx.save(); ctx.lineWidth = 1; let n = 0;
+  for (const l of frameLights) {
+    const list = l.polys || (l.poly ? [l.poly] : null); if (!list) continue; if (++n > 6) break;
+    ctx.strokeStyle = l.polys ? 'rgba(255,220,120,.9)' : 'rgba(160,220,255,.9)'; ctx.globalAlpha = l.polys ? .45 : .8;
+    for (const P of list) { if (!P || P.length < 6) continue; ctx.beginPath(); ctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) ctx.lineTo(P[i], P[i + 1]); ctx.closePath(); ctx.stroke(); }
+  }
+  ctx.restore();
 }
 function drawPlayer() {
   const p = player, flick = p.inv0 > 0 && Math.floor(time * 20) % 2;
@@ -5794,7 +5871,7 @@ function sightLOS(a, b) { if (!los(a, b)) return false; const dx = b.x - a.x, dy
   return ddaClear(a.x, a.y, b.x, b.y) && ddaClear(a.x + nx, a.y + ny, b.x + nx, b.y + ny) && ddaClear(a.x - nx, a.y - ny, b.x - nx, b.y - ny); }
 // ---------- §3 banded shadow edges ----------
 function shadowBands() { return SHADOW_BANDS[lightingQ()] || 4; }
-function bandOrigins(x, y, n) { const out = []; for (let i = 0; i < n; i++) { const a = (i / n) * 6.2832 + .785, ox = x + Math.cos(a) * SHADOW_OFF, oy = y + Math.sin(a) * SHADOW_OFF; out.push(solidAt(ox, oy) ? [x, y] : [ox, oy]); } return out; }
+function bandOrigins(x, y, n) { const off = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.bandOff)) ? +GL_LOOK.bandOff : SHADOW_OFF, out = []; for (let i = 0; i < n; i++) { const a = (i / n) * 6.2832 + .785, ox = x + Math.cos(a) * off, oy = y + Math.sin(a) * off; out.push(solidAt(ox, oy) ? [x, y] : [ox, oy]); } return out; }
 function bandPolys(x, y, r, rays, key) { const n = shadowBands(); return bandOrigins(x, y, n).map((o, i) => key ? cachedPoly(key + '~' + n + '~' + i, o[0], o[1], r, rays) : visPoly(o[0], o[1], r, rays)); }
 function drawLightPolys(l) { const P0 = l.polys, n = P0.length, a = Math.min(1, l.a); for (const P of P0) { lctx.save(); lctx.globalAlpha = a / n; lctx.beginPath(); lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
     lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); } }
@@ -6406,7 +6483,7 @@ window.game = { version: VERSION, get state() { return state; }, get player() { 
   astar, planWalk, selectSkill, enemyAtCursor, dm, get rskill() { return rskill; }, get mapOpen() { return mapOpen; }, get hoverEnemy() { return hoverEnemy; }, get walk() { return player && player.walk; },
   groundItemAt, requestPickup, pickupItem, get tipItem() { return tipItem; },
   newCount, markSeen, updateNewBadge,
-  SKILLS, LCOL, skillTint, torchGlow, flickN, FLICK, get glimmers() { return glimmers; }, placeGlimmer, drinkGlimmer, buffText, XPBUFF, XPBUFF_TIME, GLIM_CHANCE, lightingQ, lightScale, glLightMode, cycleGlLight, lightPath, glStatus, glLook, glLookDefaults, glLookReset, packGlLights, gatherLights, interactables,
+  SKILLS, LCOL, skillTint, torchGlow, flickN, FLICK, get glimmers() { return glimmers; }, placeGlimmer, drinkGlimmer, buffText, XPBUFF, XPBUFF_TIME, GLIM_CHANCE, lightingQ, lightScale, glLightMode, cycleGlLight, lightPath, glStatus, glLook, glLookDefaults, glLookReset, lichDevOn, packGlLights, gatherLights, interactables,
   playerLights, lightRadius, lightAt, giveTorch, lightTorch, visPoly, get frameLights() { return frameLights; }, get braziers() { return braziers; }, TORCH_TIME, TORCH_CAP, lcan,
   get chests() { return chests; }, get secrets() { return secrets; }, openChest, breakSecret, breakSecretsAt, placeTreasure,
   bestiary, ETYPES, MOB_IDS, MOBS, BOSSES, spawnEnemy, spawnBoss, damageEnemy, bossForDepth, addTrauma, shakeOffset, mouse, get trauma() { return trauma; }, get teles() { return teles; }, get hazards() { return hazards; }, get projs() { return projs; }, settings,
