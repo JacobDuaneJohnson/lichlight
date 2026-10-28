@@ -60,6 +60,9 @@ function run(w) {
   for (let i = 0; i < packed.n; i++) if (packed.occ[i] >= 0) occLayers++;
   check('pack occlusion slots', occLayers >= 1 && packed.occN >= 1 && packed.occN <= 24, occLayers + ' lights / ' + packed.occN + ' masks');
   check('pack skips bleed', packed.skipped === 0 || packed.occN === 24, 'skipped ' + packed.skipped);
+  const look = g.glLook();
+  check('look knobs', !!(look && look.penumbra >= 8 && look.spill > 1 && look.core > 0 && look.haze > 0 && look.fill > 0), look && JSON.stringify(look));
+  check('shader penumbra', src.indexOf('softCover') >= 0 && src.indexOf('uFill') >= 0 && src.indexOf('uPen') >= 0);
 
   w.render();
   const st = g.glStatus();
@@ -91,7 +94,27 @@ function run(w) {
       check('occ geometry', !!(torch && insideCore && outsideBands), (insideCore ? 'in' : 'no-in') + '/' + (outsideBands ? 'out' : 'no-out'));
       const si = sumRgb(g.lightSample(ix, iy)), so = sumRgb(g.lightSample(ox, oy));
       check('occlusion blocks', si > so + 40, si + ' in / ' + so + ' out');
-    } else check('occlusion blocks', false, 'no wall');
+      const glPx = g.lightSample(ix, iy);
+      let rim = null;
+      if (torch) {
+        const R = torch.r, tx0 = Math.floor(torch.x / 16) - 8, ty0 = Math.floor(torch.y / 16) - 8;
+        for (let ty = ty0; ty <= ty0 + 16 && !rim; ty++) for (let tx = tx0; tx <= tx0 + 16; tx++) {
+          if (w.tileAt(tx, ty) !== 1) continue;
+          const wx = (tx + .5) * 16, wy = (ty + .5) * 16, d = Math.hypot(wx - torch.x, wy - torch.y);
+          if (d < R * 0.36 || d > R * 0.72) continue;
+          if (!w.inPoly(torch.polys[0], wx, wy)) continue;
+          rim = { wx, wy, d };
+        }
+      }
+      const glRim = rim ? g.lightSample(rim.wx, rim.wy) : null;
+      w.__forceCanvasLight = true;
+      w.render();
+      const cvPx = g.lightSample(ix, iy);
+      const cvRim = rim ? g.lightSample(rim.wx, rim.wy) : null;
+      delete w.__forceCanvasLight;
+      check('hotter core', !!(glPx && cvPx && glPx[1] > cvPx[1] + 20 && glPx[2] > cvPx[2] + 12), (glPx && glPx.slice(0, 3).join(',')) + ' gl / ' + (cvPx && cvPx.slice(0, 3).join(',')) + ' canvas');
+      check('longer spill', !rim || sumRgb(glRim) > sumRgb(cvRim) + 15, rim ? (sumRgb(glRim) + ' gl / ' + sumRgb(cvRim) + ' canvas @' + Math.round(rim.d)) : 'no rim tile');
+    } else { check('occlusion blocks', false, 'no wall'); check('hotter core', false, 'no wall'); check('longer spill', false, 'no wall'); }
     p.torchT = 0; p.fatigue = 0;
     for (const t of (g.torches || [])) t.out = true;
     if (g.braziers) g.braziers.length = 0;
