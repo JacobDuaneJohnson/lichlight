@@ -176,9 +176,12 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .btn .ico .skimg{width:32px;height:32px;image-rendering:pixelated;image-rendering:crisp-edges;display:block;pointer-events:none}
 #glHud{position:absolute;z-index:8;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));width:28px;height:28px;padding:0;border-radius:6px;border:1px solid rgba(224,176,64,.7);background:rgba(12,8,10,.4);color:#ffe7a8;font:bold 15px/26px "Courier New",monospace;text-shadow:0 1px 2px #000;touch-action:manipulation}
 #glHud.hidden{display:none}
-#glDev.overlay{z-index:35;overflow:hidden;align-items:center;justify-content:center;background:rgba(0,0,0,.3);padding:calc(8px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left))}
-#glDev .gldevbox{width:min(94vw,520px);max-height:calc(100vh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;text-align:left;padding:10px 12px 14px;background:rgba(28,20,24,.42);border-color:rgba(210,176,120,.45);outline:none;box-shadow:0 0 16px rgba(0,0,0,.25)}
-#glDev .gldevh{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:-10px;z-index:1;margin:-10px -12px 6px;padding:10px 12px 8px;background:rgba(28,20,24,.55);color:#ffe7a8;letter-spacing:1px}
+#glDev.overlay{z-index:35;overflow:hidden;align-items:stretch;justify-content:flex-start;background:transparent !important;background-color:transparent !important;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;padding:0}
+#glDev .gldevbox{position:absolute;display:flex;flex-direction:column;width:440px;height:520px;min-width:280px;min-height:220px;max-height:none;overflow:hidden;text-align:left;padding:0;background:rgba(28,20,24,.42);border-color:rgba(210,176,120,.5);outline:none;box-shadow:none}
+#glDev .gldevscroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:0 12px 14px}
+#glDev .gldevgrip{position:absolute;right:0;bottom:0;width:18px;height:18px;z-index:2;cursor:nwse-resize;background:linear-gradient(135deg, transparent 52%, rgba(224,176,64,.95) 52%);touch-action:none}
+#glDev .gldevh{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;z-index:1;margin:0 -12px 6px;padding:10px 12px 8px;background:rgba(28,20,24,.55);color:#ffe7a8;letter-spacing:1px;cursor:grab}
+#glDev .gldevh:active{cursor:grabbing}
 #glDev .gldevh h2{margin:0;font-size:16px;text-shadow:0 1px 2px #000}
 #glDev .gldevx{width:auto;min-width:0;padding:4px 10px;margin:0}
 #glDev .gldevnote,#glDev .gldevsec{margin:8px 0 4px;color:#fff1d4;font-size:11px;text-shadow:0 1px 2px #000}
@@ -1519,9 +1522,10 @@ function lightRadius() { return Math.max(...playerLights().map(l => l.r)); }
 function gatherLights(sx, sy, vw, vh) {
   vw = vw || VW; vh = vh || VH;
   const p = player, L = [], view = (x, y, r) => x > sx - r && y > sy - r && x < sx + vw + r && y < sy + vh + r;
-  const pl = playerLights(), pr = Math.max(...pl.map(l => l.r));
+  const pFall = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.pFall)) ? +GL_LOOK.pFall : 1;
+  const pl = playerLights().map(l => ({ r: l.r * pFall, col: l.col, a: l.a })), pr = Math.max(...pl.map(l => l.r));
   const polys = bandPolys(p.x, p.y - 2, pr, pr > 60 ? 140 : 48), poly = polys[0]; // v0.7.2 §3: banded soft shadow edges
-  for (const l of pl) L.push({ x: p.x, y: p.y - 2, r: l.r, col: l.col, a: l.a, poly, polys: l.r > 30 ? polys : null });
+  for (const l of pl) { const o = { x: p.x, y: p.y - 2, r: l.r, col: l.col, a: l.a, poly, polys: l.r > 30 ? polys : null, player: 1 }; if (l.col === 'warm' && typeof GL_LOOK !== 'undefined' && GL_LOOK) o.rgb = [GL_LOOK.plyrR, GL_LOOK.plyrG, GL_LOOK.plyrB]; L.push(o); }
   const statics = [];
   for (let i = 0; i < torches.length; i++) { const t = torches[i]; if (t.out) continue; const lx = t.x, ly = t.y + 11; if (view(lx, ly, 80)) { const g = torchGlow(t.x * .37 + t.y * .11, 58, .72); statics.push({ x: lx, y: ly, r: g.r, col: 'fire', a: g.a, key: 't' + i, sx: t.x, sy: t.y + 1, f: g.a / .72 }); /* v0.7.3 §13: 74 / .85 -> 58 / .72 */ } }
   for (let i = 0; i < braziers.length; i++) { const b = braziers[i]; if (view(b.x, b.y, 90)) { const g = torchGlow(b.x * .29 + b.y * .17 + 3, 66, .78); statics.push({ x: b.x, y: b.y - 4, r: g.r, col: 'fire', a: g.a, key: 'b' + i, sx: b.x, sy: b.y - 10, f: g.a / .78 }); /* v0.7.3 §13: 84 / .9 -> 66 / .78 */ } }
@@ -1564,13 +1568,18 @@ function worldToScreen(wx, wy) {
 // v0.7.8 hybrid: shader path on High + GL LIGHT auto/on. Low, OFF, or a missing WebGL2 context keep lcan.
 const GL_MAX_LIGHTS = 32, GL_MAX_OCC = 24; // 32 keeps the default-uniform vec4 budget under the WebGL2 minimum (224)
 // Dev look. WebGL-only keys are ignored by the Canvas lightmap. Ray, bite, band, bloom, and the outline feed both paths.
-const GL_LOOK_BASE = { penumbra: 12, spill: 1.36, core: 1, haze: 0.22, fill: 0.18, voidR: 5, voidG: 4, voidB: 8, seenR: 26, seenG: 21, seenB: 32, bloomK: 1, bloomR: 1, rayMul: 1, bite: 10, biteN: 8, bandOff: 6, outline: 0 };
+const GL_LOOK_BASE = { penumbra: 12, spill: 1.36, core: 1, haze: 0.22, fill: 0.18, voidR: 5, voidG: 4, voidB: 8, seenR: 26, seenG: 21, seenB: 32, pFall: 1, pSoft: 1, pCone: 360, plyrR: 255, plyrG: 190, plyrB: 116, bloomK: 1, bloomR: 1, rayMul: 1, bite: 10, biteN: 8, bandOff: 6, outline: 0 };
+const GL_BOX_BASE = { x: null, y: null, w: 440, h: 520 };
+let glBox = { x: null, y: null, w: 440, h: 520 }, glDragged = false;
 const GL_DEV_ROWS = [
   { k: 'penumbra', label: 'PENUMBRA', hint: 'Inward shadow fade, pixels. WebGL only.', min: 0, max: 32, step: 1, webgl: 1, sec: 'WEBGL LOOK' },
   { k: 'spill', label: 'SPILL', hint: 'Falloff reach, multiple of the light radius. WebGL only.', min: 0.8, max: 2.4, step: 0.02, webgl: 1 },
   { k: 'core', label: 'CORE', hint: 'How hard the center shifts toward white. WebGL only.', min: 0, max: 1.5, step: 0.02, webgl: 1 },
   { k: 'haze', label: 'HAZE', hint: 'Colored spill along the cone. WebGL only.', min: 0, max: 0.6, step: 0.01, webgl: 1 },
   { k: 'fill', label: 'FILL', hint: 'Explored-floor bounce inside the mask. WebGL only.', min: 0, max: 0.55, step: 0.01, webgl: 1 },
+  { k: 'pFall', label: 'P FALL', hint: 'Player torch reach only. 1 is the shipped torch. Sconces and braziers stay put.', min: 0.35, max: 2.4, step: 0.05, sec: 'PLAYER LIGHT' },
+  { k: 'pSoft', label: 'P SOFT', hint: 'Player light edge softness. WebGL only. 1 matches the global curve.', min: 0.45, max: 2.6, step: 0.05, webgl: 1 },
+  { k: 'pCone', label: 'P CONE', hint: 'Player light aperture in degrees. 360 is a full circle. It faces where you look.', min: 20, max: 360, step: 5 },
   { k: 'bloomK', label: 'BLOOM', hint: 'Multiplies the quality preset strength.', min: 0, max: 3, step: 0.05, sec: 'BLOOM' },
   { k: 'bloomR', label: 'BLOOM R', hint: 'Multiplies glow radius. That is the falloff distance.', min: 0.25, max: 3, step: 0.05 },
   { k: 'rayMul', label: 'RAYS', hint: 'Multiplies each light ray count. Result is clamped to 16-192.', min: 0.4, max: 2.5, step: 0.1, poly: 1, sec: 'VISIBILITY' },
@@ -1585,7 +1594,7 @@ function glLookDefaults() { return GL_LOOK_BASE; }
 function glDevFmt(row, v) { const s = String(row.step), d = s.indexOf('.') < 0 ? 0 : s.length - s.indexOf('.') - 1; return Number(v).toFixed(d); }
 function glHex(r, g, b) { const h = n => ('0' + (Math.max(0, Math.min(255, n | 0))).toString(16)).slice(-2); return '#' + h(r) + h(g) + h(b); }
 function glParseHex(s) { const m = /^#?([0-9a-f]{6})$/i.exec(String(s || '').trim()); if (!m) return null; const n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
-function glLookClamp(k, v) { const row = GL_DEV_ROWS.find(r => r.k === k); if (row && row.kind === 'check') return v ? 1 : 0; if (row && isFinite(v)) return Math.min(row.max, Math.max(row.min, v)); if (/^(void|seen)[RGB]$/.test(k) && isFinite(v)) return Math.max(0, Math.min(255, v | 0)); return GL_LOOK_BASE[k]; }
+function glLookClamp(k, v) { const row = GL_DEV_ROWS.find(r => r.k === k); if (row && row.kind === 'check') return v ? 1 : 0; if (row && isFinite(v)) return Math.min(row.max, Math.max(row.min, v)); if (/^(void|seen|plyr)[RGB]$/.test(k) && isFinite(v)) return Math.max(0, Math.min(255, v | 0)); return GL_LOOK_BASE[k]; }
 function lichDevOn(host, search) {
   const h = String(host == null ? (location.hostname || '') : host).toLowerCase();
   if (h === 'github.io' || h.endsWith('.github.io')) return false;
@@ -1600,14 +1609,45 @@ function glLookLoad() {
     const s = JSON.parse(localStorage.getItem('lichlight-gl-look') || 'null');
     if (!s || typeof s !== 'object') return;
     for (const k in GL_LOOK_BASE) if (typeof s[k] === 'number') GL_LOOK[k] = glLookClamp(k, s[k]);
+    const b = s._box; if (b && typeof b === 'object') { if (isFinite(+b.x)) glBox.x = +b.x; if (isFinite(+b.y)) glBox.y = +b.y; if (isFinite(+b.w)) glBox.w = Math.max(280, +b.w); if (isFinite(+b.h)) glBox.h = Math.max(220, +b.h); }
   } catch (e) {}
 }
-function glLookSave() { try { localStorage.setItem('lichlight-gl-look', JSON.stringify(GL_LOOK)); } catch (e) {} }
+function glLookSave() { try { const o = Object.assign({}, GL_LOOK); o._box = { x: glBox.x, y: glBox.y, w: glBox.w, h: glBox.h }; localStorage.setItem('lichlight-gl-look', JSON.stringify(o)); } catch (e) {} }
+function glBoxReset() { glBox.x = GL_BOX_BASE.x; glBox.y = GL_BOX_BASE.y; glBox.w = GL_BOX_BASE.w; glBox.h = GL_BOX_BASE.h; glBoxApply(); }
+function glBoxClamp() {
+  const vw = window.innerWidth || 800, vh = window.innerHeight || 600;
+  glBox.w = Math.max(280, Math.min(glBox.w, vw - 8));
+  glBox.h = Math.max(220, Math.min(glBox.h, vh - 8));
+  if (glBox.x != null) glBox.x = Math.max(-glBox.w + 80, Math.min(glBox.x, vw - 48));
+  if (glBox.y != null) glBox.y = Math.max(0, Math.min(glBox.y, vh - 40));
+}
+function glBoxApply() {
+  const box = document.querySelector('#glDev .gldevbox'); if (!box) return;
+  const host = box.parentElement; if (!host) return;
+  if (glBox.x == null || glBox.y == null) { const r = host.getBoundingClientRect(); glBox.x = Math.max(8, (r.width - glBox.w) / 2); glBox.y = Math.max(8, (r.height - glBox.h) / 2); }
+  glBoxClamp();
+  box.style.left = glBox.x + 'px'; box.style.top = glBox.y + 'px'; box.style.width = glBox.w + 'px'; box.style.height = glBox.h + 'px';
+}
+function glBoxFine(e) { return e.pointerType !== 'touch'; }
+function glBoxBind(box) {
+  const head = box.querySelector('.gldevh'), grip = box.querySelector('.gldevgrip');
+  const track = (e, move) => {
+    if (!glBoxFine(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    const sx = e.clientX, sy = e.clientY; let moved = false;
+    const onm = ev => { if (Math.hypot(ev.clientX - sx, ev.clientY - sy) > 3) moved = true; move(ev); glBoxApply(); };
+    const onu = () => { window.removeEventListener('pointermove', onm); window.removeEventListener('pointerup', onu); if (moved) { glDragged = true; glLookSave(); } };
+    window.addEventListener('pointermove', onm); window.addEventListener('pointerup', onu);
+  };
+  head.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('button')) return; const ox = glBox.x, oy = glBox.y, sx = e.clientX, sy = e.clientY; track(e, ev => { glBox.x = ox + ev.clientX - sx; glBox.y = oy + ev.clientY - sy; }); });
+  grip.addEventListener('pointerdown', e => { const ow = glBox.w, oh = glBox.h, sx = e.clientX, sy = e.clientY; track(e, ev => { glBox.w = ow + ev.clientX - sx; glBox.h = oh + ev.clientY - sy; }); });
+}
 function glLookReset() {
   for (const k in GL_LOOK_BASE) GL_LOOK[k] = GL_LOOK_BASE[k];
   try { localStorage.removeItem('lichlight-gl-look'); } catch (e) {}
   glPolyTouch.sig = '';
   if (typeof polyCache !== 'undefined' && polyCache && polyCache.clear) polyCache.clear();
+  glBoxReset();
   glDevPaint();
 }
 function glDevSec(host, text) { const h = document.createElement('div'); h.className = 'gldevsec'; h.textContent = text; host.appendChild(h); }
@@ -1622,8 +1662,8 @@ function glDevRow(host, row) {
     inp.addEventListener('input', () => { const v = glLookClamp(row.k, parseFloat(inp.value)); GL_LOOK[row.k] = v; num.textContent = glDevFmt(row, v); if (row.poly) { glPolyTouch.sig = ''; if (polyCache && polyCache.clear) polyCache.clear(); } glLookSave(); }); }
   d.appendChild(name); d.appendChild(inp); d.appendChild(num); host.appendChild(d);
 }
-function glDevColor(host, prefix, label, hint) {
-  const d = document.createElement('label'); d.className = 'gldevrow'; d.dataset.webgl = '1';
+function glDevColor(host, prefix, label, hint, webgl) {
+  const d = document.createElement('label'); d.className = 'gldevrow'; if (webgl) d.dataset.webgl = '1';
   const name = document.createElement('span'); name.textContent = label; name.title = hint;
   const inp = document.createElement('input'); inp.type = 'color'; inp.dataset.color = prefix; inp.value = glHex(GL_LOOK[prefix + 'R'], GL_LOOK[prefix + 'G'], GL_LOOK[prefix + 'B']); inp.setAttribute('aria-label', label + '. ' + hint);
   const num = document.createElement('b'); num.textContent = inp.value.toUpperCase();
@@ -1635,7 +1675,8 @@ function glDevBuild() {
   for (const row of GL_DEV_ROWS) {
     if (row.sec === 'VISIBILITY') { const bn = document.createElement('p'); bn.id = 'glBloomNote'; bn.className = 'gldevnote'; host.appendChild(bn); }
     if (row.sec) glDevSec(host, row.sec);
-    if (row.sec === 'WEBGL LOOK') { glDevColor(host, 'seen', 'SEEN', 'Explored floor with no torch on it. Default #1A1520.'); glDevColor(host, 'void', 'VOID', 'Unexplored fog. Default #050408.'); }
+    if (row.sec === 'WEBGL LOOK') { glDevColor(host, 'seen', 'SEEN', 'Explored floor with no torch on it. Default #1A1520.', true); glDevColor(host, 'void', 'VOID', 'Unexplored fog. Default #050408.', true); }
+    if (row.sec === 'PLAYER LIGHT') glDevColor(host, 'plyr', 'P COLOR', 'Player torch tint only. Default #FFBE74. Not sconces or braziers.', false);
     glDevRow(host, row);
   }
 }
@@ -1673,7 +1714,7 @@ function syncGlDev() {
   box.querySelectorAll('.gldevrow').forEach(row => { const off = row.dataset.webgl === '1' && !use; row.classList.toggle('dim', off); row.querySelectorAll('input').forEach(el => { el.disabled = off; }); });
 }
 function syncGlHud() { const b = $('glHud'); if (!b) return; b.classList.toggle('hidden', !(lichDevOn() && state === 'play' && (! $('glDev') || $('glDev').classList.contains('hidden')))); }
-function openGlDev() { if (!lichDevOn() || !$('glDev')) return; glDevPaint(); $('glDev').classList.remove('hidden'); syncGlHud(); }
+function openGlDev() { if (!lichDevOn() || !$('glDev')) return; glDragged = false; glDevPaint(); $('glDev').classList.remove('hidden'); glBoxApply(); syncGlHud(); }
 function closeGlDev() { const el = $('glDev'); if (el) el.classList.add('hidden'); syncGlHud(); }
 function glDevMount() {
   if (!lichDevOn() || $('glDev')) return !!$('glDev');
@@ -1681,12 +1722,13 @@ function glDevMount() {
   hud.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); if ($('glDev').classList.contains('hidden')) openGlDev(); else closeGlDev(); });
   document.body.appendChild(hud);
   const ov = document.createElement('div'); ov.id = 'glDev'; ov.className = 'overlay hidden'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-labelledby', 'glDevT');
-  ov.innerHTML = '<div class="v4box gldevbox"><div class="gldevh"><h2 id="glDevT">LIGHTING (DEV)</h2><button type="button" class="shb gldevx" id="glDevX" aria-label="Close">&times;</button></div><p class="gldevnote" id="glDevNote"></p><div id="glDevRows"></div><button type="button" class="mbtn small gldevreset" id="glDevReset">RESET</button></div>';
+  ov.innerHTML = '<div class="v4box gldevbox"><div class="gldevscroll"><div class="gldevh"><h2 id="glDevT">LIGHTING (DEV)</h2><button type="button" class="shb gldevx" id="glDevX" aria-label="Close">&times;</button></div><p class="gldevnote" id="glDevNote"></p><div id="glDevRows"></div><button type="button" class="mbtn small gldevreset" id="glDevReset">RESET</button></div><div class="gldevgrip" title="Resize"></div></div>';
   document.body.appendChild(ov);
   glDevBuild();
+  glBoxBind(ov.querySelector('.gldevbox'));
   $('glDevX').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); closeGlDev(); });
   $('glDevReset').addEventListener('click', e => { e.preventDefault(); glLookReset(); });
-  ov.addEventListener('click', e => { if (e.target === ov) closeGlDev(); });
+  ov.addEventListener('click', e => { if (glDragged) { glDragged = false; return; } if (e.target === ov) closeGlDev(); });
   ov.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); closeGlDev(); } });
   glDevPaint();
   return true;
@@ -1721,7 +1763,7 @@ function packGlLights(L, V, W, H) { // screen-space uniforms + one occlusion lay
       else if (masks.length >= GL_MAX_OCC) { skipped++; continue; } // skip rather than shine through a wall
       else { layer = masks.length; map.set(it.key, layer); masks.push({ layer, polys: l.polys || null, poly: l.polys ? null : l.poly }); }
     }
-    const rgb = LCOL[l.col] || LCOL.dim, px = (l.x - V.x) / V.w * W, pyTop = (l.y - V.y) / V.h * H;
+    const rgb = l.rgb || LCOL[l.col] || LCOL.dim, px = (l.x - V.x) / V.w * W, pyTop = (l.y - V.y) / V.h * H;
     pos[n * 2] = px; pos[n * 2 + 1] = H - pyTop;
     col[n * 3] = rgb[0] / 255; col[n * 3 + 1] = rgb[1] / 255; col[n * 3 + 2] = rgb[2] / 255;
     rad[n * 2] = Math.max(.001, l.r / V.w * W); rad[n * 2 + 1] = Math.max(.001, l.r / V.h * H);
@@ -1759,6 +1801,21 @@ uniform float uSpill;
 uniform float uCore;
 uniform float uHaze;
 uniform float uFill;
+uniform vec2 uPPos;
+uniform vec2 uPFace;
+uniform float uPCone;
+uniform float uPSoft;
+float plyHere(vec2 lp) { return distance(lp, uPPos) < 6.0 ? 1.0 : 0.0; }
+float coneCover(vec2 frag, vec2 lp) {
+  if (uPCone >= 359.0 || plyHere(lp) < 0.5) return 1.0;
+  vec2 d = frag - lp;
+  if (dot(d, d) < 1.0) return 1.0;
+  float ang = atan(d.y, d.x), face = atan(uPFace.y, uPFace.x);
+  float diff = abs(atan(sin(ang - face), cos(ang - face)));
+  float halfA = radians(clamp(uPCone, 1.0, 360.0)) * 0.5;
+  float feather = radians(12.0);
+  return 1.0 - smoothstep(max(0.0, halfA - feather), halfA + 0.0001, diff);
+}
 out vec4 outColor;
 float bayer8(vec2 p) {
   int x = int(p.x) & 7, y = int(p.y) & 7;
@@ -1807,9 +1864,11 @@ void main() {
     if (distR > spill + 0.08) continue;
     float t = distR / spill;
     float cover = uOcc[i] >= 0.0 ? softCover(uv, uOcc[i]) : 1.0;
+    cover *= coneCover(frag, uPos[i]);
     if (cover <= 0.0) continue;
-    float body = exp(-t * t * 2.05);
-    float core = exp(-t * t * 26.0);
+    float soft = max(mix(1.0, max(uPSoft, 0.2), plyHere(uPos[i])), 0.2);
+    float body = exp(-t * t * 2.05 / soft);
+    float core = exp(-t * t * 26.0 / soft);
     vec3 col = mix(uCol[i], hotWhite, clamp(core * uCore, 0.0, 1.0));
     acc += col * (uAmp[i] * cover * (body + core * 0.85));
     acc += uCol[i] * (uAmp[i] * cover * uHaze * exp(-t * t * 0.9)); // colored haze along the cone
@@ -1865,7 +1924,7 @@ function glInit() {
   try {
     GL.progL = glProgram(gl, GL_FS_LIGHT); GL.progC = glProgram(gl, GL_FS_COMP);
     const locs = (p, names) => { const o = {}; for (const n of names) o[n] = gl.getUniformLocation(p, n); return o; };
-    GL.locL = locs(GL.progL, ['uPos', 'uCol', 'uRad', 'uAmp', 'uOcc', 'uCount', 'uResolution', 'uView', 'uAmbient', 'uExplored', 'uTile', 'uMap', 'uMask', 'uSeen', 'uPen', 'uSpill', 'uCore', 'uHaze', 'uFill']);
+    GL.locL = locs(GL.progL, ['uPos', 'uCol', 'uRad', 'uAmp', 'uOcc', 'uCount', 'uResolution', 'uView', 'uAmbient', 'uExplored', 'uTile', 'uMap', 'uMask', 'uSeen', 'uPen', 'uSpill', 'uCore', 'uHaze', 'uFill', 'uPPos', 'uPFace', 'uPCone', 'uPSoft']);
     GL.locC = locs(GL.progC, ['uScene', 'uLight', 'uResolution']);
     GL.sceneTex = glTex2D(gl); GL.seenTex = glTex2D(gl); GL.lightTex = glTex2D(gl);
     GL.occTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D_ARRAY, GL.occTex);
@@ -1965,6 +2024,9 @@ function renderLightingGL(V, L) {
   gl.uniform3f(u.uAmbient, GL_LOOK.voidR / 255, GL_LOOK.voidG / 255, GL_LOOK.voidB / 255); gl.uniform3f(u.uExplored, GL_LOOK.seenR / 255, GL_LOOK.seenG / 255, GL_LOOK.seenB / 255);
   gl.uniform1f(u.uTile, TS); gl.uniform2f(u.uMap, seenSz.mw, seenSz.mh);
   gl.uniform1f(u.uPen, GL_LOOK.penumbra); gl.uniform1f(u.uSpill, GL_LOOK.spill); gl.uniform1f(u.uCore, GL_LOOK.core); gl.uniform1f(u.uHaze, GL_LOOK.haze); gl.uniform1f(u.uFill, GL_LOOK.fill);
+  const pxy = player ? [(player.x - V.x) / V.w * W, H - ((player.y - 2) - V.y) / V.h * H] : [-99999, -99999];
+  gl.uniform2f(u.uPPos, pxy[0], pxy[1]); gl.uniform2f(u.uPFace, player ? (player.fx || 1) : 1, player ? -(player.fy || 0) : 0);
+  gl.uniform1f(u.uPCone, isFinite(+GL_LOOK.pCone) ? +GL_LOOK.pCone : 360); gl.uniform1f(u.uPSoft, isFinite(+GL_LOOK.pSoft) ? +GL_LOOK.pSoft : 1);
   gl.uniform1i(u.uMask, 0); gl.uniform1i(u.uSeen, 1);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D_ARRAY, GL.occTex);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -2004,6 +2066,20 @@ function lightSample(wx, wy) { // lightmap RGBA at a world point after the last 
   if (x < 0 || y < 0 || x >= lcan.width || y >= lcan.height) return null;
   const d = lctx.getImageData(x, y, 1, 1).data; return [d[0], d[1], d[2], d[3]];
 }
+function plyGrad(rgb) {
+  const key = rgb[0] + ',' + rgb[1] + ',' + rgb[2];
+  if (plyGrad.k === key && plyGrad.c) return plyGrad.c;
+  const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32), r = rgb[0], g = rgb[1], b = rgb[2];
+  gr.addColorStop(0, `rgba(${r},${g},${b},1)`); gr.addColorStop(.35, `rgba(${r},${g},${b},.92)`); gr.addColorStop(.68, `rgba(${r},${g},${b},.6)`); gr.addColorStop(.88, `rgba(${r},${g},${b},.22)`); gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+  x.fillStyle = gr; x.fillRect(0, 0, 64, 64); plyGrad.k = key; plyGrad.c = c; return c;
+}
+function lightImg(l) { if (l.player && l.rgb && !(l.rgb[0] === 255 && l.rgb[1] === 190 && l.rgb[2] === 116)) return plyGrad(l.rgb); return LGRAD[l.col] || LGRAD.dim; }
+function plyConeOn() { return typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.pCone) && +GL_LOOK.pCone < 359; }
+function plyConeClip() {
+  if (!plyConeOn() || !player) return;
+  const ang = Math.atan2(player.fy || 0, player.fx || 1), half = (+GL_LOOK.pCone) * Math.PI / 360;
+  lctx.beginPath(); lctx.moveTo(player.x, player.y - 2); lctx.arc(player.x, player.y - 2, 8000, ang - half, ang + half); lctx.closePath(); lctx.clip();
+}
 function renderLightingCanvas(V, L) {
   const LQ = lightScale(), LW = Math.ceil(VW * LQ), LH = Math.ceil(VH * LQ);
   if (lcan.width !== LW || lcan.height !== LH) { lcan.width = LW; lcan.height = LH; }
@@ -2016,11 +2092,11 @@ function renderLightingCanvas(V, L) {
   const t0x = Math.floor(V.x / TS) - 1, t0y = Math.floor(V.y / TS) - 1, t1x = Math.ceil((V.x + V.w) / TS) + 1, t1y = Math.ceil((V.y + V.h) / TS) + 1;
   for (let ty = t0y; ty <= t1y; ty++) for (let tx = t0x; tx <= t1x; tx++) if (tx >= 0 && ty >= 0 && tx < MW && ty < MH && seen[ty * MW + tx]) lctx.fillRect(tx * TS, ty * TS, TS, TS);
   lctx.globalCompositeOperation = 'lighter';
-  for (const l of L) { if (l.a <= .01) continue; lctx.globalAlpha = Math.min(1, l.a);
-    if (l.polys) drawLightPolys(l);
-    else if (l.poly) { lctx.save(); lctx.beginPath(); const P = l.poly; lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
-      lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); }
-    else lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); }
+  for (const l of L) { if (l.a <= .01) continue; const img = lightImg(l); lctx.globalAlpha = Math.min(1, l.a);
+    if (l.polys) drawLightPolys(l, img);
+    else if (l.poly) { lctx.save(); if (l.player) plyConeClip(); lctx.beginPath(); const P = l.poly; lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
+      lctx.drawImage(img, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); }
+    else { lctx.save(); if (l.player) plyConeClip(); lctx.drawImage(img, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); } }
   lctx.globalAlpha = 1; lctx.globalCompositeOperation = 'source-over'; lctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'multiply'; ctx.imageSmoothingEnabled = true; ctx.drawImage(lcan, 0, 0, VW, VH); ctx.restore(); ctx.imageSmoothingEnabled = false;
 }
@@ -5873,8 +5949,8 @@ function sightLOS(a, b) { if (!los(a, b)) return false; const dx = b.x - a.x, dy
 function shadowBands() { return SHADOW_BANDS[lightingQ()] || 4; }
 function bandOrigins(x, y, n) { const off = (typeof GL_LOOK !== 'undefined' && GL_LOOK && isFinite(+GL_LOOK.bandOff)) ? +GL_LOOK.bandOff : SHADOW_OFF, out = []; for (let i = 0; i < n; i++) { const a = (i / n) * 6.2832 + .785, ox = x + Math.cos(a) * off, oy = y + Math.sin(a) * off; out.push(solidAt(ox, oy) ? [x, y] : [ox, oy]); } return out; }
 function bandPolys(x, y, r, rays, key) { const n = shadowBands(); return bandOrigins(x, y, n).map((o, i) => key ? cachedPoly(key + '~' + n + '~' + i, o[0], o[1], r, rays) : visPoly(o[0], o[1], r, rays)); }
-function drawLightPolys(l) { const P0 = l.polys, n = P0.length, a = Math.min(1, l.a); for (const P of P0) { lctx.save(); lctx.globalAlpha = a / n; lctx.beginPath(); lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
-    lctx.drawImage(LGRAD[l.col], l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); } }
+function drawLightPolys(l, img) { const P0 = l.polys, n = P0.length, a = Math.min(1, l.a), im = img || LGRAD[l.col]; for (const P of P0) { lctx.save(); if (l.player) plyConeClip(); lctx.globalAlpha = a / n; lctx.beginPath(); lctx.moveTo(P[0], P[1]); for (let i = 2; i < P.length; i += 2) lctx.lineTo(P[i], P[i + 1]); lctx.closePath(); lctx.clip();
+    lctx.drawImage(im, l.x - l.r, l.y - l.r, l.r * 2, l.r * 2); lctx.restore(); } }
 // ---------- §4 biomes ----------
 function biomeForV072(d) { return d < 4 ? null : BIOMES[Math.floor((d - 4) / 4) % 4]; } /* v0.7.2 cycle (v0.7.3 §3: replaced, see biomeFor) */
 function biomeBandsV072() { return { classic: '1-3', ice: '4-7', bloody: '8-11', demonic: '12-15', lava: '16-19', repeat: '20+' }; }
