@@ -17,7 +17,7 @@ The game runs in your web browser. There's nothing to install.
 - **Android fullscreen:** tap the ⛶ button at the top of the screen, or use Chrome's menu and choose **Add to Home screen**.
 - **Computer:** open the link in any modern browser. Mouse controls work like Diablo 2.
 
-Your progress saves automatically each time you reach a new floor. Choose **Continue** on the title screen to resume. Dying ends the run and deletes the save. Saves are stored in your browser, so clearing site data wipes them.
+Your progress saves automatically each time you reach a new floor. Choose **Continue** on the title screen to resume. When you die, **New Game** throws the run away. **Resurrect** spends a Necro Potion and wakes you on the same stone at half life. Saves are stored in your browser, so clearing site data wipes them.
 
 ## How to play
 
