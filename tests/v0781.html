@@ -34,7 +34,7 @@ function run(w) {
   if (g && g.glLookReset) g.glLookReset();
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.8.1' && ver.indexOf('"0.7.8.1"') >= 0, g && g.version + ' ' + ver);
+  check('version', g && g.version === '0.7.9' && ver.indexOf('"0.7.9"') >= 0, g && g.version + ' ' + ver);
   check('gate pages', g.lichDevOn('gamedevjake.github.io', '?lichDev=1') === false && g.lichDevOn('foo.github.io') === false);
   check('gate playtest', g.lichDevOn('localhost') === true && g.lichDevOn('127.0.0.1') === true);
 

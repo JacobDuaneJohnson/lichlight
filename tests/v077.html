@@ -30,9 +30,9 @@ document.getElementById('g').addEventListener('load', () => {
 });
 function run(w) {
   const g = w.game;
-  check('version', g && g.version === '0.7.8.1', g && g.version);
+  check('version', g && g.version === '0.7.9', g && g.version);
   const src = fetchText('../index.html');
-  check('version source', src.indexOf("const VERSION = '0.7.8.1'") >= 0);
+  check('version source', src.indexOf("const VERSION = '0.7.9'") >= 0);
   const man = JSON.parse(fetchText('../assets/manifest.json') || '{"files":[]}');
   const files = man.files || [];
   const has = n => files.indexOf(n) >= 0;
@@ -108,7 +108,8 @@ function run(w) {
   pp.torches = 2; pp.torchT = 0;
   let litB = false;
   if (g.braziers.length) {
-    const b = g.braziers[0]; pp.x = b.x; pp.y = b.y;
+    const b = g.braziers[0]; b.lit = 1; // v0.7.9 floors spawn braziers cold; a lit one still kindles your torch
+    pp.x = b.x; pp.y = b.y;
     litB = w.interactables().some(o => o.ref === b && o.label === 'LIGHT TORCH') && w.nearestInteract().label === 'LIGHT TORCH';
   }
   check('f2 brazier', litB);
