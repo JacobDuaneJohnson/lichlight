@@ -33,13 +33,13 @@ function run(w) {
   const g = w.game;
   if (g && g.glLookReset) g.glLookReset();
   const src = fetchText('../index.html');
-  check('version stays 0.7.7', g && g.version === '0.7.7' && src.indexOf("const VERSION = '0.7.7'") >= 0, g && g.version);
+  check('version 0.7.8', g && g.version === '0.7.8' && src.indexOf("const VERSION = '0.7.8'") >= 0, g && g.version);
   check('shader source', src.indexOf('#version 300 es') >= 0 && src.indexOf('uScene') >= 0 && src.indexOf('bayer8') >= 0 && src.indexOf('sampler2DArray') >= 0);
   check('api', !!(g && g.lightPath && g.glStatus && g.packGlLights && g.cycleGlLight && g.glLightMode));
   const notes = fetchText('../notes/0.7.8-webgl-lighting.md');
   const log = fetchText('../CHANGELOG.md');
   check('notes', notes.indexOf('WebGL2') >= 0 && notes.indexOf('iPhone') >= 0 && notes.indexOf('occlusion') >= 0);
-  check('changelog draft', log.indexOf('v0.7.8 draft') >= 0 && log.indexOf('## [0.7.7]') >= 0);
+  check('changelog', log.indexOf('## [0.7.8]') >= 0 && log.indexOf('Necro Potion') >= 0 && log.indexOf('## [0.7.7]') >= 0);
 
   const probeC = document.createElement('canvas');
   const probe = probeC.getContext('webgl2');

@@ -4,24 +4,32 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — v0.7.8 draft
+## [0.7.8] - 2026-10-29
 
-_WebGL2 hybrid lighting. Not tagged. Not on the live site. `VERSION` stays 0.7.7 until `release.sh`._
+_Death, coins, and the boss hall_
 
 ### Added
-- **WebGL2 lighting**: on High, with GL LIGHT set to AUTO or ON, darkness is a fullscreen WebGL2 fragment shader. Smooth falloff, 8×8 Bayer dither, and a deep navy ambient (`#050408`, explored tiles `#1a1520`) multiply over the Canvas 2D scene. No new libraries.
-- **GL LIGHT setting**: AUTO / ON / OFF in the title and pause menus, saved with the other settings. OFF forces the Canvas lightmap. Low lighting quality always uses the Canvas lightmap, including on phones where quality auto-selects Low.
-- **Wall occlusion on the shader path**: each occluded light (player torch, sconces, braziers, fire pits, hazard pools, prism, large props) uploads a visibility mask built from the existing raycast polygons. Lights are not drawn through walls if a mask slot is full; they are skipped instead.
-- **WebGL visual pass**: the shader path softens the shadow edge into a continuous penumbra, runs a hotter near-white core with a longer colored spill, and lifts explored floor inside the mask (room fill). The Canvas lightmap is unchanged, including its banded shadow steps. GL LIGHT OFF on High is the old look; ON is the new one.
-- **Lighting (Dev) panel**: playtest builds (githack, localhost, or `?lichDev=1`, never GitHub Pages) get a sun button during play. The card is see-through and the area outside it is not dimmed. On a mouse, drag the title and resize from the corner; Reset puts the window back. Unarmed and held-torch lights each have color, reach, softness, and cone. The unarmed default is a full circle. Environment flames have their own brightness and reach. BANDS sets the shadow step count (0 keeps High 4 / Low 3). The public site does not mount the button or the panel.
+- **WebGL2 lighting**: on High, with GL LIGHT set to AUTO or ON, darkness is a fullscreen shader. Smooth falloff, a hotter torch core, and a little fill on floors you have already seen. GL LIGHT OFF, or Low quality (the phone default), keeps the old Canvas light.
+- **GL LIGHT**: AUTO / ON / OFF in the title and pause menus, saved with the other settings.
+- **Lighting (Dev)**: a sun button on playtest builds only (githack, localhost, or `?lichDev=1`). It never appears on GitHub Pages, even with that link.
+- **YOU HAVE DIED**: when your life hits 0, a short death plays, then huge red letters and two choices. **New Game** starts over. **Resurrect** spends one Necro Potion and wakes you on the same stone at half life. With no potion, Resurrect cannot be chosen.
+- **Three deaths**: starvation drops you and marks the eyes with an X. A killing blow cuts you apart in blood. Fire chars the body down to a skeleton, then it falls. Each one runs about three and a half seconds. No new character frames — these are drawn in the game.
+- **Necro Potion**: a teal flask with a bone-skull mark. Bosses drop it, and not every time. You can carry two. It is only spent on Resurrect.
+- **Death sounds**: the death animation ducks the music and plays the new death bed. The overlay plays the doom sting on its own. Resurrect has its own sound and does not play the shrine revive.
+- **Loose gold**: every 1 gold is its own coin. A 5 gold drop bursts into five coins that bounce, then sit to be picked up.
+- **Sealed uniques**: the Hollow Pedlar sells three sealed weapons, armor, or jewelry pieces. The button shows the price and nothing else. Paying rolls the stats, and a higher price rolls better. A trader deeper in the crypt rolls stronger gear than one near the surface.
+
+### Changed
+- **Boss approach**: the boss room sits at the end of a long hall. A locked puzzle door closes that hall. The blood-offering door is at the far end, then the boss. You cannot walk into either from the spawn room.
+- **Doors**: dungeon doors are still placed at random, and they stay out of the room you arrive in and the tiles right beside it.
+- **Spell books**: none before depth 6, after the first boss. Depth 6 can hold the next book you have not read.
+- **Gold**: drop chances that hand out gold are cut in half, and the big guaranteed piles (bosses, chests, vaults) are half as fat as in v0.7.7.
 
 ### Fixed
-- **Seen and Void colors**: the Canvas lightmap was still filling `#050408` and `#1a1520`, and the pickers were disabled whenever WebGL was off. Both paths now read the Seen and Void pickers on the next frame. WebGL was already passing those colors as `uExplored` and `uAmbient`.
-- **Unarmed player light**: one cone aperture was applied to every light on the player, so the personal glow inherited the torch wedge. The unarmed light is its own full circle (360°) unless its own cone dial is under 360. The held torch has separate color, reach, softness, and cone.
-
-### Notes
-- Emissive sprites (torch flames, eyes, motes, bloom, glimmer) still draw on the 2D canvas after the lighting composite.
-- Playtest on desktop and iPhone Safari before this ships. See `notes/0.7.8-webgl-lighting.md`.
+- **Lava and acid**: monsters no longer appear in those pools, and they do not walk across them as if the floor were safe.
+- **Arrival**: a new depth does not put monsters in the room you enter, or on the step just outside it.
+- **Seen and Void colors** follow the dev pickers on both the shader and the Canvas light.
+- **Unarmed light** is its own full circle. It no longer borrows the held torch's cone.
 
 ## [0.7.7] - 2026-10-27
 
@@ -622,6 +630,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - Hosted on GitHub Pages.
 
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
+[0.7.8]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.8
 [0.7.5]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.5
 [0.7.4]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.4
 [0.7.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3
