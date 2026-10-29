@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v0781</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:960px;height:540px"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 320) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try {
+    const x = new XMLHttpRequest();
+    x.open('GET', url, false);
+    x.send(null);
+    return x.status === 200 ? x.responseText : '';
+  } catch (e) { return ''; }
+}
+function goldSum(g) { return (g.ground || []).reduce((s, o) => s + (o && o.gold ? o.gold : 0), 0); }
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  if (g && g.glLookReset) g.glLookReset();
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.8.1' && ver.indexOf('"0.7.8.1"') >= 0, g && g.version + ' ' + ver);
+  check('gate pages', g.lichDevOn('gamedevjake.github.io', '?lichDev=1') === false && g.lichDevOn('foo.github.io') === false);
+  check('gate playtest', g.lichDevOn('localhost') === true && g.lichDevOn('127.0.0.1') === true);
+
+  const look = g.glLookDefaults();
+  check('f3 bake', look.penumbra === 27 && look.spill === 1.74 && look.core === 1.14 && look.haze === 0.54 && look.fill === 0.06 && look.seenR === 14 && look.seenG === 20 && look.seenB === 62 && look.voidR === 8 && look.voidG === 7 && look.voidB === 14 && look.armR === 29 && look.armG === 129 && look.armB === 191 && look.armFall === 1.55 && look.armSoft === 1.35 && look.armCone === 360 && look.thR === 255 && look.thG === 136 && look.thB === 0 && look.thFall === 0.75 && look.thSoft === 2.15 && look.thCone === 360 && look.envB === 1.05 && look.envFall === 1.55 && look.bloomK === 0.2 && look.bloomR === 1.9 && look.rayMul === 1.5 && look.bite === 0 && look.biteN === 15 && look.bandOff === 24 && look.bands === 0 && look.outline === 0, JSON.stringify(look));
+  check('f3 cold matches', g.glLook().penumbra === look.penumbra && g.glLook().thG === 136 && g.glLook().seenB === 62);
+  check('f3 live skips save', w.glLookLoad.toString().indexOf('lichDevOn') >= 0);
+  try { localStorage.setItem('lichlight-gl-look', JSON.stringify({ penumbra: 4, fill: 0.4 })); } catch (e) {}
+  w.glLookLoad();
+  check('f3 playtest dial sticks', g.glLook().penumbra === 4, g.glLook().penumbra);
+  g.glLookReset();
+  check('f3 reset', g.glLook().penumbra === 27 && g.glLook().fill === 0.06 && g.glLook().thFall === 0.75 && g.glLook().outline === 0, g.glLook().penumbra);
+
+  check('f4 fps', g.waterFps === 4 && src.indexOf('WATER_FPS = 4') >= 0 && src.indexOf('(f + tx + ty) % 4') >= 0);
+  const man = fetchText('../assets/manifest.json');
+  const names = ['hazard_water.png', 'hazard_water_01.png', 'hazard_water_02.png', 'hazard_water_03.png', 'hazard_water_04.png', 'water_01.png', 'water_02.png', 'water_03.png', 'water_icy_01.png', 'water_icy_02.png', 'water_icy_03.png'];
+  check('f4 files', names.every(n => man.indexOf('"' + n + '"') >= 0 && fetchText('../assets/' + n).length > 40), names.filter(n => man.indexOf(n) < 0).join(','));
+
+  g.glLookReset();
+  g.newGame();
+  g.startFloor(3, true);
+  const p = g.player;
+  p.st.regen = 0;
+  if (p.hp < p.st.maxHp) p.hp = p.st.maxHp;
+  let floor = null, pit = null;
+  for (let ty = 2; ty < 40 && !floor; ty++) for (let tx = 2; tx < 50; tx++) {
+    if (w.tileAt(tx, ty) !== 1) continue;
+    if (Math.hypot((tx + .5) * 16 - p.x, (ty + .5) * 16 - p.y) < 48) continue;
+    floor = { tx, ty }; break;
+  }
+  check('b1 floor', !!floor);
+  if (floor) {
+    g.setTile(floor.tx, floor.ty, 3);
+    const gx = (floor.tx + .5) * 16, gy = (floor.ty + .5) * 16;
+    const before = p.gold;
+    w.dropAt(g.ground, gx, gy, { gold: 4 });
+    const stuck = (g.ground || []).filter(o => o.gold && Math.floor(o.x / 16) === floor.tx && Math.floor(o.y / 16) === floor.ty);
+    check('b1 spawn falls', stuck.length === 0, stuck.length);
+    g.ground.push({ x: gx, y: gy, gold: 1, coin: 1, settled: true, lock: false, bz: 0, vx: 0, vy: 0 });
+    p.x = gx - 20; p.y = gy;
+    g.step(0.05, { x: 0, y: 0 });
+    const still = (g.ground || []).filter(o => o.gold && w.tileAt(Math.floor(o.x / 16), Math.floor(o.y / 16)) === 3);
+    check('b1 no stuck no pickup', still.length === 0 && p.gold === before, 'stuck ' + still.length + ' gold ' + p.gold);
+    w.burstCoins(gx - 16, gy, 1);
+    const c = (g.ground || []).filter(o => o.coin).pop();
+    if (c) { c.x = gx - 12; c.y = gy; c.vx = 90; c.vy = 0; c.bz = 6; c.bvy = 40; c.settled = false; }
+    for (let i = 0; i < 40; i++) g.step(0.05, { x: 0, y: 0 });
+    const left = (g.ground || []).filter(o => o.gold && w.tileAt(Math.floor(o.x / 16), Math.floor(o.y / 16)) === 3);
+    check('b1 bounce falls', left.length === 0, left.length);
+  }
+
+  g.startFloor(4, true);
+  p.st.regen = 0;
+  const spot = { x: p.x, y: p.y };
+  function withRoll(roll, fn) { w.__goldRoll = roll; try { return fn(); } finally { delete w.__goldRoll; } }
+  function killKind(elite, roll) {
+    const e = g.spawnEnemy('rat', spot.x, spot.y, elite);
+    e.elite = !!elite; e.minion = false; if (e.T) e.T = Object.assign({}, e.T, { boss: false, disguise: false });
+    e.x = p.x; e.y = p.y;
+    const n0 = goldSum(g);
+    withRoll(roll, () => w.killEnemy(e));
+    return goldSum(g) - n0;
+  }
+  check('f1 normal never', killKind(false, 0) === 0, 'delta');
+  check('f1 champ misses', killKind(true, 0.95) === 0);
+  const champHit = killKind(true, 0);
+  check('f1 champ hits', champHit >= 2 && champHit <= 16, champHit);
+  g.startFloor(5, true);
+  const boss0 = g.enemies.find(e => e.T && e.T.boss) || g.spawnBoss(p.x + 20, p.y);
+  check('f1 boss present', !!boss0);
+  if (boss0) {
+    const n0 = goldSum(g);
+    withRoll(0.95, () => w.killEnemy(boss0));
+    check('f1 boss misses', goldSum(g) === n0, goldSum(g) - n0);
+  }
+  g.startFloor(5, true);
+  const boss1 = g.enemies.find(e => e.T && e.T.boss) || g.spawnBoss(p.x + 20, p.y);
+  if (boss1) {
+    boss1.x = p.x + 20; boss1.y = p.y;
+    const n0 = goldSum(g);
+    withRoll(0, () => w.killEnemy(boss1));
+    const got = goldSum(g) - n0;
+    check('f1 boss hits', got === 50 * g.depth, got + ' at depth ' + g.depth);
+  } else check('f1 boss hits', false, 'no boss');
+  g.startFloor(3, true);
+  p.keys = 2;
+  const chest = { x: p.x + 28, y: p.y, open: false, msgT: 0, free: false };
+  g.chests.push(chest);
+  const n0 = goldSum(g);
+  withRoll(0.95, () => w.openChest(chest));
+  check('f1 chest misses', goldSum(g) === n0, goldSum(g) - n0);
+  const chest2 = { x: p.x, y: p.y, open: false, msgT: 0, free: false };
+  g.chests.push(chest2);
+  const n1 = goldSum(g);
+  withRoll(0, () => w.openChest(chest2));
+  check('f1 chest hits', goldSum(g) > n1, goldSum(g) - n1);
+
+  g.startFloor(4, true);
+  p.st.regen = 0;
+  if (p.hp < 30) p.hp = p.st.maxHp;
+  let spike = null;
+  for (let ty = 2; ty < 40 && !spike; ty++) for (let tx = 2; tx < 50; tx++) if (w.tileAt(tx, ty) === 1 && w.tileAt(tx + 1, ty) === 1 && g.walkable(tx, ty)) { spike = { tx, ty }; break; }
+  check('f2 tile', !!spike);
+  if (spike) {
+    g.spikes.push({ tx: spike.tx, ty: spike.ty, axis: 'h' });
+    p.roll = 0; p.x = (spike.tx + .5) * 16; p.y = (spike.ty + .5) * 16; p.spikeOn = 0; g.thought.life = 0;
+    const x0 = p.x, hp0 = p.hp;
+    g.step(0.05, { x: 0, y: 0 });
+    const a = g.thought.text;
+    check('f2 bubble', g.spikeLines.indexOf(a) >= 0 && a.indexOf('Ouch, spikes!') >= 0 || g.spikeLines.indexOf(a) >= 0, a);
+    check('f2 example kept', g.spikeLines.indexOf('Ouch, spikes! I should be careful.') >= 0);
+    g.step(0.3, { x: 1, y: 0 });
+    check('f2 walks off', !g.pitAct && p.x > x0 + 4, Math.round(p.x - x0));
+    p.x = x0 + 24; p.y = (spike.ty + .5) * 16; p.spikeOn = 0; g.thought.life = 0;
+    g.step(0.05, { x: 0, y: 0 });
+    p.x = x0; p.y = (spike.ty + .5) * 16; p.spikeOn = 0;
+    g.step(0.05, { x: 0, y: 0 });
+    check('f2 reentry', g.spikeLines.indexOf(g.thought.text) >= 0 && g.thought.text !== a, g.thought.text + ' vs ' + a);
+    const hp1 = p.hp;
+    for (let i = 0; i < 24; i++) g.step(0.1, { x: 0, y: 0 });
+    check('f2 damage stays', !g.pitAct && p.hp < hp1 && p.hp >= 1 && Math.abs(p.x - x0) < 3, 'lost ' + (hp1 - p.hp) + ' at ' + Math.round(p.x));
+    check('f2 not rooted earlier', hp0 >= 1);
+  }
+}
+</script>
+</body>
+</html>

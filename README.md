@@ -2,7 +2,7 @@
 
 **[▶ Play Lichlight](https://gamedevjake.github.io/lichlight/)**
 
-Current version: **v0.7.8** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
+Current version: **v0.7.8.1** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
 
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 
@@ -27,7 +27,7 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 - **Chests and keys:** locked chests hold magic and rare gear. Open one by clicking it or pressing **F** / **USE** next to it (walking into it does nothing). Keys are hidden under cracked floor tiles and behind cracked brick walls (hit them to break them open), and champions sometimes drop one.
 - **Secret passages:** some cracked walls hide a tunnel that links two rooms far apart on the floor, a real shortcut. Both ends are sealed with cracked stone, so break either side to open it. Map Fragments show them on the map.
 - **Ghosts:** ghosts and other spirits can drift through walls, but they can't see through them. Break line of sight and they lose you.
-- **Loot:** regular monsters drop gold, potions, and the occasional normal item. Only bosses drop uniques.
+- **Loot:** champions, bosses, and chests drop gold, and not every time. Ordinary monsters drop potions and the occasional normal item. Only bosses drop uniques.
 - **Level requirements:** every piece of gear has a required level. Gear you are too low to wear is tinted red in your bag, and you can't equip it until you reach that level.
 - **Bigger floors, sealed doors:** floors are larger now. Stone doors are sealed by a puzzle in the room (pull levers or touch runes in the order shown on the door, or stand on every pressure plate). Iron gates need a **Gate Key**, which is a separate item from chest keys. The boss room is behind a **blood door** that costs 15% of your max life to open. It never kills you; if you're too low it refuses until you heal.
 - **Traps:** narrow corridors can hide pitfalls, dart traps, collapsing ceilings, rolling stones, and fire jets. Each one flashes a warning first, so roll.
@@ -36,7 +36,7 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 - **Crypt shop:** every boss floor, a wall crumbles when the boss falls and the Hollow Pedlar is waiting in a side room. Sell selected backpack items or **Sell All** (it asks once and shows the gold), repair everything, and buy potions, rations, and Gate Keys.
 - **Zoom (computer):** `-` and `=` cycle 0.25x, 0.35x, 0.5x, 0.75x, and 1x. `0` returns to 1x. Darkness, torch light, and fog scale with that view, so unexplored rooms stay black. Phones stay on 1x / 1.15x / 1.25x / 1.35x.
 - **Notes:** worn glyph scraps turn up on the floors. They go into **NOTES** in the bag, which is enough to put a prism's sequence in order.
-- **Spiked gaps:** a break in a hallway is an open pit of spikes. You can walk into it. Dodge-roll hops it. Walking in costs 5% of your life over a couple of seconds. You can still walk, strafe, and dodge while that happens, then you drop back where you stepped off.
+- **Spiked gaps:** a break in a hallway is an open pit of spikes. You walk across it. Dodge-roll still hops it. Standing on the spikes cuts you, and a thought bubble complains. Nothing throws you back.
 - **Prisms:** about every 7th floor holds a lich-light prism. The crank is at its base. Scratch the order out of the notebook, and the gate that opens glows the same green as the beam. Solving it spills a soft green light through open doors and casts shadows. The room beyond is a chest of gold.
 - **Glimmer pools:** drink once for +25% bonus XP for five minutes. That pool is then dry.
 - **Map Fragments:** very rare. Collect 4 and use them from your bag to reveal the whole floor, including hidden walls and traps.

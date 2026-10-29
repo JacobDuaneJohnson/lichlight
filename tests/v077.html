@@ -30,9 +30,9 @@ document.getElementById('g').addEventListener('load', () => {
 });
 function run(w) {
   const g = w.game;
-  check('version', g && g.version === '0.7.8', g && g.version);
+  check('version', g && g.version === '0.7.8.1', g && g.version);
   const src = fetchText('../index.html');
-  check('version source', src.indexOf("const VERSION = '0.7.8'") >= 0);
+  check('version source', src.indexOf("const VERSION = '0.7.8.1'") >= 0);
   const man = JSON.parse(fetchText('../assets/manifest.json') || '{"files":[]}');
   const files = man.files || [];
   const has = n => files.indexOf(n) >= 0;
@@ -65,27 +65,25 @@ function run(w) {
   if (spike) {
     g.spikes.push({ tx: spike.tx, ty: spike.ty, axis: 'h' });
     p.roll = 0.2; p.x = (spike.tx + .5) * 16; p.y = (spike.ty + .5) * 16; p.safeX = p.x - 16; p.safeY = p.y;
+    p.st.regen = 0;
     w.v075AfterMove();
     check('b1 roll hops', !g.pitAct);
     p.roll = 0;
-    const hp0 = p.hp, maxHp = p.st.maxHp, backX = p.safeX, backY = p.safeY;
-    w.v075AfterMove();
-    check('b1 caught', g.pitAct && g.pitAct.kind === 'spikefall');
-    const x0 = p.x, y0 = p.y;
-    let moved = false;
-    for (const d of [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }]) {
-      if (!g.pitAct) break;
-      g.step(0.2, d);
-      if (g.pitAct && g.pitAct.kind === 'spikefall' && Math.hypot(p.x - x0, p.y - y0) > 3) { moved = true; break; }
-      p.x = x0; p.y = y0;
-    }
-    check('b1 moves during dot', moved, Math.round(p.x) + ',' + Math.round(p.y));
-    if (g.pitAct) { p.roll = 0; p.rollCd = 0; p.rollQ = 0.2; g.step(0.05, { x: 1, y: 0 }); }
+    const hp0 = p.hp, x0 = p.x, y0 = p.y;
+    g.step(0.25, { x: 1, y: 0 });
+    check('b1 walks across', !g.pitAct && Math.abs(p.x - x0) > 3, Math.round(p.x - x0));
+    p.x = x0; p.y = y0; p.spikeOn = 0; p.roll = 0; p.rollCd = 0; p.rollQ = 0.2;
+    g.step(0.05, { x: 1, y: 0 });
     check('b1 can dodge', !!(p.roll > 0 || p.rollCd > 0));
-    p.roll = 0;
-    for (let i = 0; i < 40 && g.pitAct; i++) g.step(0.1, { x: 0, y: 0 });
-    const lost = hp0 - p.hp;
-    check('b1 snap and bite', !g.pitAct && lost >= 1 && lost <= Math.max(1, Math.ceil(maxHp * 0.05)) + 1 && p.hp >= 1 && Math.abs(p.x - backX) < 2 && Math.abs(p.y - backY) < 2, 'lost ' + lost + ' at ' + Math.round(p.x) + ',' + Math.round(p.y));
+    g.enemies.length = 0;
+    p.roll = 0; p.rollCd = 2; p.rollQ = 0; p.walk = null; p.x = x0; p.y = y0; p.spikeOn = 0; g.thought.life = 0;
+    g.step(0.05, { x: 0, y: 0 });
+    const line = g.thought.text;
+    check('b1 bubble', g.spikeLines.indexOf(line) >= 0, line);
+    const hp1 = p.hp, sx = p.x, sy = p.y;
+    for (let i = 0; i < 30; i++) g.step(0.1, { x: 0, y: 0 });
+    const lost = hp1 - p.hp;
+    check('b1 bite no snap', !g.pitAct && lost >= 1 && p.hp >= 1 && Math.hypot(p.x - sx, p.y - sy) < 8, 'lost ' + lost + ' at ' + Math.round(p.x) + ',' + Math.round(p.y));
   }
 
   g.startFloor(3, true);

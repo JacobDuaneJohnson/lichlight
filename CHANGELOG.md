@@ -4,6 +4,19 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.8.1] - 2026-10-29
+
+_Less gold, walkable spikes, the tuned light, quieter water_
+
+### Changed
+- **Gold**: only champions, bosses, and chests drop it. Ordinary monsters, cracked stone, pots, rituals, vaults, and loose piles do not. Those remaining drops happen 30% as often as in v0.7.8.
+- **Spike pits**: you walk across them. They still cut you while you stand on them, and a thought bubble says something like "Ouch, spikes! I should be careful." Nothing snaps you back.
+- **Light**: the live look is the desktop Lighting (Dev) tune. Seen `#0E143E`, void `#08070E`, a wider penumbra, a hotter torch core, and a full unarmed circle in `#1D81BF`. The dev panel stays off on GitHub Pages.
+- **Icy water**: simpler 8-bit water tiles, and the ripple moves at half the old speed.
+
+### Fixed
+- **Gold on pits**: a coin that drops or bounces onto a bottomless pit falls in. It does not sit on the void, and you cannot pick it up from there.
+
 ## [0.7.8] - 2026-10-29
 
 _Death, coins, and the boss hall_
@@ -630,6 +643,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - Hosted on GitHub Pages.
 
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
+[0.7.8.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.8.1
 [0.7.8]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.8
 [0.7.5]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.5
 [0.7.4]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.4
