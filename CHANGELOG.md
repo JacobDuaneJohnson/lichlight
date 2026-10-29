@@ -4,6 +4,25 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — v0.7.8 draft
+
+_WebGL2 hybrid lighting. Not tagged. Not on the live site. `VERSION` stays 0.7.7 until `release.sh`._
+
+### Added
+- **WebGL2 lighting**: on High, with GL LIGHT set to AUTO or ON, darkness is a fullscreen WebGL2 fragment shader. Smooth falloff, 8×8 Bayer dither, and a deep navy ambient (`#050408`, explored tiles `#1a1520`) multiply over the Canvas 2D scene. No new libraries.
+- **GL LIGHT setting**: AUTO / ON / OFF in the title and pause menus, saved with the other settings. OFF forces the Canvas lightmap. Low lighting quality always uses the Canvas lightmap, including on phones where quality auto-selects Low.
+- **Wall occlusion on the shader path**: each occluded light (player torch, sconces, braziers, fire pits, hazard pools, prism, large props) uploads a visibility mask built from the existing raycast polygons. Lights are not drawn through walls if a mask slot is full; they are skipped instead.
+- **WebGL visual pass**: the shader path softens the shadow edge into a continuous penumbra, runs a hotter near-white core with a longer colored spill, and lifts explored floor inside the mask (room fill). The Canvas lightmap is unchanged, including its banded shadow steps. GL LIGHT OFF on High is the old look; ON is the new one.
+- **Lighting (Dev) panel**: playtest builds (githack, localhost, or `?lichDev=1`, never GitHub Pages) get a sun button during play. The card is see-through and the area outside it is not dimmed. On a mouse, drag the title and resize from the corner; Reset puts the window back. Unarmed and held-torch lights each have color, reach, softness, and cone. The unarmed default is a full circle. Environment flames have their own brightness and reach. BANDS sets the shadow step count (0 keeps High 4 / Low 3). The public site does not mount the button or the panel.
+
+### Fixed
+- **Seen and Void colors**: the Canvas lightmap was still filling `#050408` and `#1a1520`, and the pickers were disabled whenever WebGL was off. Both paths now read the Seen and Void pickers on the next frame. WebGL was already passing those colors as `uExplored` and `uAmbient`.
+- **Unarmed player light**: one cone aperture was applied to every light on the player, so the personal glow inherited the torch wedge. The unarmed light is its own full circle (360°) unless its own cone dial is under 360. The held torch has separate color, reach, softness, and cone.
+
+### Notes
+- Emissive sprites (torch flames, eyes, motes, bloom, glimmer) still draw on the 2D canvas after the lighting composite.
+- Playtest on desktop and iPhone Safari before this ships. See `notes/0.7.8-webgl-lighting.md`.
+
 ## [0.7.7] - 2026-10-27
 
 _Move during a spike bite, map icons for what you have seen, flames that light your torch, room tile sets, a wider ambience mix, acid and lava pits that are not a black void_
