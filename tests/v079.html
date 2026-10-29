@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v079</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:960px;height:540px"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 320) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try {
+    const x = new XMLHttpRequest();
+    x.open('GET', url, false);
+    x.send(null);
+    return x.status === 200 ? x.responseText : '';
+  } catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.9' && ver.indexOf('"0.7.9"') >= 0, g && g.version + ' ' + ver);
+  check('gate pages', g.lichDevOn('gamedevjake.github.io', '?lichDev=1') === false && g.lichDevOn('foo.github.io') === false);
+
+  g.newGame();
+  let torchN = 0, torchHot = 0, brazN = 0, brazHot = 0, ironN = 0, ironHot = 0;
+  for (let d = 1; d <= 8; d++) {
+    g.startFloor(d, true);
+    for (const t of g.torches || []) { torchN++; if (!t.out) torchHot++; }
+    for (const b of g.braziers || []) { brazN++; if (w.brazierLit(b)) brazHot++; }
+    for (const o of g.bprops || []) if (o.k === 'wall_torch_iron' || o.k === 'brazier_iron') { ironN++; if (o.lit !== 0) ironHot++; }
+  }
+  check('f1 torches cold', torchN > 0 && torchHot === 0, torchN + ' hot ' + torchHot);
+  check('f1 braziers cold', brazN > 0 && brazHot === 0, brazN + ' hot ' + brazHot);
+  check('f1 iron cold', ironHot === 0, ironN + ' hot ' + ironHot);
+
+  g.startFloor(4, true);
+  const p = g.player;
+  p.st.regen = 0;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.state = 'idle'; });
+  const wt = (g.torches || [])[0];
+  check('f1 wall present', !!wt);
+  if (wt) {
+    p.torchT = 40; p.x = wt.x; p.y = wt.y + 14;
+    const use = w.interactables().find(o => o.ref === wt);
+    check('f1 light sconce', use && use.label === 'RELIGHT SCONCE', use && use.label);
+    if (use) use.use();
+    g.step(0.4, { x: 0, y: 0 });
+    const lit = w.gatherLights(0, 0, 8000, 8000).some(l => Math.hypot(l.x - wt.x, l.y - (wt.y + 11)) < 12);
+    check('f1 sconce stays', wt.out === false && lit, 'out ' + wt.out + ' lit ' + lit);
+  }
+  const bz = (g.braziers || [])[0];
+  check('f1 brazier present', !!bz);
+  if (bz) {
+    p.torchT = 30; p.x = bz.x; p.y = bz.y;
+    const cold = w.interactables().find(o => o.ref === bz);
+    check('f1 light brazier', cold && cold.label === 'LIGHT BRAZIER' && !w.brazierLit(bz), cold && cold.label);
+    if (cold) cold.use();
+    check('f1 brazier stays', w.brazierLit(bz) && w.interactables().some(o => o.ref === bz && o.label === 'LIGHT TORCH'));
+  }
+  const iron = { k: 'wall_torch_iron', tx: Math.floor(p.x / 16), ty: Math.floor(p.y / 16), lit: 0 };
+  g.bprops.push(iron);
+  p.torchT = 20;
+  const il = w.interactables().find(o => o.ref === iron);
+  check('f1 iron prompt', il && il.label === 'LIGHT SCONCE', il && il.label);
+  if (il) il.use();
+  check('f1 iron stays', iron.lit === 1 && !w.ironCold(iron));
+
+  check('f2 duration', g.TORCH_TIME === 170, g.TORCH_TIME);
+  p.torches = 1; p.torchT = 0; p.hp = p.st.maxHp;
+  w.__champCrit = 1;
+  check('f2 light', w.lightTorch() === true && p.torchT === 170 && p.torches === 0, p.torchT);
+  const burn0 = p.torchT;
+  g.step(1, { x: 0, y: 0 });
+  check('f2 burns slower', p.torchT < burn0 && p.torchT > burn0 - 1.25, burn0 - p.torchT);
+
+  g.startFloor(3, true);
+  p.st.regen = 0; p.st.def = 0; p.hp = 500; p.st.maxHp = 500; p.barrier = 0; p.inv0 = 0; p.roll = 0;
+  if (p.equip) p.equip.shield = null;
+  p.torchT = 80;
+  const champ = g.spawnEnemy('rat', p.x + 40, p.y, true);
+  champ.dmg = 100;
+  w.__hurtSpread = 1; w.__champCrit = 0;
+  const hp0 = p.hp;
+  w.hurtPlayer(100, champ);
+  check('f2 crit damage', p.hp === hp0 - 105 && p.lastChampCrit && p.lastChampCrit.bonus === 5, 'lost ' + (hp0 - p.hp));
+  check('f2 torch snuffed', p.torchT === 0);
+  p.torchT = 80; p.hp = 500; p.inv0 = 0;
+  w.__champCrit = 0.95;
+  w.hurtPlayer(100, champ);
+  check('f2 miss keeps torch', p.torchT === 80 && p.hp === 400, 'hp ' + p.hp + ' torch ' + p.torchT);
+  const mob = g.spawnEnemy('rat', p.x + 48, p.y, false);
+  p.inv0 = 0; w.__champCrit = 0;
+  w.hurtPlayer(100, mob);
+  check('f2 grunt no snuff', p.torchT === 80, p.torchT);
+  check('f2 chance flat', g.champCritP === 0.1 && g.champCritBonus === 0.05);
+
+  g.startFloor(6, true);
+  p.st.regen = 0;
+  g.enemies.forEach(e => { e.state = 'idle'; e.x = 8; e.y = 8; });
+  g.projs.length = 0;
+  p.x = 8; p.y = 8;
+  const blocked = w.restUnsafeReason();
+  check('f3 exposed', typeof blocked === 'string' && blocked.indexOf('quiet') >= 0, blocked);
+  g.srooms.push({ x0: 30, y0: 30, w: 3, h: 3, found: 1 });
+  p.x = 31.5 * 16; p.y = 31.5 * 16;
+  check('f3 secret', w.restUnsafeReason() === null, w.restUnsafeReason());
+  w.openRest();
+  check('f3 secret opens', g.state === 'rest', g.state);
+  w.setState('play');
+  g.srooms.pop();
+  g.gaps.push({ tx: 40, ty: 40, top: 38, room: 0 });
+  p.x = 40.5 * 16; p.y = 39.5 * 16;
+  check('f3 gap', w.restUnsafeReason() === null, w.restUnsafeReason());
+  g.gaps.pop();
+  g.passages.push({ a: [50, 10], b: [50, 14], tiles: [[50, 10], [50, 11], [50, 12], [50, 13], [50, 14]] });
+  p.x = 50.5 * 16; p.y = 12.5 * 16;
+  check('f3 passage', w.restUnsafeReason() === null, w.restUnsafeReason());
+
+  g.startFloor(3, true);
+  p.st.regen = 0; p.gold = 0; p.hp = p.st.maxHp;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.state = 'idle'; });
+  g.goldCombo.on = false; g.goldCombo.n = 0; g.goldCombo.last = -99;
+  g.step(0.05, { x: 0, y: 0 });
+  for (let i = 0; i < 25; i++) g.ground.push({ x: p.x, y: p.y, gold: 1, coin: 1, lock: false, settled: true, gph: i * 40 });
+  g.step(0.05, { x: 0, y: 0 });
+  check('f4 burst', p.gold === 25 && g.goldCombo.on && g.goldCombo.n === 25, 'gold ' + p.gold + ' n ' + g.goldCombo.n + ' on ' + g.goldCombo.on);
+  const shook = g.goldHud.shake > 0 && g.goldHud.shown < 25;
+  check('f4 shake then count', shook, 'shown ' + g.goldHud.shown + ' shake ' + g.goldHud.shake + ' pend ' + g.goldHud.pending);
+  for (let i = g.ground.length - 1; i >= 0; i--) if (g.ground[i].gold) g.ground.splice(i, 1);
+  for (let i = 0; i < 90 && g.goldHud.shown < p.gold; i++) g.step(0.05, { x: 0, y: 0 });
+  check('f4 counted', g.goldHud.shown === 25, g.goldHud.shown);
+  for (let i = g.ground.length - 1; i >= 0; i--) if (g.ground[i].gold) g.ground.splice(i, 1);
+  g.step(1.2, { x: 0, y: 0 });
+  check('f4 tally ends', g.goldCombo.on === false, 'on ' + g.goldCombo.on + ' n ' + g.goldCombo.n);
+  g.goldCombo.on = false; g.goldCombo.n = 0; g.goldCombo.last = -99;
+  const before = p.gold;
+  g.ground.push({ x: p.x, y: p.y, gold: 1, coin: 1, lock: false, settled: true });
+  g.step(0.05, { x: 0, y: 0 });
+  check('f4 drip', p.gold === before + 1 && !g.goldCombo.on && g.goldCombo.n === 1, 'n ' + g.goldCombo.n);
+
+  const man = fetchText('../assets/manifest.json');
+  const goldFiles = ['gold_01.png', 'gold_02.png', 'gold_03.png', 'gold_04.png', 'gold_05.png', 'gold_06.png', 'gold_glint_01.png', 'gold_glint_03.png', 'gold_16_01.png'];
+  check('f5 files', goldFiles.every(n => man.indexOf('"' + n + '"') >= 0 && fetchText('../assets/' + n).length > 40));
+  check('f5 emissive', src.indexOf('#FFE060') >= 0 || src.indexOf('255,224,96') >= 0);
+  check('f5 offset', src.indexOf('g.x - 4') >= 0 && src.indexOf('g.y - 3') >= 0);
+  const f0 = g.goldFrameAt({ x: 3, y: 5, gph: 0 });
+  check('f5 frame', f0 >= 1 && f0 <= 6, f0);
+  const spr = g.goldSprite({ x: 8, y: 9, gph: 200 });
+  check('f5 sprite', !!(spr && spr.width >= 6), spr && spr.width);
+
+  g.startFloor(5, true);
+  p.st.regen = 0; p.st.def = 0; p.hp = 400; p.st.maxHp = 400; p.barrier = 0; p.inv0 = 0; p.roll = 0; p.torchT = 40;
+  if (p.equip) p.equip.shield = null;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.state = 'idle'; e.x = 8; e.y = 8; });
+  const boss = g.enemies.find(e => e.T && e.T.boss) || g.spawnBoss(p.x + 30, p.y);
+  check('f6 boss', !!(boss && boss.T && boss.T.boss));
+  if (boss) {
+    boss.dead = false; boss.hp = boss.maxHp || 100;
+    w.__hurtSpread = 1; w.__champCrit = 1; w.__bossGloatI = 0;
+    const torchBefore = p.torchT;
+    w.hurtPlayer(20, boss);
+    const first = g.bossGloat.last;
+    check('f6 taunt', g.bossGloats.indexOf(first) >= 0 && g.bossGloat.played.length === 1, first);
+    check('f6 torch stays', p.torchT === torchBefore, p.torchT);
+    p.inv0 = 0; p.hp = 400;
+    w.hurtPlayer(20, boss);
+    check('f6 cooldown', g.bossGloat.last === first && g.bossGloat.played.length === 1, g.bossGloat.played.join(','));
+    g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.state = 'idle'; e.x = 8; e.y = 8; });
+    g.step(2, { x: 0, y: 0 });
+    p.inv0 = 0; if (p.hp < 80) p.hp = 200; if (g.state !== 'play') w.setState('play');
+    w.__bossGloatI = 0;
+    w.hurtPlayer(20, boss);
+    check('f6 no repeat', g.bossGloat.last !== first && g.bossGloats.indexOf(g.bossGloat.last) >= 0, first + ' -> ' + g.bossGloat.last);
+    const n = g.bossGloat.played.length;
+    p.inv0 = 0;
+    w.hurtPlayer(15, mob);
+    check('f6 not on grunt', g.bossGloat.played.length === n);
+  }
+  const sfx = fetchText('../assets/sfx/sfx.json');
+  const cues = ['enm_boss_taunt_01', 'enm_boss_taunt_02', 'enm_boss_taunt_03', 'enm_boss_laugh_01', 'enm_boss_laugh_02', 'enm_boss_laugh_03'];
+  check('f6 files', cues.every(id => sfx.indexOf('"' + id + '"') >= 0 && fetchText('../assets/sfx/' + id + '.wav').length > 1000));
+  check('f6 keeps lich vocal', g.bossGloats.indexOf('enm_boss_lich_vocal') < 0 && src.indexOf('enm_boss_lich_vocal') >= 0);
+
+  const slider = w.document.getElementById('volMap');
+  check('f7 control', !!(slider && slider.min === '10' && slider.max === '100' && slider.step === '5'));
+  g.settings.mapOp = 10;
+  check('f7 faint', Math.abs(g.mapAlpha - 0.42 * 0.1) < 0.0001 && Math.abs(g.mapBg - 0.14 * 0.1) < 0.0001 && g.mapOp === 10, g.mapAlpha + ' / ' + g.mapBg);
+  g.settings.mapOp = 100;
+  check('f7 solid', Math.abs(g.mapAlpha - 0.42) < 0.0001 && Math.abs(g.mapBg - 0.14) < 0.0001 && g.mapOp === 100, g.mapAlpha);
+  g.settings.mapOp = 100;
+  if (w.saveSettings) w.saveSettings();
+
+  g.startFloor(4, true);
+  p.npPot = 0; p.hp = p.st.maxHp;
+  g.die('a test', 'battle');
+  for (let i = 0; i < 40; i++) g.step(0.1, { x: 0, y: 0 });
+  const rez = w.document.getElementById('dRez');
+  const again = w.document.getElementById('dRetry');
+  check('f8 hidden', g.state === 'dead' && rez.classList.contains('hidden') && rez.disabled === true && again && !again.classList.contains('hidden'), rez.className);
+  p.npPot = 1;
+  w.syncDeathButtons();
+  check('f8 shown', !rez.classList.contains('hidden') && rez.disabled === false);
+  const hpMax = p.st.maxHp;
+  const ok = g.resurrect();
+  check('f8 resurrect', ok === true && g.state === 'play' && p.npPot === 0 && p.hp <= hpMax * 0.5 + 0.2 && p.hp >= hpMax * 0.5 - 0.2, 'hp ' + p.hp + ' pot ' + p.npPot);
+}
+</script>
+</body>
+</html>

@@ -4,6 +4,24 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.9] - 2026-10-29
+
+_Cold torches, longer light, gold that shines_
+
+### Added
+- **Gold tally**: pick up more than 20 gold within 2 seconds and further coins merge into one number above your head, the total of that burst. The tally clears after 1 second without a pickup.
+- **Gold count**: a gold readout on the play HUD. It shakes, then counts up one piece at a time.
+- **Gold shimmer**: coins twinkle. The bright pixels stay visible in the dark.
+- **Boss taunts**: when a boss hits you and you take damage, the boss may taunt or laugh. It will not repeat the same line immediately, and it will not spam on a combo.
+- **Map opacity**: a MAP slider on the title and pause menus, from 10% to 100%. 100% is the current map. 10% is faint.
+
+### Changed
+- **Wall torches and floor braziers** start cold. Light them with a burning torch. They stay lit, so you can mark a path. A lit one still relights your own torch.
+- **Held torches** burn for twice as long (170 seconds, was 85).
+- **Champion critical hits** land 10% of the time at every level. The crit adds 5% of that hit's base damage. If you are holding a lit torch, the crit puts it out.
+- **Rest** works in secret rooms, in the squeeze through a wall gap, and inside a secret passage. Corridors are still too exposed. Enemies nearby still stop you.
+- **Resurrect** is hidden on the death screen unless you are carrying at least one Necro Potion. New Game is always there.
+
 ## [0.7.8.1] - 2026-10-29
 
 _Less gold, walkable spikes, the tuned light, quieter water_
@@ -643,6 +661,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - Hosted on GitHub Pages.
 
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
+[0.7.9]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.9
 [0.7.8.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.8.1
 [0.7.8]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.8
 [0.7.5]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.5

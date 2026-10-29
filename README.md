@@ -2,7 +2,7 @@
 
 **[▶ Play Lichlight](https://gamedevjake.github.io/lichlight/)**
 
-Current version: **v0.7.8.1** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
+Current version: **v0.7.9** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
 
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 
@@ -17,13 +17,13 @@ The game runs in your web browser. There's nothing to install.
 - **Android fullscreen:** tap the ⛶ button at the top of the screen, or use Chrome's menu and choose **Add to Home screen**.
 - **Computer:** open the link in any modern browser. Mouse controls work like Diablo 2.
 
-Your progress saves automatically each time you reach a new floor. Choose **Continue** on the title screen to resume. When you die, **New Game** throws the run away. **Resurrect** spends a Necro Potion and wakes you on the same stone at half life. Saves are stored in your browser, so clearing site data wipes them.
+Your progress saves automatically each time you reach a new floor. Choose **Continue** on the title screen to resume. When you die, **New Game** throws the run away. **Resurrect** shows up only when you are carrying a Necro Potion; it spends one and wakes you on the same stone at half life. Saves are stored in your browser, so clearing site data wipes them.
 
 ## How to play
 
 Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked up automatically. Gear has to be clicked or tapped to pick it up. Newly looted items are marked **NEW** in your bag.
 
-- **Light:** you start with only a faint glow. Pick up torches and press **F** (**USE** on a phone) to light one. Each torch burns out after a while, and when it dies you stay in the dark until you light another with **F**. Some unique rings give off magic light of their own. Lit wall torches are rare now, so floors are darker.
+- **Light:** you start with only a faint glow. Pick up torches and press **F** (**USE** on a phone) to light one. Each torch burns for about 170 seconds, and when it dies you stay in the dark until you light another with **F**. Some unique rings give off magic light of their own. Wall torches and floor braziers start cold. Light them with your torch and they stay lit, so you can mark the way back.
 - **Chests and keys:** locked chests hold magic and rare gear. Open one by clicking it or pressing **F** / **USE** next to it (walking into it does nothing). Keys are hidden under cracked floor tiles and behind cracked brick walls (hit them to break them open), and champions sometimes drop one.
 - **Secret passages:** some cracked walls hide a tunnel that links two rooms far apart on the floor, a real shortcut. Both ends are sealed with cracked stone, so break either side to open it. Map Fragments show them on the map.
 - **Ghosts:** ghosts and other spirits can drift through walls, but they can't see through them. Break line of sight and they lose you.
@@ -31,8 +31,8 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 - **Level requirements:** every piece of gear has a required level. Gear you are too low to wear is tinted red in your bag, and you can't equip it until you reach that level.
 - **Bigger floors, sealed doors:** floors are larger now. Stone doors are sealed by a puzzle in the room (pull levers or touch runes in the order shown on the door, or stand on every pressure plate). Iron gates need a **Gate Key**, which is a separate item from chest keys. The boss room is behind a **blood door** that costs 15% of your max life to open. It never kills you; if you're too low it refuses until you heal.
 - **Traps:** narrow corridors can hide pitfalls, dart traps, collapsing ceilings, rolling stones, and fire jets. Each one flashes a warning first, so roll.
-- **Torches:** hit a wall torch to knock it out. Fireballs, Whirlwind, Frost Nova, and enemy shots put them out too. Walk up to a burning torch, brazier, sconce, or fire pit and use it (**F** / **USE**) to relight your own torch. A cold sconce does not light it. Use a lit torch on an empty sconce to relight that sconce.
-- **Survival:** watch **F**ood, **W**ater, and **R**est. When a bar runs low you move slower. When it's empty you slowly lose life, but this alone never kills you. Eat rations from your bag (they turn up in crates, urns, and vaults, or from the trader), drink from stone basins and running water, and **REST** for 1 to 8 hours in a quiet room with no enemies nearby. 6 to 8 hours is a full rest.
+- **Torches:** wall torches and floor braziers start out. Walk up with a burning torch and use it (**F** / **USE**) to light them. They stay lit. Hit a wall torch to knock it out. Fireballs, Whirlwind, Frost Nova, and enemy shots put them out too. A burning torch, brazier, sconce, or fire pit relights your own torch. A champion's critical hit can snuff the torch in your hand.
+- **Survival:** watch **F**ood, **W**ater, and **R**est. When a bar runs low you move slower. When it's empty you slowly lose life, but this alone never kills you. Eat rations from your bag (they turn up in crates, urns, and vaults, or from the trader), drink from stone basins and running water, and **REST** for 1 to 8 hours in a quiet room, a secret chamber, a wall-gap you squeezed through, or a secret passage, with no enemies nearby. 6 to 8 hours is a full rest. Corridors are still too exposed.
 - **Crypt shop:** every boss floor, a wall crumbles when the boss falls and the Hollow Pedlar is waiting in a side room. Sell selected backpack items or **Sell All** (it asks once and shows the gold), repair everything, and buy potions, rations, and Gate Keys.
 - **Zoom (computer):** `-` and `=` cycle 0.25x, 0.35x, 0.5x, 0.75x, and 1x. `0` returns to 1x. Darkness, torch light, and fog scale with that view, so unexplored rooms stay black. Phones stay on 1x / 1.15x / 1.25x / 1.35x.
 - **Notes:** worn glyph scraps turn up on the floors. They go into **NOTES** in the bag, which is enough to put a prism's sequence in order.
