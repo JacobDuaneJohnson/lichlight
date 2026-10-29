@@ -112,7 +112,7 @@ function run(w) {
   check('f10 coins move', c0.settled || Math.hypot(c0.x - x0, c0.y - y0) > 0.5 || c0.bz !== bz0, 'x ' + Math.round(x0) + '->' + Math.round(c0.x) + ' bz ' + bz0 + '->' + c0.bz);
 
   const src = (function () { try { const x = new XMLHttpRequest(); x.open('GET', '../index.html', false); x.send(null); return x.responseText; } catch (e) { return ''; } })();
-  check('f11 rate halved', src.indexOf('gold: .035') >= 0 && src.indexOf('gold: 50 * depth') >= 0, 'see source');
+  check('f11 champions only', src.indexOf('GOLD_KEEP = 0.3') >= 0 && src.indexOf('gold: 0') >= 0 && src.indexOf('{ gold: 50 * depth }') >= 0, 'see source');
 
   // F7 necro cap + boss-only flag exists
   check('f7 cap', g.necroCap === 2 && g.necroDrop > 0 && g.necroDrop < 0.6, g.necroCap + ' ' + g.necroDrop);

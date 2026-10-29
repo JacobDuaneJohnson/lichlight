@@ -125,14 +125,15 @@ function run(w) {
     if (!gilt || P.wall.tiles.some(([x, y]) => gilt.tx === x && gilt.ty === y)) chestBad++;
     const pile = g.ground.filter(o => o.gold && o.x >= P.vault.x * 16 && o.x < (P.vault.x + P.vault.w) * 16 && o.y >= P.vault.y * 16 && o.y < (P.vault.y + P.vault.h) * 16);
     if (pile.length) goldN++;
-    if (pile.some(o => w.lootHidden075(o))) noteN++;
+    const hiddenFix = { x: (P.vault.x + .5) * 16, y: (P.vault.y + .5) * 16, item: { name: 'Vault Relic', rarity: 2 } };
+    if (w.lootHidden075(hiddenFix)) noteN++;
     const dress = P.dress || [];
     if (!dress.length) gateBad++;
   }
   check('b3 prism places', placed >= 5, placed + '/6 skins ' + JSON.stringify(skins));
   check('b3 chest off gate', chestBad === 0, chestBad);
   check('b3 gate sealed wall', gateBad === 0, gateBad);
-  check('b3 vault gold', goldN === placed, goldN);
+  check('b3 vault gold', goldN === 0, goldN); // v0.7.8.1: the gilt chest is the gold, no loose piles
   check('b4 vault names hidden', noteN === placed, noteN);
   if (placed) {
     const P = g.prism;
@@ -142,12 +143,10 @@ function run(w) {
     const stillBlocked = gilt && P.wall.tiles.some(([x, y]) => gilt.tx === x && gilt.ty === y);
     check('b3 gate opens to floor', openFloor && P.wall.open);
     check('b3 chest stays inside', gilt && !stillBlocked && gilt.tx >= P.vault.x && gilt.tx < P.vault.x + P.vault.w, gilt && (gilt.tx + ',' + gilt.ty));
-    const pile = g.ground.find(o => o.gold && o.x >= P.vault.x * 16 && o.x < (P.vault.x + P.vault.w) * 16 && o.y >= P.vault.y * 16 && o.y < (P.vault.y + P.vault.h) * 16);
-    if (pile) {
-      check('b4 still hidden until entered', w.lootHidden075(pile) === true);
-      P.vault.entered = true;
-      check('b4 visible after enter', w.lootHidden075(pile) === false);
-    } else lines.push('FAIL b4 vault pile :: none');
+    const pile = { x: (P.vault.x + .5) * 16, y: (P.vault.y + .5) * 16, item: { name: 'Vault Relic', rarity: 2 } };
+    check('b4 still hidden until entered', w.lootHidden075(pile) === true);
+    P.vault.entered = true;
+    check('b4 visible after enter', w.lootHidden075(pile) === false);
   }
   const skinAt = {};
   for (const d of [7, 14, 21, 28]) {
@@ -197,16 +196,20 @@ function run(w) {
     blocked = S.filter(s => !g.walkable(s.tx, s.ty)).length;
     const s = S[0];
     const plr = g.player;
-    plr.roll = 0.2; plr.x = (s.tx + .5) * 16; plr.y = (s.ty + .5) * 16; plr.safeX = plr.x - 16; plr.safeY = plr.y;
+    w.setState('play');
+    plr.thirst = 100; plr.hunger = 100; plr.fatigue = 100;
+    plr.roll = 0.2; plr.rollQ = 0; plr.x = (s.tx + .5) * 16; plr.y = (s.ty + .5) * 16; plr.safeX = plr.x - 16; plr.safeY = plr.y;
+    plr.st.regen = 0; plr.spikeOn = 0; g.thought.life = 0;
     w.v075AfterMove();
     check('f7 roll does not fall', !g.pitAct, g.pitAct && g.pitAct.kind);
-    plr.roll = 0;
-    const hp0 = plr.hp, maxHp = plr.st.maxHp;
+    plr.roll = 0; plr.rollQ = 0;
+    const hp0 = plr.hp, x0 = plr.x, y0 = plr.y;
     w.v075AfterMove();
-    check('f7 walk-in falls', g.pitAct && g.pitAct.kind === 'spikefall');
-    for (let i = 0; i < 25 && g.pitAct; i++) w.updatePitAct(0.1);
+    check('f7 walk stays', !g.pitAct, g.pitAct && g.pitAct.kind);
+    for (let i = 0; i < 40; i++) g.step(0.1, { x: 0, y: 0 });
     const lost = hp0 - plr.hp;
-    check('f7 5% then back', !g.pitAct && lost >= 1 && lost <= Math.max(1, Math.ceil(maxHp * 0.05)) + 1 && plr.hp >= 1, 'lost ' + lost + ' hp ' + plr.hp + ' at ' + Math.round(plr.x) + ',' + Math.round(plr.y));
+    check('f7 damage no snap', !g.pitAct && lost >= 1 && plr.hp >= 1 && Math.abs(plr.x - x0) < 2 && Math.abs(plr.y - y0) < 2, 'lost ' + lost + ' hp ' + plr.hp + ' at ' + Math.round(plr.x) + ',' + Math.round(plr.y));
+    check('f7 thought', g.spikeLines.indexOf(g.thought.text) >= 0, g.thought && g.thought.text);
   }
   check('f7 spikes exist', spikes >= 1, spikes);
   check('f7 walkable pit', blocked === 0 && spikes > 0, blocked + '/' + spikes); // v0.7.6 B3: gaps are enterable
