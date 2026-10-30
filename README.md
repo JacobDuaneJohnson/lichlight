@@ -6,7 +6,7 @@ Current version: **v0.7.9** · [What's new](CHANGELOG.md) · [All releases](http
 
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 
-Fight your way down endless, randomly generated crypt floors in near-total darkness. You'll face 30 kinds of monsters, plus tougher champions, and a boss guards the stairs every 5th floor. There are 20 bosses, from Mother Murk on floor 5 to Oswin, the Bone King, on floor 100, and after that they return as stronger "+1", "+2" versions. Collect gear in four rarities (white normal, blue magic, yellow rare, gold unique) and hunt the named uniques, each with its own lore. Level up and unlock Fireball, Whirlwind, and Frost Nova.
+Fight your way down endless, randomly generated crypt floors in near-total darkness. You'll face 30 kinds of monsters, plus tougher champions, and a boss guards the stairs every 5th floor. There are 20 bosses, from Mother Murk on floor 5 to Oswin, the Bone King, on floor 100, and after that they return as stronger "+1", "+2" versions. Collect gear in four rarities (white normal, blue magic, yellow rare, gold unique) and hunt the named uniques, each with its own lore. The first boss drops the Lich Tome. Torn spell pages, found in cracked stone, pots, locked chests, and on champions, write the spells back in: Fireball, Whirlwind, Frost Nova, Spectral Clone, Ethereal Shield, Ethereal Shift, and Hellmouth.
 
 ## How to load the game
 
@@ -23,7 +23,7 @@ Your progress saves automatically each time you reach a new floor. Choose **Cont
 
 Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked up automatically. Gear has to be clicked or tapped to pick it up. Newly looted items are marked **NEW** in your bag.
 
-- **Light:** you start with only a faint glow. Pick up torches and press **F** (**USE** on a phone) to light one. Each torch burns for about 170 seconds, and when it dies you stay in the dark until you light another with **F**. Some unique rings give off magic light of their own. Wall torches and floor braziers start cold. Light them with your torch and they stay lit, so you can mark the way back.
+- **Light:** you start with only a faint glow. Pick up torches and press **F** (**USE** on a phone) to light one. Each torch burns for about 170 seconds, and when it dies you stay in the dark until you light another with **F**. Some unique rings give off magic light of their own. Wall torches and floor braziers start cold. An unlit brazier gives off no light and does not glow in the dark. Light one with your torch and it stays lit, so you can mark the way back.
 - **Chests and keys:** locked chests hold magic and rare gear. Open one by clicking it or pressing **F** / **USE** next to it (walking into it does nothing). Keys are hidden under cracked floor tiles and behind cracked brick walls (hit them to break them open), and champions sometimes drop one.
 - **Secret passages:** some cracked walls hide a tunnel that links two rooms far apart on the floor, a real shortcut. Both ends are sealed with cracked stone, so break either side to open it. Map Fragments show them on the map.
 - **Ghosts:** ghosts and other spirits can drift through walls, but they can't see through them. Break line of sight and they lose you.
@@ -52,7 +52,7 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 | Move | Drag anywhere on the left side of the screen (virtual joystick) |
 | Attack | Hold **ATTACK** (it aims at the nearest enemy) |
 | Dodge roll | **ROLL**: a quick roll that makes you invulnerable while rolling |
-| Skills | **FIRE** (level 1), Whirlwind (level 2), Frost Nova (level 4) |
+| Skills | **FIRE**, **SPIN**, **NOVA**, then **CLONE**, **WARD**, **SHIFT**, and **MAW** once the Lich Tome and that page are yours |
 | Pick up gear | Tap the item. Press and hold it to see its stats. |
 | Potions | Heart button for life, blue button for mana |
 | Use / interact | **USE** button (appears next to chests, doors, levers, runes, water, torches, and the trader; also lights a spare torch in the dark) |
@@ -68,7 +68,7 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 | Attack | Left-click an enemy (hold to keep attacking) |
 | Stand in place | Hold **Ctrl**: you won't move. Ctrl + left-click attacks toward the cursor without moving. (Shift no longer does this; Shift+click is a normal click.) |
 | Pick up gear / open chest | Left-click it. Hover over an item to see its stats. |
-| Cast skill | 1, 2, 3 cast a skill toward the cursor. Right-click casts the selected right-click skill. |
+| Cast skill | 1, 2, 3 cast Fireball, Whirlwind, and Frost Nova toward the cursor. 6, 7, 8, 9 cast Spectral Clone, Ethereal Shield, Ethereal Shift, and Hellmouth. Right-click casts the selected skill. Nothing casts until you hold the Lich Tome and that spell's page. |
 | Choose right-click skill | F1–F3, or click a skill box on the bottom bar |
 | Rebind skill keys | Pause → **SKILL KEYS** (choose which skill each of 1/2/3 and right-click casts) |
 | Use / interact | F, or left-click it (chests, doors, levers, runes, water, torches, the trader). In the dark, F lights a spare torch. |

@@ -1,0 +1,33 @@
+{
+  "tile": 16,
+  "frames": {
+    "skill_spectral_clone": {
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "spellId": "spectralClone"
+    },
+    "skill_ethereal_shield": {
+      "x": 16,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "spellId": "etherealShield"
+    },
+    "skill_ethereal_shift": {
+      "x": 32,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "spellId": "etherealShift"
+    },
+    "skill_hellmouth": {
+      "x": 48,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "spellId": "hellmouth"
+    }
+  }
+}

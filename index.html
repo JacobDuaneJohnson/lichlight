@@ -197,6 +197,50 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #glDev .gldevrow.dim{opacity:.38}
 #glDev .gldevrow.dim input{pointer-events:none}
 #glDev .gldevreset{display:block;margin:10px auto 0}
+/* v0.7.10 F1: saturated HUD, stick, and menu chrome. Hit boxes stay the live sizes. */
+#joybase{border:none;background:url(assets/ui/v0710/dpad/stick_base_48.png) center/120px 120px no-repeat;image-rendering:pixelated}
+#joyknob{border:none;background:url(assets/ui/v0710/dpad/stick_knob_24_idle.png) center/48px 48px no-repeat;image-rendering:pixelated}
+#joyzone:active #joyknob{background-image:url(assets/ui/v0710/dpad/stick_knob_24_down.png)}
+.btn{border:none;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
+.btn .ico{font-size:0;line-height:0;background-repeat:no-repeat;background-position:center;background-size:contain;image-rendering:pixelated}
+.btn .sub{font-size:9px;margin-top:1px}
+#bAtk{background-image:url(assets/ui/v0710/hud/plate_48_idle.png)}
+#bAtk .ico{width:48px;height:48px;background-image:url(assets/ui/v0710/hud/btn_attack_48.png)}
+#bAtk.down .ico{background-image:url(assets/ui/v0710/hud/btn_attack_48_down.png)}
+#bRoll{background-image:url(assets/ui/v0710/hud/plate_32_idle.png)}
+#bRoll .ico{width:32px;height:32px;background-image:url(assets/ui/v0710/hud/btn_roll_32.png)}
+#bRoll.down .ico{background-image:url(assets/ui/v0710/hud/btn_roll_32_down.png)}
+#bS1,#bS2,#bS3{background-image:url(assets/ui/v0710/hud/plate_32_idle.png)}
+#bS1 .ico,#bS2 .ico,#bS3 .ico{width:32px;height:32px}
+#bS4,#bS5,#bS6,#bS7{width:44px;height:44px;background-image:url(assets/ui/v0710/hud/plate_32_idle.png)}
+#bS4{right:calc(236px + env(safe-area-inset-right));bottom:calc(128px + env(safe-area-inset-bottom));background-color:rgba(80,20,80,.45)}
+#bS5{right:calc(284px + env(safe-area-inset-right));bottom:calc(128px + env(safe-area-inset-bottom));background-color:rgba(0,80,40,.4)}
+#bS6{right:calc(236px + env(safe-area-inset-right));bottom:calc(176px + env(safe-area-inset-bottom));background-color:rgba(60,30,90,.45)}
+#bS7{right:calc(284px + env(safe-area-inset-right));bottom:calc(176px + env(safe-area-inset-bottom));background-color:rgba(120,40,10,.45)}
+#bS4 .ico,#bS5 .ico,#bS6 .ico,#bS7 .ico{width:32px;height:32px}
+#bS4 .ico{background-image:url(assets/skill_spectral_clone_16.png)}
+#bS5 .ico{background-image:url(assets/skill_ethereal_shield_16.png)}
+#bS6 .ico{background-image:url(assets/skill_ethereal_shift_16.png)}
+#bS7 .ico{background-image:url(assets/skill_hellmouth_16.png)}
+#bHP,#bMP,#bInv,#bUse{background-image:url(assets/ui/v0710/hud/plate_24_idle.png)}
+#bHP .ico{width:24px;height:24px;background-image:url(assets/ui/v0710/hud/btn_heal_24.png)}
+#bHP.down .ico{background-image:url(assets/ui/v0710/hud/btn_heal_24_down.png)}
+#bMP .ico{width:24px;height:24px;background-image:url(assets/ui/v0710/hud/btn_mana_24.png)}
+#bMP.down .ico{background-image:url(assets/ui/v0710/hud/btn_mana_24_down.png)}
+#bInv .ico{width:24px;height:24px;background-image:url(assets/ui/v0710/hud/btn_backpack_24.png)}
+#bInv.down .ico{background-image:url(assets/ui/v0710/hud/btn_backpack_24_down.png)}
+#bUse .ico{width:24px;height:24px;background-image:url(assets/ui/v0710/menu/icons/icon_use_24.png)}
+.tbtn{border:none;background:url(assets/ui/v0710/hud/plate_16_idle.png) center/100% 100% no-repeat;image-rendering:pixelated;font-size:0}
+#tPause{background-image:url(assets/ui/v0710/hud/btn_pause_16.png)}
+#tMap{background-image:url(assets/ui/v0710/hud/btn_map_16.png)}
+#tFull{font-size:15px;background-image:none;background-color:rgba(20,20,30,.6);border:2px solid rgba(255,255,255,.35)}
+.mbtn,.sortb,.shb{background:none;border-style:solid;border-width:12px;border-image:url(assets/ui/v0710/menu/mbtn_idle_9slice_12_s4.png) 4 fill / 12px / 0 stretch;image-rendering:pixelated;box-shadow:none;text-shadow:0 1px 0 #000}
+.mbtn:hover,.sortb:hover,.shb:hover{border-image-source:url(assets/ui/v0710/menu/mbtn_hover_9slice_12_s4.png)}
+.mbtn:active,.sortb:active,.shb:active,.mbtn.on,.shb.on{border-image-source:url(assets/ui/v0710/menu/mbtn_down_9slice_12_s4.png)}
+.panel,.v4box,.updBox{background:none;border-style:solid;border-width:16px;border-image:url(assets/ui/v0710/menu/panel_9slice_24_s8.png) 8 fill / 16px / 0 stretch;image-rendering:pixelated;box-shadow:none}
+.slot{background:none;border-style:solid;border-width:8px;border-image:url(assets/ui/v0710/menu/inv_slot_idle_9slice_12_s4.png) 4 fill / 8px / 0 stretch;image-rendering:pixelated}
+.slot.sel{border-image-source:url(assets/ui/v0710/menu/inv_slot_sel_9slice_12_s4.png)}
+#inv h3,.v4box h2{background:url(assets/ui/v0710/menu/header_9slice_24x12_s8.png) center/100% 100% no-repeat;image-rendering:pixelated;padding:2px 8px}
 </style>
 </head>
 <body>
@@ -208,6 +252,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="btn" id="bS1" data-act="s1"><span class="ico">🔥</span><span class="sub">FIRE</span><div class="cd"></div></div>
   <div class="btn" id="bS2" data-act="s2"><span class="ico">🌀</span><span class="sub">SPIN</span><div class="cd"></div></div>
   <div class="btn" id="bS3" data-act="s3"><span class="ico">❄</span><span class="sub">NOVA</span><div class="cd"></div></div>
+  <div class="btn" id="bS4" data-act="s4"><span class="ico"></span><span class="sub">CLONE</span><div class="cd"></div></div>
+  <div class="btn" id="bS5" data-act="s5"><span class="ico"></span><span class="sub">WARD</span><div class="cd"></div></div>
+  <div class="btn" id="bS6" data-act="s6"><span class="ico"></span><span class="sub">SHIFT</span><div class="cd"></div></div>
+  <div class="btn" id="bS7" data-act="s7"><span class="ico"></span><span class="sub">MAW</span><div class="cd"></div></div>
   <div class="btn" id="bRoll" data-act="roll"><span class="ico">⤳</span><span class="sub">ROLL</span><div class="cd"></div></div>
   <div class="btn hidden" id="bUse" data-act="use"><span class="ico">✋</span><span class="sub" id="bUseL">USE</span></div>
   <div class="btn" id="bHP" data-act="hp"><span class="ico" style="font-size:16px">♥</span><span class="sub" id="nHP">0</span></div>
@@ -2208,8 +2256,10 @@ function drawEmissive(sx, sy) { // things that glow on their own, drawn above th
     ctx.drawImage(tileImgs.torch[(tf + t.x) % 3], t.x - 2, t.y - 3);
  }
   for (const b of braziers) { if (b.x < x0 || b.x > x1 || b.y < y0 || b.y > y1) continue;
-    if (!brazierLit(b)) { const u = (typeof ART !== 'undefined' && ART.brazier_unlit) || null; if (u) ctx.drawImage(u, Math.round(b.x - u.width / 2), Math.round(b.y - u.height + 6)); else ctx.drawImage(BRAZIER, b.x - 5, b.y - 9); continue; }
-    ctx.drawImage(BRAZIER, b.x - 5, b.y - 9); ctx.drawImage(tileImgs.torch[(tf + b.x) % 3], b.x - 2, b.y - 12); }
+    if (!brazierLit(b)) continue; // v0.7.10 B1: unlit braziers are not emissive. They draw under the lightmap.
+    const fr = (Math.floor(time * (1000 / 120)) + ((b.x / TS) | 0)) % 4 + 1, im = (typeof ART !== 'undefined' && (ART['brazier_lit_0' + fr] || ART.brazier_lit)) || null;
+    if (im) ctx.drawImage(im, Math.round(b.x - im.width / 2), Math.round(b.y - im.height + 6));
+    else { ctx.drawImage(BRAZIER, b.x - 5, b.y - 9); ctx.drawImage(tileImgs.torch[(tf + b.x) % 3], b.x - 2, b.y - 12); } }
   // eyes in the dark: close enemies you can't see show only a glint
   for (const e of enemies) { if (e.hidden || e.disg || e.downT) continue; const d = dist(e, p); if (d > 115) continue;
     if (lightAt(e.x, e.y - 4) > .22) continue; if (Math.sin(time * 1.7 + e.id * 3.1) > .93) continue; // blink
@@ -2510,7 +2560,7 @@ function moveDir(e, ax, ay, s, dt) {
 }
 function keepRange(e, ax, ay, d, lo, hi, s, dt) { const want = d < lo ? -1 : d > hi ? 1 : 0; if (want) moveDir(e, ax * want, ay * want, s, dt); else moveDir(e, -ay, ax, s * .4 * Math.sin(e.anim * .7), dt); }
 function mobAI(e, dt, d, ax, ay, spd) {
-  const p = player, T = e.T, cdm = e.elite ? 1.35 : 1; e.cd -= dt * cdm;
+  const p = tomeSeek(), T = e.T, cdm = e.elite ? 1.35 : 1; e.cd -= dt * cdm;
   const see = d < 220 && sightLOS(e, p); // v0.7.2 §2
   switch (T.ai) {
     case 'chase': if (d > e.r + p.r + 1) moveDir(e, ax, ay, spd, dt); break;
@@ -2600,7 +2650,7 @@ function lob(e, x, y, r, dur, dmg, haz) {
 // ---------- boss AI ----------
 function bossPick(e) { const pool = e.pool.filter(q => q !== e.last); return pick(pool.length ? pool : e.pool); }
 function bossAI(e, dt, d, ax, ay) {
-  const p = player, B = e.B, P2 = e.phase >= 2, spd = e.spd * e.enr * (e.slow > 0 ? .5 : 1) * auraMul(e);
+  const p = tomeSeek(), B = e.B, P2 = e.phase >= 2, spd = e.spd * e.enr * (e.slow > 0 ? .5 : 1) * auraMul(e);
   // phase changes
   if (e.phase === 1 && e.hp < e.maxHp * .5) { e.phase = 2; e.enr = 1.25; e.pool = e.pool.concat(B.p2); flashMsg(e.name + ' ENRAGES!', '#ff4040'); addTrauma(.45); burst(e.x, e.y, '#ff4040', 24, 90); sfx('enrage'); }
   if (e.phase === 2 && B.p3 && e.hp < e.maxHp * .25) { e.phase = 3; e.enr = 1.4; e.pool = e.pool.concat(B.p3); flashMsg('THE BONE KING UNBOUND!', '#ffe060'); addTrauma(.6); burst(e.x, e.y, '#ffe060', 30, 110); }
@@ -2653,30 +2703,31 @@ function updateEnemies(dt) {
   const p = player;
   for (const e of enemies.slice()) {
     if (e.dead) continue;
+    if (e.hmFreeze) { e.anim += dt; e.flash -= dt; continue; } // v0.7.10 Hellmouth: frozen while the maw opens and sinks
     e.anim += dt; e.flash -= dt; e.atkCd -= dt; e.slow -= dt; e.glow = Math.max(0, (e.glow || 0) - dt);
-    const d = dist(e, p);
-    if (d > 340 && !e.T.boss) continue; // far away: frozen (cheap)
+    const sk = tomeSeek(), dSk = dist(e, sk), d = dist(e, p);
+    if (d > 340 && dSk > 340 && !e.T.boss) continue; // far away: frozen (cheap)
     if (e.downT) { e.downT -= dt; if (e.downT <= 0) { e.downT = 0; e.hp = Math.round(e.maxHp * .5); flashMsg('The Revenant rises again!', '#c0c0ff'); burst(e.x, e.y, '#c0c0ff', 16, 60); e.state = 'chase'; } continue; }
     const spd = e.spd * (e.slow > 0 ? .45 : 1) * auraMul(e);
     if (e.kx || e.ky) { moveEnt(e, e.kx * dt, e.ky * dt); const f = Math.pow(.001, dt); e.kx *= f; e.ky *= f; if (Math.abs(e.kx) + Math.abs(e.ky) < 2) e.kx = e.ky = 0; }
     if (e.disg) { if (d < 26) wakeMimic(e); continue; }
     if (gridAIOn(e)) { gridEnemyUpdate(e, dt, d, spd); if (state !== 'play') return; continue; } // v0.7.4 F11 axis-aligned state machine (replaces LOS chase)
     if (e.state === 'idle') {
-      if (d < aggroRange(e) && sightLOS(e, p)) aggro(e); // v0.4.4: every mob (ghosts too) needs line of sight; v0.6.3 B3: notice range floor
+      if (dSk < aggroRange(e) && sightLOS(e, sk)) aggro(e); // v0.4.4: every mob (ghosts too) needs line of sight; v0.6.3 B3: notice range floor; v0.7.10 decoy draws the look
       e.wt -= dt; if (e.wt <= 0) { e.wt = rand(1, 3); const a = Math.random() * 6.28, m = Math.random() < .5 ? 0 : 1; e.wx = Math.cos(a) * m; e.wy = Math.sin(a) * m; }
       if (!e.T.boss) moveDir(e, e.wx, e.wy, spd * .35, dt); if (e.wx) e.face = e.wx > 0 ? 1 : -1;
     } else {
       if (d > 280 && !e.T.boss) { e.state = 'idle'; continue; }
       if (!e.T.boss) { // v0.7.2 §2: nobody tracks you through stone (phasers drift through it, but only toward where they last SAW you)
-        if (sightLOS(e, p)) { e.seenX = p.x; e.seenY = p.y; e.seenT = time; }
-        else { if (e.seenT === undefined) { e.seenX = p.x; e.seenY = p.y; e.seenT = time; }
+        if (sightLOS(e, sk)) { e.seenX = sk.x; e.seenY = sk.y; e.seenT = time; }
+        else { if (e.seenT === undefined) { e.seenX = sk.x; e.seenY = sk.y; e.seenT = time; }
           const lx = e.seenX - e.x, ly = e.seenY - e.y, ld = Math.hypot(lx, ly);
           if (ld < 6 || time - e.seenT > LOS_FORGET) { e.state = 'idle'; e.seenT = undefined; continue; }
           moveDir(e, lx / ld, ly / ld, spd * .8, dt); e.face = lx > 0 ? 1 : -1; continue; } }
-      const ax = (p.x - e.x) / (d || 1), ay = (p.y - e.y) / (d || 1);
+      const ax = (sk.x - e.x) / (dSk || 1), ay = (sk.y - e.y) / (dSk || 1);
       if (!(e.mode === 'charge' || e.mode === 'leap')) e.face = ax > 0 ? 1 : -1;
       if (e.fearT > 0 && !e.T.boss) { e.fearT -= dt; moveDir(e, -ax, -ay, spd * 1.1, dt); continue; } // v0.5.0 fear pulse: flee, no contact
-      if (e.T.boss) bossAI(e, dt, d, ax, ay); else mobAI(e, dt, d, ax, ay, spd);
+      if (e.T.boss) bossAI(e, dt, dSk, ax, ay); else mobAI(e, dt, dSk, ax, ay, spd);
       if (e.dead || state !== 'play') { if (state !== 'play') return; continue; }
       const contact = !e.T.noContact && !e.hidden && e.mode !== 'stun' && !(e.T.ai === 'crab' && e.mode === 'open');
       if (contact && d < e.r + p.r + 3 && e.atkCd <= 0) {
@@ -2697,7 +2748,7 @@ function updateEnemies(dt) {
   // hazards & player status
   p.slowT = Math.max(0, (p.slowT || 0) - dt);
   for (let i = hazards.length - 1; i >= 0; i--) { const h = hazards[i]; h.life -= dt; if (h.life <= 0) { hazards.splice(i, 1); continue; }
-    if (Math.hypot(p.x - h.x, p.y - h.y) < h.r + 2) {
+    if (Math.hypot(p.x - h.x, p.y - h.y) < h.r + 2 && !p.isInvincible) {
       if (h.kind === 'puddle' || h.kind === 'web') p.slowT = Math.max(p.slowT, h.kind === 'web' ? 1.2 : .3);
       else if (h.kind === 'poison') { h.tick -= dt; if (h.tick <= 0) { h.tick = .5; hurtPlayer(Math.max(1, h.dmg), { x: h.x, y: h.y, label: h.label, dot: true }); if (state !== 'play') return; } }
     } }
@@ -2831,7 +2882,7 @@ function save() {
   try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId, world: DPLANE ? DPLANE.home : worldSnap(), /* v0.7.3 §7: never save the temporary plane */
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
       gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0),
-      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [] } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
+      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p) } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
 }
 // ---- v0.6.3 B10: full save state. The whole live floor (layout, explored tiles, doors, puzzles, chests, secrets, loot, enemies, props...)
 // plus your position is packed into the save; Continue drops you back on the same spot. Older saves (no world) start the floor fresh as before.
@@ -2929,8 +2980,8 @@ function continueGame() {
 }
 // ---------- input: keyboard ----------
 const keys = {};
-const held = { attack: false, s1: false, s2: false, s3: false };
-const tapQ = { attack: 0, s1: 0, s2: 0, s3: 0 }; // very quick taps (press+release within one frame) still fire once
+const held = { attack: false, s1: false, s2: false, s3: false, s4: false, s5: false, s6: false, s7: false };
+const tapQ = { attack: 0, s1: 0, s2: 0, s3: 0, s4: 0, s5: 0, s6: 0, s7: 0 }; // very quick taps (press+release within one frame) still fire once
 const joy = { id: null, ox: 0, oy: 0, x: 0, y: 0, active: false };
 const KEYMAP = { 'j': 'attack' }; // 1/2/3 cast skills (rebindable); F1-F3 select the right-click skill
 function normKey(e) { return e.key.length === 1 ? e.key.toLowerCase() : e.key; }
@@ -2958,6 +3009,7 @@ window.addEventListener('keydown', e => {
   if (k === 'i' || k === 'b') action('inv');
   if ((k === 'Tab' || k === 'm') && state === 'play') mapOpen = !mapOpen;
   { const hk = { '1': 0, '2': 1, '3': 2 }[k]; if (hk !== undefined && state === 'play') { const sk = 's' + (hotkeys()[hk] + 1); held[sk] = true; tapQ[sk] = performance.now() + 250; } } // 1/2/3 CAST (rebind in SKILL KEYS)
+  { const adv = { '6': 3, '7': 4, '8': 5, '9': 6 }[k]; if (adv !== undefined && state === 'play') { const sk = 's' + (adv + 1); held[sk] = true; tapQ[sk] = performance.now() + 250; } } // v0.7.10: 6 clone, 7 ward, 8 shift, 9 maw
   if (k === 'f' && state === 'play') doInteract();
   if (k === 'r' && state === 'play') eatRation();
   if (k === 'z' && state === 'play') openRest();
@@ -2967,7 +3019,7 @@ window.addEventListener('keydown', e => {
     if (state === 'pause') setState('play'); else if (!$('mCont').classList.contains('hidden')) continueGame(); else newGame(); }
   if (k === 'Enter' && state === 'dead') retry();
 });
-window.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Alt') e.preventDefault(); const k = normKey(e); keys[k] = false; if (KEYMAP[k]) held[KEYMAP[k]] = false; const hk = { '1': 0, '2': 1, '3': 2 }[k]; if (hk !== undefined) held['s' + (hotkeys()[hk] + 1)] = false; });
+window.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Alt') e.preventDefault(); const k = normKey(e); keys[k] = false; if (KEYMAP[k]) held[KEYMAP[k]] = false; const hk = { '1': 0, '2': 1, '3': 2 }[k]; if (hk !== undefined) held['s' + (hotkeys()[hk] + 1)] = false; const adv = { '6': 3, '7': 4, '8': 5, '9': 6 }[k]; if (adv !== undefined) held['s' + (adv + 1)] = false; });
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; for (const k in held) held[k] = false; joy.active = false; joy.id = null; });
 
 // ---------- input: mouse (desktop): Diablo II style, see below ----------
@@ -3085,7 +3137,7 @@ let slotLP = 0; // slots are rebuilt on tap, so release is caught at window leve
 //  right-click casts the selected skill, Tab map, Alt labels, hover monster bar.
 // =====================================================================
 const dm = { left: false, right: false, ctrl: false, lastTouch: 0, rep: 0 };
-let rskill = clamp(+settings.rskill || 0, 0, 2), clickMark = null, hoverEnemy = null, mapOpen = false, curKind = '';
+let rskill = clamp(+settings.rskill || 0, 0, 6), clickMark = null, hoverEnemy = null, mapOpen = false, curKind = '';
 const walkable = (x, y) => tileAt(x, y) !== TILE.WALL && (tileAt(x, y) !== TILE.PIT || padUp(x, y)) && !(vineN > 0 && vineGrid[y * MW + x] === 1); // v0.7.6 B3: spiked gaps are pits you can walk into, not walls
 function astar(sx, sy, gx, gy, maxN = 4000) { // 8-way A* on the tile grid (no corner cutting). Returns [[tx,ty],...] excluding start, or null
   if (!walkable(gx, gy)) return null; if (sx === gx && sy === gy) return [];
@@ -3927,7 +3979,7 @@ function update(dt) {
   if (pitAct && pitAct.kind !== 'spikefall') { updatePitAct(dt); return; } // v0.7.7 B1: spike DoT does not root; other pit acts still play out alone
   const p = player;
   p.atkCd -= dt * (p.fatigue <= 0 ? .8 : 1); p.swing = Math.max(0, p.swing - dt); p.inv0 -= dt;
-  for (let i = 0; i < 3; i++) p.cds[i] = Math.max(0, p.cds[i] - dt);
+  for (let i = 0; i < p.cds.length; i++) p.cds[i] = Math.max(0, p.cds[i] - dt);
   p.hp = Math.min(p.st.maxHp, p.hp + p.st.regen * dt); p.mp = Math.min(p.st.maxMp, p.mp + (1.4 + p.lvl * .1) * dt);
   const stand = !touchMode && !!keys.Control; if (stand && p.walk) p.walk = null; // Ctrl held = stand in place (attack / cast without moving)
   const mv = stand ? { x: 0, y: 0 } : moveInput(), sp = 62 * p.st.ms * (p.swing > 0 ? .55 : 1) * ((held.attack && p.chg >= PWR.min) || (dm.left && p.mchg >= PWR.min) ? .6 : 1) * (p.slowT > 0 ? .6 : 1) * survSpeed() * webSlow() * hazSlow();
@@ -3944,7 +3996,7 @@ function update(dt) {
     else if (mv.x || mv.y) { moveEnt(p, mv.x * sp * dt, mv.y * sp * dt); const l = Math.hypot(mv.x, mv.y); p.fx = mv.x / l; p.fy = mv.y / l; p.walkT += dt; } else { p.walkT = 0; const ma = mouseAim(); if (ma && p.swing <= 0) { p.fx = ma.x; p.fy = ma.y; } }
     const now = performance.now(), q = k => held[k] || tapQ[k] > now;
     updateAttack074(dt); /* v0.7.4 F9: tap = swing, hold = charge, release = power attack (was: hold = auto-repeat) */
-    for (let i = 0; i < 3; i++) { const k = 's' + (i + 1); if (q(k)) { const before = p.cds[i]; castSkill(i); if (p.cds[i] > before) tapQ[k] = 0; } }
+    for (let i = 0; i < p.cds.length; i++) { const k = 's' + (i + 1); if (q(k)) { const before = p.cds[i] || 0; castSkill(i); if ((p.cds[i] || 0) > before) tapQ[k] = 0; } }
   }
   if (pitAct && pitAct.kind === 'spikefall') pitAct = null; // v0.7.8.1 F2: spikes no longer root or snap you back
   tickSpikeWalk(dt);
@@ -3960,16 +4012,17 @@ function update(dt) {
   music.boss = enemies.some(e => e.T.boss && e.state === 'chase' && dist(e, p) < 260);
   for (let i = projs.length - 1; i >= 0; i--) {
     const pr = projs[i]; pr.life -= dt;
-    if (pr.homing) { const sp0 = Math.hypot(pr.vx, pr.vy), a0 = Math.atan2(pr.vy, pr.vx), da = ((Math.atan2(p.y - pr.y, p.x - pr.x) - a0 + Math.PI * 3) % (Math.PI * 2)) - Math.PI, a1 = a0 + clamp(da, -pr.homing * dt, pr.homing * dt); pr.vx = Math.cos(a1) * sp0; pr.vy = Math.sin(a1) * sp0; }
+    if (pr.homing) { const tgt = tomeSeek(), sp0 = Math.hypot(pr.vx, pr.vy), a0 = Math.atan2(pr.vy, pr.vx), da = ((Math.atan2(tgt.y - pr.y, tgt.x - pr.x) - a0 + Math.PI * 3) % (Math.PI * 2)) - Math.PI, a1 = a0 + clamp(da, -pr.homing * dt, pr.homing * dt); pr.vx = Math.cos(a1) * sp0; pr.vy = Math.sin(a1) * sp0; }
     pr.x += pr.vx * dt; pr.y += pr.vy * dt;
-    if (Math.random() < (pr.owner === 'p' ? .6 : .25)) parts.push({ x: pr.x, y: pr.y, vx: rand(-10, 10), vy: rand(-10, 10), life: .25, col: pick(PCOL[pr.kind] || PCOL.bolt) });
+    if (!pr.visualStyle && Math.random() < (pr.owner === 'p' ? .6 : .25)) parts.push({ x: pr.x, y: pr.y, vx: rand(-10, 10), vy: rand(-10, 10), life: .25, col: pick(PCOL[pr.kind] || PCOL.bolt) });
     let dead = pr.life <= 0 || solidAt(pr.x, pr.y), hitP = false;
     if (pr.life > 0 && projHitsTorch(pr.x, pr.y, dead ? 4 : 0)) dead = true;
     if (!dead && pr.owner === 'p') { for (const e of enemies) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r) { dead = true; break; } }
-    if (!dead && pr.owner === 'e' && p.roll <= 0 && Math.hypot(p.x - pr.x, p.y - pr.y) < p.r + pr.r) { dead = true; hitP = true; hurtPlayer(pr.dmg, pr); if (pr.kind === 'web') { p.slowT = Math.max(p.slowT || 0, 2.2); flashMsg('Webbed!', '#ddd'); } }
+    if (!dead && pr.owner === 'e' && p.roll <= 0 && Math.hypot(p.x - pr.x, p.y - pr.y) < p.r + pr.r) { dead = true; hitP = true; if (!(p.isInvincible || p.isPlayerUndetected)) { hurtPlayer(pr.dmg, pr); if (pr.kind === 'web') { p.slowT = Math.max(p.slowT || 0, 2.2); flashMsg('Webbed!', '#ddd'); } } }
     if (dead && pr.kind === 'web' && !hitP) hazard(pr.x - pr.vx * dt, pr.y - pr.vy * dt, 10, 'web', 4);
     if (dead) {
       projs.splice(i, 1);
+      if (pr.owner === 'p' && pr.kind === 'arrow') { sfxAt('hit', pr.x, pr.y, 420); let struck = null; for (const e of enemies.slice()) if (!e.hidden && !e.downT && Math.hypot(e.x - pr.x, e.y - pr.y) < e.r + pr.r + 3) { struck = e; break; } if (struck) damageEnemy(struck, pr.dmg, pr.vx * .04, pr.vy * .04, '#e8e0c8'); if (state !== 'play') return; continue; }
       if (pr.owner === 'p') { const SK = SKILLS[pr.skill]; sfxAt((SK && SK.hit) || 'hit', pr.x, pr.y, 420); burst(pr.x, pr.y, '#ff9020', 14, 70); effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: .3, r: 18, skill: pr.skill }); if (pr.skill === 0) fxImpact074(pr.x, pr.y); addTrauma(.1); breakSecretsAt(pr.x, pr.y, 14, true); if (pr.skill === 0) burnVinesAt(pr.x, pr.y, 14);
         for (const e of enemies.slice()) { const d = Math.hypot(e.x - pr.x, e.y - pr.y); if (d < 18 + e.r) damageEnemy(e, pr.dmg * (d < e.r + 4 ? 1 : .6), (e.x - pr.x) * 3, (e.y - pr.y) * 3, '#ffa040'); } }
       else burst(pr.x, pr.y, (PCOL[pr.kind] || PCOL.bolt)[0], 6, 40);
@@ -5796,6 +5849,7 @@ function render() {
       if (tileAt(tx, ty - 1) === TILE.WALL) { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(X, Y, TS, 3); } }
   }
   drawV071Floor(t0x, t0y, t1x, t1y); drawV072Floor(t0x, t0y, t1x, t1y); drawV073Floor(t0x, t0y, t1x, t1y); drawV075Floor(t0x, t0y, t1x, t1y); drawFloorDecor(); drawV05Floor(); drawV06Floor(); drawDebris(); drawCritters(false); drawSecrets(); drawSecretSense(); drawHazards(); drawChests(); drawProps(); drawDoors(); drawV05Upper(); drawV06World();
+  drawUnlitBraziers(); if (typeof drawHellmouthFloor === 'function') drawHellmouthFloor();
   for (const g of ground) {
     const by = Math.round(Math.sin(time * 3 + g.bob));
     if (g.item) { if (g.item.rarity >= 2) { ctx.fillStyle = g.item.rarity === 3 ? 'rgba(216,160,64,.3)' : 'rgba(240,240,96,.2)'; ctx.fillRect(Math.round(g.x) - 1, Math.round(g.y) - 22, 2, 18); }
@@ -5806,7 +5860,7 @@ function render() {
     else if (g.torch) ctx.drawImage(TORCH_ICON, Math.round(g.x - 2), Math.round(g.y - 8 + by));
     else if (g.key) { if (Math.floor(time * 3 + g.bob) % 4 === 0) { ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(g.x + 2), Math.round(g.y - 6 + by), 1, 1); } ctx.drawImage(KEY_ICON, Math.round(g.x - 4), Math.round(g.y - 4 + by)); }
   }
-  const ents = enemies.slice(); ents.push(p); v073Ents(ents); ents.sort((a, b) => a.y - b.y); /* v0.7.3: prism + dark portals y-sort with everyone */
+  const ents = enemies.slice(); ents.push(p); v073Ents(ents); if (typeof tomeEnts === 'function') tomeEnts(ents); ents.sort((a, b) => a.y - b.y); /* v0.7.3: prism + dark portals y-sort with everyone */
   for (const e of ents) {
     ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(Math.round(e.x - e.r), Math.round(e.y + e.r - 1), e.r * 2, 2);
     if (e === p) { if (deathAct) drawDeathAct(); else if (climb) drawClimb(); else if (pitAct || teeter()) drawPitAct(); else { const sp74 = spinBegin074(); drawPlayer(); drawWard(); if (sp74) ctx.restore(); /* v0.7.4 F8 whirlwind avatar spin */ } if (!deathAct) drawBurn(); } else if (e.v73draw) e.v73draw(); else drawEnemy(e);
@@ -7221,7 +7275,7 @@ function gridEnemyUpdate(e, dt, d, spd) { const p = player, T = e.T; let A = e.a
   if (Math.abs(e.kx) + Math.abs(e.ky) > 30 && A.state !== 'CHARGING') { const sx = Math.abs(e.kx) >= Math.abs(e.ky) ? Math.sign(e.kx) : 0, sy = sx ? 0 : Math.sign(e.ky);
     if (aiOpen(M, A.tx + sx, A.ty + sy)) { A.fromX = A.tx; A.fromY = A.ty; A.tx += sx; A.ty += sy; A.lastTick = aiClock; A.moveMs = 140; A.nextTick = Math.max(A.nextTick, aiClock + 160); } e.kx = e.ky = 0; }
   else if (A.state === 'CHARGING') e.kx = e.ky = 0;
-  const pt = { tx: Math.floor(p.x / TS), ty: Math.floor(p.y / TS) };
+  const sk = tomeSeek(), pt = { tx: Math.floor(sk.x / TS), ty: Math.floor(sk.y / TS) };
   if (A.state === 'PATROL' && !(e.fearT > 0) && (aiAxisDir(A, pt, M) || aiNearDir075(A, pt, M))) A.nextTick = Math.min(A.nextTick, aiClock); // v0.7.5 B1: close LOS spots immediately
   const occ = new Set(); for (const q of enemies) if (q !== e && q.ai && !q.dead) occ.add(q.ai.ty * MW + q.ai.tx);
   const ev = updateEnemyAI(A, pt, M, aiClock, { blocked: e.spd === 0 ? () => true : (x, y) => occ.has(y * MW + x), /* spd 0 = rooted (tests, statues) */ slow: e.slow > 0 ? 1.8 : 1, flee: e.fearT > 0 });
@@ -7351,6 +7405,721 @@ readSafe074();
 
 function drawBigSkill074(i, x, y, cdFrac) { if (!skillIcon074(i, skillLocked(i))) return false; ctx.fillStyle = '#e8c840'; ctx.fillRect(x - 2, y - 2, 20, 20); ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y - 1, 18, 18); ctx.fillStyle = '#120c0e'; ctx.fillRect(x, y, 16, 16);
   drawSkillIcon074(i, x, y, 16); if (cdFrac > 0) { ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x, y, 16, Math.round(16 * cdFrac)); } return true; }
+// ===== v0.7.10: cold braziers, Lich Tome, four crypt spells, unique bow arrows =====
+const TOME_IDS = ['fireball', 'spin', 'frostNova', 'spectralClone', 'etherealShield', 'etherealShift', 'hellmouth'];
+const TOME_NAMES = ['Fireball', 'Whirlwind', 'Frost Nova', 'Spectral Clone', 'Ethereal Shield', 'Ethereal Shift', 'Hellmouth'];
+const TOME_KEYS = [null, null, null, '6', '7', '8', '9'];
+const TOME_ADV = [
+  null,
+  null,
+  null,
+  { id: 'spectralClone', mana: 12, cd: 8 },
+  { id: 'etherealShield', mana: 10, cd: 15 },
+  { id: 'etherealShift', mana: 14, cd: 12 },
+  { id: 'hellmouth', mana: 18, cd: 6 }
+];
+const SPELL_RADIUS = 112;
+const SHIFT_CD = 12;
+const BOW_SPEED = 220;
+function freshTome() {
+  const spells = {};
+  for (const id of TOME_IDS) spells[id] = { isUnlocked: false };
+  return { isAcquired: false, offered: false, spells };
+}
+function ensureTome(p) {
+  p = p || player;
+  if (!p) return null;
+  if (!p.lichTome || !p.lichTome.spells) p.lichTome = freshTome();
+  for (const id of TOME_IDS) if (!p.lichTome.spells[id]) p.lichTome.spells[id] = { isUnlocked: false };
+  if (!Array.isArray(p.cds)) p.cds = [0, 0, 0, 0, 0, 0, 0];
+  while (p.cds.length < 7) p.cds.push(0);
+  if (!Array.isArray(p.activeHellSinks)) p.activeHellSinks = [];
+  if (p.decoyDuration == null) p.decoyDuration = 4000;
+  if (p.armorDuration == null) p.armorDuration = 5000;
+  if (p.armorCooldown == null) p.armorCooldown = 15000;
+  if (p.invincibilityDuration == null) p.invincibilityDuration = 4000;
+  return p.lichTome;
+}
+function tomeSave(p) {
+  const t = ensureTome(p);
+  if (!t) return null;
+  const spells = {};
+  for (const id of TOME_IDS) spells[id] = !!t.spells[id].isUnlocked;
+  return { isAcquired: !!t.isAcquired, offered: !!t.offered, spells };
+}
+function tomeSeek() {
+  const p = player;
+  if (p && p.decoyObject && p.isPlayerUndetected) return p.decoyObject;
+  return p;
+}
+function tomeReady(i) {
+  const p = player;
+  if (!p || i < 0 || i > 6) return false;
+  const t = ensureTome(p);
+  return !!(t.isAcquired && t.spells[TOME_IDS[i]] && t.spells[TOME_IDS[i]].isUnlocked);
+}
+function tomeDeny(i) {
+  const name = TOME_NAMES[i] || 'That spell';
+  const t = player && player.lichTome;
+  if (!t || !t.isAcquired) flashMsg(name + ' is silent. You have not found the Lich Tome.', '#aaa');
+  else flashMsg(name + ' is a torn page. Find it in the crypt.', '#aaa');
+}
+function unlockSpell(id) {
+  const p = player;
+  const t = ensureTome(p);
+  if (!t.spells[id]) return false;
+  t.spells[id].isUnlocked = true;
+  const i = TOME_IDS.indexOf(id);
+  if (i >= 0 && i < 3) { p.learned = p.learned || [false, false, false]; p.learned[i] = true; }
+  return true;
+}
+function hash01(x, y, s) {
+  let n = (Math.floor(x) * 374761393 + Math.floor(y) * 668265263 + (s | 0) * 1442695041) >>> 0;
+  n = Math.imul(n ^ (n >>> 13), 1274126177) >>> 0;
+  return n / 4294967296;
+}
+function lockedSpellIds() {
+  const t = ensureTome(player);
+  return TOME_IDS.filter(id => !t.spells[id].isUnlocked);
+}
+function dropPage(x, y, id) {
+  if (!id || TOME_IDS.indexOf(id) < 0) return null;
+  dropAt(ground, x, y, { page: 1, pageType: id });
+  return id;
+}
+function maybePage(x, y, chance, salt) {
+  if (window.__forcePage) return dropPage(x, y, window.__forcePage);
+  const ids = lockedSpellIds();
+  if (!ids.length) return null;
+  if (hash01(x, y, salt) > chance) return null;
+  const id = ids[Math.floor(hash01(x, y, salt + 17) * ids.length) % ids.length];
+  return dropPage(x, y, id);
+}
+function dropTomeAt(x, y) {
+  dropAt(ground, x, y, { tome: 1 });
+  if (player && player.lichTome) player.lichTome.offered = true;
+}
+function pickupTome(g) {
+  const p = player, t = ensureTome(p);
+  t.isAcquired = true;
+  t._banner = 'You have discovered the Lich Tome... but pages have been torn out.';
+  addText(g.x, g.y - 8, 'LICH TOME', '#ff80ff', true);
+  cue('wld_pickup_lich_tome_01');
+  return true;
+}
+function pickupPage(g) {
+  const id = g.pageType;
+  if (!id || TOME_IDS.indexOf(id) < 0) return false;
+  unlockSpell(id);
+  const i = TOME_IDS.indexOf(id);
+  addText(g.x, g.y - 8, TOME_NAMES[i].toUpperCase(), '#ecdfc4', true);
+  cue('wld_pickup_spell_page_01');
+  flashMsg(TOME_NAMES[i] + ' is written back into the Lich Tome.', '#ecdfc4');
+  sfx('learn');
+  return true;
+}
+function castAim() {
+  const p = player;
+  const ma = typeof mouseAim === 'function' ? mouseAim() : null;
+  if (ma) return Math.atan2(ma.y, ma.x);
+  const mv = typeof moveInput === 'function' ? moveInput() : { x: 0, y: 0 };
+  if (mv.x || mv.y) return Math.atan2(mv.y, mv.x);
+  return Math.atan2(p.fy || 1, p.fx || 0);
+}
+function castClone() {
+  const p = player, a = castAim(), sp = 62;
+  p.decoyObject = { x: p.x + Math.cos(a) * 12, y: p.y + Math.sin(a) * 12, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 5, age: 0 };
+  p.isPlayerUndetected = true;
+  p.decoyDuration = 4000;
+  cue('player_spectral_clone_cast_01');
+  cue('player_spectral_clone_whoosh_01');
+  burst(p.x, p.y, '#FF00FF', 10, 40);
+}
+function castShield() {
+  const p = player;
+  p.isArmorActive = true;
+  p.armorT = p.armorDuration / 1000;
+  p.armorCooldown = 15000;
+  cue('player_ethereal_shield_cast_01');
+  cue('player_ethereal_shield_loop_01', { loopFor: p.armorT, vol: 0.85 });
+  burst(p.x, p.y - 2, '#00FF66', 12, 36);
+}
+function castShift() {
+  const p = player;
+  p.isInvincible = true;
+  p.shiftT = p.invincibilityDuration / 1000;
+  p.burn = null;
+  p.slowT = 0;
+  cue('player_ethereal_shift_cast_01');
+  cue('player_ethereal_shift_loop_01', { loopFor: p.shiftT, vol: 0.85 });
+  burst(p.x, p.y, '#FFA0FF', 10, 30);
+}
+function mawTargets() {
+  const p = player, out = [];
+  if (!p) return out;
+  for (const e of enemies) {
+    if (!e || e.dead || e.hidden || e.downT || e.disg) continue;
+    if (dist(e, p) > SPELL_RADIUS) continue;
+    if (!los(p, e)) continue;
+    out.push(e);
+  }
+  return out;
+}
+function castHellmouth() {
+  const p = player, hits = mawTargets();
+  cue('player_hellmouth_cast_01');
+  if (!hits.length) { flashMsg('The maw finds no one in sight.', '#ff7040'); return; }
+  cue('player_hellmouth_open_01');
+  for (const e of hits) {
+    e.hmFreeze = true;
+    p.activeHellSinks.push({ enemyRef: e, frame: 0, state: 'opening', x: e.x, y: e.y, killed: false });
+  }
+}
+function castAdvanced(i) {
+  const p = player, S = TOME_ADV[i];
+  if (!S) return;
+  if ((p.cds[i] || 0) > 0) return;
+  const mc = manaCost(S);
+  if (p.mp < mc) { flashMsg('Not enough mana', '#88f'); cue('player_cast_fail_01'); return; }
+  p.mp -= mc;
+  p.cds[i] = S.cd;
+  if (i === 3) castClone();
+  else if (i === 4) castShield();
+  else if (i === 5) castShift();
+  else if (i === 6) castHellmouth();
+}
+function decoyAlpha(age) {
+  if (age <= 2500) return 0.6;
+  return 0.4 + 0.3 * Math.sin((age - 2500) / 1500 * Math.PI * 6);
+}
+function tickDecoy(dt) {
+  const p = player, d = p && p.decoyObject;
+  if (!d) { if (p) p.isPlayerUndetected = false; return; }
+  d.age += dt * 1000;
+  moveEnt(d, d.vx * dt, d.vy * dt);
+  if (d.age >= (p.decoyDuration || 4000)) {
+    cue('player_spectral_clone_expire_01');
+    p.decoyObject = null;
+    p.isPlayerUndetected = false;
+  }
+}
+function tickShieldShift(dt) {
+  const p = player;
+  if (!p) return;
+  if (p.isArmorActive) {
+    p.armorT -= dt;
+    if (p.walkT > 0 || (p.roll > 0)) {
+      parts.push({ x: p.x - (p.fx || 0) * 4, y: p.y + 4, vx: -(p.fx || 0) * 24 + rand(-8, 8), vy: -(p.fy || 0) * 24 + rand(-6, 6), life: 0.35, col: Math.random() < 0.5 ? '#00FF66' : '#A0FFC8' });
+    }
+    if (p.armorT <= 0) { p.isArmorActive = false; p.armorT = 0; cue('player_ethereal_shield_end_01'); }
+  }
+  if (p.isInvincible) {
+    p.shiftT -= dt;
+    p.burn = null;
+    p.slowT = 0;
+    if (p.shiftT <= 0) { p.isInvincible = false; p.shiftT = 0; cue('player_ethereal_shift_end_01'); }
+  }
+}
+function tickHellmouth(dt) {
+  const p = player;
+  if (!p || !p.activeHellSinks) return;
+  const step = dt * 60;
+  for (let i = p.activeHellSinks.length - 1; i >= 0; i--) {
+    const s = p.activeHellSinks[i];
+    s.frame += step;
+    const e = s.enemyRef;
+    if (s.frame <= 30) {
+      s.state = 'opening';
+      if (e && !e.dead) { e.hmFreeze = true; e.x = s.x; e.y = s.y; }
+    } else if (s.frame <= 90) {
+      s.state = 'sinking';
+      if (!s.sinkCue) { s.sinkCue = 1; cue('player_hellmouth_sink_01'); }
+      if (e && !e.dead) { e.hmFreeze = true; e.x = s.x; e.y = s.y; }
+    } else if (s.frame <= 180) {
+      if (!s.killed) {
+        s.killed = true;
+        s.state = 'aftermath';
+        if (e) e.hmFreeze = false;
+        if (e && enemies.includes(e) && !e.dead) killEnemy(e);
+        s.enemyRef = null;
+        cue('player_hellmouth_aftermath_01');
+      }
+      if (Math.random() < 0.8 && parts.length < MAX_PARTS) parts.push({ x: s.x + rand(-8, 8), y: s.y + rand(-2, 2), vx: rand(-8, 8), vy: rand(-28, -10), life: rand(0.4, 0.8), col: pick(['#6E625A', '#A8968A', '#FFA028']) });
+    } else p.activeHellSinks.splice(i, 1);
+  }
+}
+function tickArrowFx() {
+  for (const pr of projs) {
+    if (!pr || pr.kind !== 'arrow' || pr.owner !== 'p') continue;
+    if (pr.visualStyle === 'Spine of the First Lich') {
+      const n = 2 + ((Math.floor(time * 20) + (pr.x | 0)) % 2);
+      for (let k = 0; k < n; k++) parts.push({ x: pr.x - pr.vx * 0.02 * k, y: pr.y - pr.vy * 0.02 * k, vx: rand(-12, 12), vy: rand(-12, 12), life: 0.28 - k * 0.04, col: k ? '#C2BCB0' : '#EBE6D8' });
+    } else if (pr.visualStyle === 'Hellmouth Strider') {
+      const n = 1 + ((Math.floor(time * 60) + (pr.y | 0)) & 1);
+      for (let k = 0; k < n; k++) parts.push({ x: pr.x, y: pr.y, vx: -pr.vx * 0.12 + rand(-14, 14), vy: -pr.vy * 0.12 + rand(-14, 14), life: rand(0.25, 0.34), col: k ? '#FFA028' : '#FF4500' });
+    }
+  }
+}
+function v0710Before(dt) {
+  const p = player;
+  if (!p || state !== 'play') return;
+  ensureTome(p);
+  tickDecoy(dt);
+  tickShieldShift(dt);
+  tickHellmouth(dt);
+}
+function v0710After(dt) {
+  const p = player;
+  if (!p || state !== 'play') return;
+  if (p.lichTome && p.lichTome._banner) { flashMsg(p.lichTome._banner, '#e2c084'); msg.life = 6.5; p.lichTome._banner = ''; }
+  tickArrowFx();
+}
+function drawUnlitBraziers() {
+  for (const b of braziers) {
+    if (brazierLit(b)) continue;
+    if (typeof offView === 'function' && offView(b.x, b.y, 24)) continue;
+    const u = (typeof ART !== 'undefined' && ART.brazier_unlit) || null;
+    if (u) ctx.drawImage(u, Math.round(b.x - u.width / 2), Math.round(b.y - u.height + 6));
+    else ctx.drawImage(BRAZIER, b.x - 5, b.y - 9);
+  }
+}
+function brazierEmissive(b) { return brazierLit(b); }
+function drawHellmouthFloor() {
+  const sinks = player && player.activeHellSinks;
+  if (!sinks || !sinks.length) return;
+  for (const s of sinks) {
+    if (s.state === 'aftermath') {
+      const k = clamp((s.frame - 90) / 90, 0, 1);
+      const fi = Math.min(4, 1 + Math.floor(k * 3.99));
+      const im = ART['fx_hellmouth_scar_0' + fi];
+      ctx.save();
+      ctx.globalAlpha = 1 - k;
+      if (im) ctx.drawImage(im, Math.round(s.x - 24), Math.round(s.y - 18));
+      else { ctx.fillStyle = '#2A1E1A'; ctx.beginPath(); ctx.ellipse(s.x, s.y, 14, 6, 0, 0, 6.28); ctx.fill(); }
+      ctx.restore();
+      continue;
+    }
+    const n = s.state === 'sinking' ? 6 : Math.min(6, 1 + Math.floor(s.frame / 5));
+    const im = ART['fx_hellmouth_open_0' + n];
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.55 + 0.4 * Math.abs(Math.sin(time * 12));
+    if (im) ctx.drawImage(im, Math.round(s.x - 24), Math.round(s.y - 18));
+    else { ctx.fillStyle = '#FF4500'; ctx.beginPath(); ctx.ellipse(s.x, s.y, 16, 8, 0, 0, 6.28); ctx.fill(); ctx.fillStyle = '#1A1410'; ctx.beginPath(); ctx.ellipse(s.x, s.y, 6, 3, 0, 0, 6.28); ctx.fill(); }
+    ctx.restore();
+  }
+}
+function hellOf(e) {
+  const sinks = player && player.activeHellSinks;
+  if (!sinks || !e) return null;
+  for (const s of sinks) if (s.enemyRef === e && (s.state === 'opening' || s.state === 'sinking')) return s;
+  return null;
+}
+function tomeEnts(ents) {
+  const d = player && player.decoyObject;
+  if (!d) return;
+  ents.push({ x: d.x, y: d.y, r: 5, v73draw: drawDecoy });
+}
+function drawDecoy() {
+  const p = player, d = p && p.decoyObject;
+  if (!d) return;
+  const a = decoyAlpha(d.age), phase = d.age > 2500;
+  const WS = wardSprites(p), fr = WS.a[(d.vx || p.fx) >= 0 ? 'r' : 'l'];
+  const n = (Math.floor(time * 8) % 4) + 1;
+  const im = ART[(phase ? 'fx_spectral_clone_phase_0' : 'fx_spectral_clone_outline_0') + n];
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.shadowColor = '#FF00FF';
+  ctx.shadowBlur = 15;
+  if (fr) ctx.drawImage(fr, Math.round(d.x - 6), Math.round(d.y - 9));
+  if (im) ctx.drawImage(im, Math.round(d.x - 12), Math.round(d.y - 22));
+  ctx.restore();
+}
+function drawShieldHalo() {
+  const p = player;
+  if (!p || !p.isArmorActive) return;
+  const n = (Math.floor(time * 8) % 4) + 1, im = ART['fx_ethereal_shield_ring_0' + n];
+  ctx.save();
+  ctx.shadowColor = '#00FF66';
+  ctx.shadowBlur = 15;
+  ctx.globalAlpha = 0.9;
+  if (im) ctx.drawImage(im, Math.round(p.x - 24), Math.round(p.y - 26));
+  else { ctx.strokeStyle = '#00FF66'; ctx.beginPath(); ctx.arc(p.x, p.y - 2, 14, 0, 6.283); ctx.stroke(); }
+  ctx.restore();
+}
+function drawShiftFx() {
+  const p = player;
+  if (!p || !p.isInvincible) return;
+  const n = (Math.floor(time * 15) % 4) + 1, im = ART['fx_ethereal_shift_0' + n];
+  if (!im) return;
+  ctx.save();
+  ctx.globalAlpha = 0.45 + 0.4 * ((Math.floor(time * 30) % 2) ? 1 : 0.3);
+  ctx.drawImage(im, Math.round(p.x - 12), Math.round(p.y - 22));
+  ctx.restore();
+}
+function pageArt(id, sz) { return ART['item_spell_page_' + id + '_' + sz] || ART['item_spell_page_' + sz] || null; }
+function drawTomeDrop(g, by) {
+  const X = Math.round(g.x), Y = Math.round(g.y + by);
+  let im = null;
+  if (g.tome) im = ART.item_lich_tome_12 || ART.lich_tome_12;
+  else if (g.page) im = pageArt(g.pageType, 12);
+  if (im) ctx.drawImage(im, X - (im.width >> 1), Y - im.height + 2);
+  else { ctx.fillStyle = g.tome ? '#6A4026' : '#ECDFC4'; ctx.fillRect(X - 4, Y - 6, 8, 6); ctx.fillStyle = g.tome ? '#FF00FF' : '#A03028'; ctx.fillRect(X - 1, Y - 4, 2, 2); }
+}
+function arrowFallback(style) {
+  if (style === 'Scream of the Banshee') { ctx.globalAlpha = 0.7; ctx.shadowColor = '#FF00FF'; ctx.shadowBlur = 12; ctx.fillStyle = '#FF00FF'; }
+  else if (style === 'Spine of the First Lich') ctx.fillStyle = '#EBE6D8';
+  else if (style === 'Hellmouth Strider') { ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = '#FF4500'; }
+  else ctx.fillStyle = '#00FFFF';
+  ctx.beginPath();
+  ctx.moveTo(8, 0); ctx.lineTo(-6, -3); ctx.lineTo(-4, 0); ctx.lineTo(-6, 3); ctx.closePath(); ctx.fill();
+  if (style === 'Spine of the First Lich') { ctx.fillStyle = '#C2BCB0'; ctx.fillRect(-2, -2, 2, 1); ctx.fillRect(1, 1, 2, 1); }
+}
+function drawStyledArrow(pr) {
+  const style = pr.visualStyle || 'default';
+  const key = style === 'Scream of the Banshee' ? 'arrow_banshee_16' : style === 'Spine of the First Lich' ? 'arrow_spine_16' : style === 'Hellmouth Strider' ? 'arrow_hellmouth_16' : 'arrow_default_16';
+  const im = ART[key];
+  ctx.save();
+  ctx.translate(Math.round(pr.x), Math.round(pr.y));
+  ctx.rotate(Math.atan2(pr.vy, pr.vx));
+  if (style === 'Scream of the Banshee') { ctx.globalAlpha = 0.7; ctx.shadowColor = '#FF00FF'; ctx.shadowBlur = 12; }
+  if (style === 'Hellmouth Strider') ctx.globalCompositeOperation = 'lighter';
+  if (im) ctx.drawImage(im, -8, -3);
+  else arrowFallback(style);
+  ctx.restore();
+}
+function equippedBow() {
+  const w = player && player.equip && player.equip.weapon;
+  if (!w) return null;
+  if (w.bow || w.icon === 'bow') return w;
+  return null;
+}
+function arrowStyleOf(bow) { return (bow && bow.uniqueId) || 'default'; }
+function fireBow(bow, fixed) {
+  const p = player;
+  if (!p || p.atkCd > 0) return false;
+  let ax = p.fx, ay = p.fy;
+  const ma = mouseAim();
+  const mv = moveInput();
+  const t = nearestEnemy(180);
+  if (!fixed && ma) { ax = ma.x; ay = ma.y; }
+  else if (!fixed && t && (touchMode || !(mv.x || mv.y))) { const a = Math.atan2(t.y - p.y, t.x - p.x); ax = Math.cos(a); ay = Math.sin(a); }
+  const l = Math.hypot(ax, ay) || 1; ax /= l; ay /= l;
+  p.fx = ax; p.fy = ay;
+  p.swing = 0.16;
+  p.atkCd = 0.45 / (p.st.aspd || 1);
+  const rolled = rollDmg();
+  const style = arrowStyleOf(bow);
+  projs.push({ x: p.x + ax * 8, y: p.y - 2 + ay * 8, vx: ax * BOW_SPEED, vy: ay * BOW_SPEED, r: 3, dmg: rolled.d, owner: 'p', kind: 'arrow', life: 0.95, visualStyle: style });
+  const cueId = style === 'Scream of the Banshee' ? 'player_bow_banshee_01' : style === 'Spine of the First Lich' ? 'player_bow_spine_01' : style === 'Hellmouth Strider' ? 'player_bow_hellmouth_01' : '';
+  if (cueId) cue(cueId);
+  else { if (!cue('player_bow_release')) cue('player_swing_light_01'); }
+  wearWeapon();
+  return true;
+}
+function equipBow(which) {
+  const p = player;
+  if (!p) return null;
+  const id = !which || which === 'default' ? '' : which;
+  const it = makeItem(4, 0, 'Short Bow');
+  it.bow = 1;
+  it.icon = 'bow';
+  if (id) {
+    const u = UNIQUES.find(q => q.uniqueId === id || q.name === id);
+    it.rarity = 3;
+    it.name = u ? u.name : id;
+    it.uniqueId = u ? u.uniqueId : id;
+    it.lore = u ? u.lore : '';
+    if (u) for (const k in u.mods) it.mods[k] = u.mods[k];
+  }
+  p.equip.weapon = it;
+  computeStats();
+  return it;
+}
+function drawTomeBar() {
+  if (touchMode || !player) return;
+  const y = VH - 48, x0 = VW - 54 - 46;
+  for (let i = 3; i < 7; i++) {
+    const x = x0 + (i - 3) * 18;
+    const lock = !tomeReady(i);
+    const art = ART[['skill_spectral_clone_16', 'skill_ethereal_shield_16', 'skill_ethereal_shift_16', 'skill_hellmouth_16'][i - 3]];
+    ctx.fillStyle = '#000'; ctx.fillRect(x - 1, y - 1, 16, 16);
+    if (art && !lock) ctx.drawImage(art, x, y, 14, 14);
+    else if (lock && ART.skill_padlock_16) ctx.drawImage(ART.skill_padlock_16, x, y, 14, 14);
+    else { ctx.fillStyle = lock ? '#222' : '#c060c0'; ctx.fillRect(x, y, 14, 14); }
+    const cd = player.cds[i] || 0, max = TOME_ADV[i].cd;
+    if (!lock && cd > 0) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x, y, 14, Math.round(14 * cd / max)); }
+    drawText(TOME_KEYS[i], x + 4, y + 15, lock ? '#666' : '#fff');
+  }
+}
+function tombLabel(i) { return lockName(i); }
+function lockName(i) { return TOME_NAMES[i] || 'Spell'; }
+
+ICONS.bow = makeSprite(['........kkkk', '.......kwwk.', '......kw.wk.', '.....kw..wk.', '....kw...wk.', '...kw....wk.', '..kw.....wk.', '.kw......wk.', 'kw.......wk.', '.kkkkkkkkk..', '............', '............']);
+BASES.push({ slot: 'weapon', icon: 'bow', name: 'Short Bow', min: 3, max: 7, lvl: 2, spd: 1.05, bow: 1, noDrop: true });
+UNIQUES.push(
+  { base: 'Short Bow', name: 'Scream of the Banshee', uniqueId: 'Scream of the Banshee', tomeBow: 1, lore: 'A cry strung into a bow. The arrow is the scream that left her, and it still looks for an ear.', mods: { dmg: 5, crit: 10 } },
+  { base: 'Short Bow', name: 'Spine of the First Lich', uniqueId: 'Spine of the First Lich', tomeBow: 1, lore: 'A vertebra from the lich who taught the Choir to hunger. It flies as a shard of bone.', mods: { dmg: 6, crit: 6 } },
+  { base: 'Short Bow', name: 'Hellmouth Strider', uniqueId: 'Hellmouth Strider', tomeBow: 1, lore: 'Strung with a tendon from the maw under Vaelmoor. Every shot leaves a coal behind it.', mods: { dmg: 4, fire: 8 } }
+);
+const _eligible710 = eligibleUniques;
+eligibleUniques = function (L) { return _eligible710(L).filter(u => !u.tomeBow); };
+const _makeItem710 = makeItem;
+makeItem = function (L, rar, baseName) {
+  const it = _makeItem710(L, rar, baseName);
+  if (!it) return it;
+  const b = BASES.find(q => q.name === it.base);
+  if (b && b.bow) it.bow = 1;
+  if (it.icon === 'bow') it.bow = 1;
+  const u = it.rarity === 3 && UNIQUES.find(q => q.name === it.name);
+  if (u && u.uniqueId) { it.uniqueId = u.uniqueId; it.bow = 1; }
+  return it;
+};
+const _newPlayer710 = newPlayer;
+newPlayer = function () {
+  const P = _newPlayer710();
+  P.cds = [0, 0, 0, 0, 0, 0, 0];
+  P.lichTome = freshTome();
+  P.decoyObject = null;
+  P.isPlayerUndetected = false;
+  P.decoyDuration = 4000;
+  P.isArmorActive = false;
+  P.armorT = 0;
+  P.armorDuration = 5000;
+  P.armorCooldown = 15000;
+  P.isInvincible = false;
+  P.shiftT = 0;
+  P.invincibilityDuration = 4000;
+  P.activeHellSinks = [];
+  if (window.__legacyStart) {
+    P.lichTome.isAcquired = true;
+    P.learned = [true, true, true];
+    for (const id of ['fireball', 'spin', 'frostNova']) P.lichTome.spells[id].isUnlocked = true;
+  }
+  return P;
+};
+const _skillLocked710 = skillLocked;
+skillLocked = function (i) {
+  if (!player) return true;
+  if (window.__legacyStart && i < 3) return _skillLocked710(i);
+  return !tomeReady(i);
+};
+const _lockedMsg710 = lockedSkillMsg;
+lockedSkillMsg = function (i) { if (i >= 3 || (player && player.lichTome && !player.lichTome.isAcquired)) tomeDeny(i); else _lockedMsg710(i); };
+const _cast710 = castSkill;
+castSkill = function (i) {
+  ensureTome(player);
+  if (i >= 3) {
+    if (!tomeReady(i)) { tomeDeny(i); held['s' + (i + 1)] = false; tapQ['s' + (i + 1)] = 0; return; }
+    return castAdvanced(i);
+  }
+  return _cast710(i);
+};
+const _select710 = selectSkill;
+selectSkill = function (i) {
+  if (i >= 3) {
+    if (!player) return;
+    if (!tomeReady(i)) { tomeDeny(i); return; }
+    rskill = i; settings.rskill = i; saveSettings(); flashMsg('Right-click: ' + TOME_NAMES[i], '#80c0ff');
+    return;
+  }
+  return _select710(i);
+};
+const _readBook710 = readBook;
+readBook = function (b) {
+  const ok = _readBook710(b);
+  if (ok && b && TOME_IDS[b.skill] != null) unlockSpell(TOME_IDS[b.skill]);
+  if (ok && player && player.lichTome && !player.lichTome.isAcquired) flashMsg('The words take hold, but you have no Lich Tome to bind them.', '#c8b8ff');
+  return ok;
+};
+const _hurt710 = hurtPlayer;
+hurtPlayer = function (dmg, src) {
+  const p = player;
+  if (p && (p.isInvincible || p.isPlayerUndetected)) return;
+  if (p && p.isArmorActive) dmg *= 0.75;
+  return _hurt710(dmg, src);
+};
+const _envHurt710 = envHurt;
+envHurt = function (d, label, lethal, col, cause) {
+  if (player && player.isInvincible) return false;
+  return _envHurt710(d, label, lethal, col, cause);
+};
+const _ignite710 = igniteBurn;
+igniteBurn = function () { if (player && player.isInvincible) return; return _ignite710(); };
+const _spike710 = tickSpikeWalk;
+tickSpikeWalk = function (dt) { if (player && player.isInvincible) return; return _spike710(dt); };
+const _doAttack710 = doAttack;
+doAttack = function (fixed) { const b = equippedBow(); if (b) return fireBow(b, fixed); return _doAttack710(fixed); };
+const _drawProj710 = drawProj;
+drawProj = function (pr, glow) {
+  if (pr && pr.kind === 'arrow' && pr.owner === 'p' && pr.visualStyle) return drawStyledArrow(pr);
+  return _drawProj710(pr, glow);
+};
+const _drawEnemy710 = drawEnemy;
+drawEnemy = function (e) {
+  const s = hellOf(e);
+  if (s && s.state === 'sinking') {
+    const k = clamp((s.frame - 30) / 60, 0, 1);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(e.x - 24, e.y - 6, 48, 28);
+    ctx.clip();
+    ctx.globalAlpha = 1 - k * 0.9;
+    ctx.translate(0, k * 12);
+    _drawEnemy710(e);
+    ctx.restore();
+    return;
+  }
+  return _drawEnemy710(e);
+};
+const _drawPlayer710 = drawPlayer;
+drawPlayer = function () {
+  const p = player;
+  if (p && p.isInvincible) {
+    ctx.save();
+    ctx.globalAlpha = (Math.floor(time * 30) % 2) ? 0.85 : 0.25;
+    if (Math.floor(time * 15) % 4 === 2) ctx.globalCompositeOperation = 'exclusion';
+    _drawPlayer710();
+    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
+    drawShiftFx();
+    return;
+  }
+  _drawPlayer710();
+  if (p && p.isArmorActive) drawShieldHalo();
+};
+const _kill710 = killEnemy;
+killEnemy = function (e) {
+  const boss = !!(e && e.T && e.T.boss && !(e.T.revive && !e.revived));
+  const x = e ? e.x : 0, y = e ? e.y : 0;
+  const before = enemies.length;
+  _kill710(e);
+  if (!boss || !player) return;
+  if (enemies.includes(e) && !e.dead) return;
+  const t = ensureTome(player);
+  if (t.isAcquired) return;
+  if (ground.some(g => g && g.tome)) return;
+  dropTomeAt(x, y + 8);
+};
+const _pick710 = pickupExtra;
+pickupExtra = function (g) {
+  if (g && g.tome) return pickupTome(g);
+  if (g && g.page) return pickupPage(g);
+  return _pick710(g);
+};
+const _dg710 = drawGroundExtra;
+drawGroundExtra = function (g, by) { if (g && (g.tome || g.page)) { drawTomeDrop(g, by); return true; } return _dg710(g, by); };
+const _gl710 = groundLabel;
+groundLabel = function (g) { if (g && g.tome) return 'LICH TOME'; if (g && g.page) return (TOME_NAMES[TOME_IDS.indexOf(g.pageType)] || 'SPELL') + ' PAGE'; return _gl710(g); };
+const _breakSecret710 = breakSecret;
+breakSecret = function (s) {
+  _breakSecret710(s);
+  if (s && s.broken) maybePage((s.tx + 0.5) * TS, (s.ty + 0.5) * TS, s.passage ? 0.45 : 0.22, s.passage ? 11 : 3);
+};
+const _breakProps710 = breakPropsAt;
+breakPropsAt = function (x, y, r) {
+  const pending = [];
+  for (const o of props) if (o && !o.broken) pending.push(o);
+  _breakProps710(x, y, r);
+  for (const o of pending) if (o.broken && !o.wall) maybePage(o.x, o.y, 0.12, 5);
+};
+const _openChest710 = openChest;
+openChest = function (c) {
+  const locked = !!(c && !c.free && !c.open);
+  const r = _openChest710(c);
+  if (locked && c.open) maybePage(c.x, c.y + 6, 0.28, 7);
+  return r;
+};
+const _drops710 = regularDrops;
+regularDrops = function (e, d) {
+  _drops710(e, d);
+  if (e && e.elite) maybePage(e.x, e.y, 0.18, 13);
+};
+const _secChest710 = openSecretChest;
+openSecretChest = function (c) {
+  _secChest710(c);
+  if (c && c.open && !c.prism) maybePage((c.tx + 0.5) * TS, (c.ty + 0.5) * TS, 0.35, 19);
+};
+const _squeeze710 = updateSqueeze;
+updateSqueeze = function (a, dt) {
+  const R = a && a.g && V72 && V72.srooms && V72.srooms[a.g.room];
+  const was = R && R.found;
+  _squeeze710(a, dt);
+  if (R && !was && R.found) maybePage((R.x0 + R.w / 2) * TS, (R.y0 + 1) * TS, 0.7, 23);
+};
+const _v06Load710 = v06Load;
+v06Load = function (s) {
+  _v06Load710(s);
+  const p = player;
+  if (!p) return;
+  const raw = s && s.p && s.p.lichTome;
+  const learned = p.learned ? p.learned.slice() : [false, false, false];
+  p.lichTome = freshTome();
+  if (raw && raw.isAcquired) p.lichTome.isAcquired = true;
+  if (raw && raw.offered) p.lichTome.offered = true;
+  if (raw && raw.spells) for (const id of TOME_IDS) if (raw.spells[id] === true || (raw.spells[id] && raw.spells[id].isUnlocked)) p.lichTome.spells[id].isUnlocked = true;
+  if (!raw) {
+    for (let i = 0; i < 3; i++) if (learned[i]) { p.lichTome.spells[TOME_IDS[i]].isUnlocked = true; p.lichTome.isAcquired = true; }
+  }
+  for (let i = 0; i < 3; i++) if (p.lichTome.spells[TOME_IDS[i]].isUnlocked) { p.learned = p.learned || [false, false, false]; p.learned[i] = true; }
+  ensureTome(p);
+  p.decoyObject = null; p.isPlayerUndetected = false; p.activeHellSinks = []; p.isArmorActive = false; p.isInvincible = false;
+};
+const _startFloor710 = startFloor;
+startFloor = function (d, fresh) {
+  const r = _startFloor710(d, fresh);
+  const p = player;
+  if (p) { p.decoyObject = null; p.isPlayerUndetected = false; p.activeHellSinks = []; p.isArmorActive = false; p.isInvincible = false; ensureTome(p); }
+  return r;
+};
+const _update710 = update;
+update = function (dt) { v0710Before(dt); const r = _update710(dt); v0710After(dt); return r; };
+const _hud710 = drawHUD;
+drawHUD = function () { _hud710(); drawTomeBar(); };
+const _touch710 = updateTouchHUD;
+updateTouchHUD = function () {
+  _touch710();
+  if (!touchMode || state !== 'play' || !player) return;
+  const p = player;
+  for (let i = 3; i < 7; i++) {
+    const b = $('bS' + (i + 1));
+    if (!b) continue;
+    const locked = !tomeReady(i), S = TOME_ADV[i];
+    b.classList.toggle('locked', locked);
+    b.classList.toggle('nomana', !locked && p.mp < manaCost(S));
+    const cd = b.querySelector('.cd');
+    if (cd) cd.style.height = (locked ? 0 : ((p.cds[i] || 0) / S.cd * 100)) + '%';
+    const sub = b.querySelector('.sub');
+    if (sub) sub.textContent = locked ? 'PAGE' : ['CLONE', 'WARD', 'SHIFT', 'MAW'][i - 3];
+    const ico = b.querySelector('.ico');
+    if (ico) ico.style.backgroundImage = locked ? 'url(assets/skill_padlock_16.png)' : '';
+  }
+};
+const _sync710 = syncSkillBtns074;
+syncSkillBtns074 = function () {
+  _sync710();
+  const hud = ['btn_fireball_32', 'btn_spin_32', 'btn_frost_nova_32'];
+  for (let i = 0; i < 3; i++) {
+    const b = $('bS' + (i + 1)), img = b && b.querySelector('img');
+    if (!img) continue;
+    img.src = skillLocked(i) ? 'assets/skill_padlock_16.png' : ('assets/ui/v0710/hud/' + hud[i] + '.png');
+  }
+};
+if (window.game) {
+  Object.assign(window.game, {
+    TOME_IDS, TOME_NAMES, SPELL_RADIUS, SHIFT_CD,
+    tomeReady, unlockSpell, dropPage, maybePage, dropTomeAt, mawTargets, castAim, equippedBow, arrowStyleOf, equipBow, fireBow,
+    brazierEmissive, decoyAlpha, ensureTome
+  });
+  Object.defineProperties(window.game, {
+    lichTome: { get() { return player && player.lichTome; } },
+    decoy: { get() { return player && player.decoyObject; } },
+    hellSinks: { get() { return player && player.activeHellSinks; } },
+    props: { get() { return props; } },
+    msg: { get() { return msg; } }
+  });
+}
+
 </script>
 </body>
 </html>

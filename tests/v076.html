@@ -199,6 +199,7 @@ function run(w) {
     w.v075AfterMove();
     check('b3 roll hops', !g.pitAct, g.pitAct && g.pitAct.kind);
     p.roll = 0;
+    g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.state = 'idle'; e.x = 8; e.y = 8; });
     const hp0 = p.hp, x0 = p.x, y0 = p.y;
     w.v075AfterMove();
     check('b3 walk stays', !g.pitAct, g.pitAct && g.pitAct.kind);

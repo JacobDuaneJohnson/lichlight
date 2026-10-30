@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v0710</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:960px;height:540px"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 360) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try {
+    const x = new XMLHttpRequest();
+    x.open('GET', url, false);
+    x.send(null);
+    return x.status === 200 ? x.responseText : '';
+  } catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function quiet(g, w) {
+  const p = g.player;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.state = 'idle'; e.x = 8; e.y = 8; });
+  g.projs.length = 0;
+  p.st.regen = 0; p.st.def = 0; p.barrier = 0; p.inv0 = 0; p.roll = 0;
+  if (p.equip) p.equip.shield = null;
+  p.burn = null; p.slowT = 0; p.isArmorActive = false; p.isInvincible = false; p.isPlayerUndetected = false; p.decoyObject = null;
+  p.activeHellSinks = [];
+  w.__hurtSpread = 1; w.__champCrit = 1;
+}
+function run(w) {
+  const g = w.game;
+  w.__noSampleSfx = true;
+  check('boot', !!(g && g.brazierEmissive && g.lichTome === null || g.newGame));
+  check('gate pages', g.lichDevOn('gamedevjake.github.io', '?lichDev=1') === false && g.lichDevOn('localhost', '') === true && g.lichDevOn('localhost', '?lichDev=1') === true);
+
+  g.newGame();
+  const p = g.player;
+  check('f2 fresh locked', p.lichTome && p.lichTome.isAcquired === false && g.TOME_IDS.length === 7 && g.TOME_IDS.every(id => p.lichTome.spells[id].isUnlocked === false));
+  const mp0 = p.mp;
+  w.castSkill(0);
+  check('f2 cannot cast', p.mp === mp0 && (p.cds[0] || 0) === 0, 'mp ' + p.mp + ' cd ' + p.cds[0]);
+
+  g.startFloor(4, true);
+  quiet(g, w);
+  let cold = 0, hot = 0;
+  for (const b of g.braziers) { if (w.brazierLit(b)) hot++; else cold++; }
+  check('b1 cold count', cold > 0 && hot === 0, cold + ' / ' + hot);
+  const bz = g.braziers[0];
+  check('b1 unlit emissive', bz && g.brazierEmissive(bz) === false);
+  p.x = bz.x; p.y = bz.y; p.torchT = 0;
+  const nearCold = w.gatherLights(0, 0, 8000, 8000).filter(l => l.key && String(l.key).charAt(0) === 'b' && Math.hypot(l.x - bz.x, l.y - bz.y) < 40);
+  check('b1 unlit light', nearCold.length === 0, nearCold.length);
+  bz.lit = 1;
+  const nearHot = w.gatherLights(0, 0, 8000, 8000).filter(l => Math.hypot(l.x - bz.x, l.y - (bz.y - 4)) < 20);
+  check('b1 lit light', nearHot.length > 0, nearHot.length);
+  check('b2 frames', ['brazier_unlit.png','brazier_lit_01.png','brazier_lit_02.png','brazier_lit_03.png','brazier_lit_04.png'].every(n => fetchText('../assets/' + n).length > 40));
+
+  g.startFloor(5, true);
+  quiet(g, w);
+  p.hp = 400; p.st.maxHp = 400; p.mp = 80; p.st.maxMp = 80;
+  let boss = g.enemies.find(e => e.T && e.T.boss);
+  if (!boss) boss = g.spawnBoss(p.x + 48, p.y);
+  boss.dead = false; boss.hp = 5; boss.T = boss.T || {};
+  const gx = boss.x, gy = boss.y;
+  w.killEnemy(boss);
+  const tome = g.ground.find(q => q.tome);
+  check('f2 boss tome', !!tome, 'ground ' + g.ground.length);
+  if (tome) { p.x = tome.x; p.y = tome.y; g.step(0.05, { x: 0, y: 0 }); }
+  check('f2 acquired', p.lichTome.isAcquired === true && !g.ground.some(q => q.tome));
+  check('f2 banner', (g.msg && g.msg.t || '').indexOf('Lich Tome') >= 0 && (g.msg.t || '').indexOf('pages have been torn out') >= 0, g.msg && g.msg.t);
+  w.castSkill(0);
+  check('f2 still locked', (p.cds[0] || 0) === 0);
+  g.ground.push({ x: p.x, y: p.y, page: 1, pageType: 'fireball', lock: false });
+  g.step(0.05, { x: 0, y: 0 });
+  check('f2 page unlock', p.lichTome.spells.fireball.isUnlocked === true && p.learned[0] === true);
+  p.mp = 40;
+  w.castSkill(0);
+  check('f2 fireball casts', (p.cds[0] || 0) > 0 && g.projs.some(q => q.kind === 'fire'), 'cd ' + p.cds[0]);
+
+  w.__forcePage = 'spectralClone';
+  const secret = (g.secrets || []).find(s => !s.broken) || { tx: Math.floor(p.x / 16) + 3, ty: Math.floor(p.y / 16), broken: false, kind: 'floor' };
+  if (!g.secrets.includes(secret)) g.secrets.push(secret);
+  w.breakSecret(secret);
+  check('f2 secret page', g.ground.some(q => q.page && q.pageType === 'spectralClone'));
+  w.__forcePage = 'etherealShield';
+  const prop = { kind: 'urn', x: p.x + 20, y: p.y, broken: false, wall: false };
+  g.props = g.props || [];
+  // props is a let binding; tests reach it through the closure via breakPropsAt on a nearby prop if exposed
+  g.props.push(prop); w.breakPropsAt(prop.x, prop.y, 8);
+  check('f2 prop page', prop.broken === true && g.ground.some(q => q.pageType === 'etherealShield'));
+  w.__forcePage = null;
+
+  quiet(g, w);
+  p.hp = 500; p.st.maxHp = 500; p.mp = 80; p.x = 200; p.y = 200;
+  g.unlockSpell('spectralClone'); g.unlockSpell('etherealShield'); g.unlockSpell('etherealShift'); g.unlockSpell('hellmouth');
+  p.lichTome.isAcquired = true;
+  w.castSkill(3);
+  check('f3 decoy', !!(p.decoyObject && p.isPlayerUndetected && p.decoyObject.vx), p.decoyObject && p.decoyObject.vx);
+  check('f3 seek', g.decoy === p.decoyObject && w.tomeSeek() === p.decoyObject);
+  const hpA = p.hp;
+  const mob = g.spawnEnemy('rat', p.x + 10, p.y, false);
+  mob.dmg = 40;
+  w.hurtPlayer(40, mob);
+  check('f3 no damage', p.hp === hpA, p.hp);
+  for (let i = 0; i < 50; i++) g.step(0.1, { x: 0, y: 0 });
+  check('f3 expired', !p.decoyObject && p.isPlayerUndetected === false);
+
+  quiet(g, w);
+  p.hp = 400; p.st.maxHp = 400; p.mp = 80; p.x = 180; p.y = 180;
+  w.castSkill(4);
+  check('f4 shield on', p.isArmorActive === true && (p.cds[4] || 0) > 10, p.cds[4]);
+  const hpB = p.hp;
+  w.hurtPlayer(100, mob);
+  check('f4 reduced', p.hp === hpB - 75, 'lost ' + (hpB - p.hp));
+  p.isArmorActive = false; p.armorT = 0;
+
+  quiet(g, w);
+  p.hp = 400; p.mp = 80; p.x = 180; p.y = 180;
+  w.castSkill(5);
+  check('f5 shift on', p.isInvincible === true);
+  const hpC = p.hp;
+  w.hurtPlayer(80, mob);
+  w.igniteBurn();
+  check('f5 immune', p.hp === hpC && !p.burn, 'hp ' + p.hp + ' burn ' + !!p.burn);
+  p.isInvincible = false; p.shiftT = 0;
+
+  quiet(g, w);
+  p.hp = 400; p.mp = 80;
+  const home = g.rooms && g.rooms[0];
+  if (home) { p.x = (home.cx + 0.5) * 16; p.y = (home.cy + 0.5) * 16; }
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.x = 8; e.y = 8; });
+  const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+  for (let i = 0; i <= 6; i++) g.setTile(tx + i, ty, 1);
+  const seen = g.spawnEnemy('rat', (tx + 1.5) * 16, (ty + 0.5) * 16, true);
+  const hid = g.spawnEnemy('rat', (tx + 5.5) * 16, (ty + 0.5) * 16, true);
+  seen.dead = false; seen.hp = 30; hid.dead = false; hid.hp = 30;
+  g.setTile(tx + 3, ty, 0);
+  g.setTile(tx + 3, ty - 1, 0);
+  g.setTile(tx + 3, ty + 1, 0);
+  w.castSkill(6);
+  const sinks = p.activeHellSinks || [];
+  const gotSeen = sinks.some(s => s.enemyRef === seen);
+  const gotHid = sinks.some(s => s.enemyRef === hid);
+  check('f6 los', gotSeen && !gotHid, 'sinks ' + sinks.length + ' seen ' + gotSeen + ' hid ' + gotHid);
+  for (let i = 0; i < 40; i++) g.step(0.05, { x: 0, y: 0 });
+  check('f6 sunk', seen.dead === true || seen.hp <= 0 || !g.enemies.includes(seen), 'hp ' + seen.hp + ' dead ' + seen.dead);
+  check('f6 hidden lives', hid.hp > 0 && hid.dead !== true, hid.hp);
+
+  quiet(g, w);
+  p.x = 160; p.y = 160; p.atkCd = 0; p.fx = 1; p.fy = 0;
+  g.equipBow('default');
+  w.doAttack(true);
+  const a0 = g.projs.find(q => q.kind === 'arrow' && q.owner === 'p');
+  check('f7 default', !!(a0 && a0.visualStyle === 'default'), a0 && a0.visualStyle);
+  g.projs.length = 0; p.atkCd = 0;
+  g.equipBow('Scream of the Banshee');
+  w.doAttack(true);
+  const a1 = g.projs.find(q => q.owner === 'p' && q.kind === 'arrow');
+  check('f7 banshee', !!(a1 && a1.visualStyle === 'Scream of the Banshee'), a1 && a1.visualStyle);
+  g.projs.length = 0; p.atkCd = 0;
+  g.equipBow('Spine of the First Lich');
+  w.doAttack(true);
+  const a2 = g.projs.find(q => q.owner === 'p');
+  check('f7 spine', !!(a2 && a2.visualStyle === 'Spine of the First Lich'));
+  g.projs.length = 0; p.atkCd = 0;
+  g.equipBow('Hellmouth Strider');
+  w.doAttack(true);
+  const a3 = g.projs.find(q => q.owner === 'p');
+  check('f7 hellmouth bow', !!(a3 && a3.visualStyle === 'Hellmouth Strider'));
+
+  const man = fetchText('../assets/manifest.json');
+  const arts = ['item_lich_tome_12.png','item_spell_page_fireball_12.png','skill_hellmouth_16.png','fx_hellmouth_open_01.png','fx_hellmouth_scar_04.png','arrow_banshee_16.png','arrow_spine_splinter_01.png','arrow_hellmouth_ember_01.png','fx_spectral_clone_outline_01.png','fx_ethereal_shield_ring_01.png','fx_ethereal_shift_01.png'];
+  check('art wired', arts.every(n => man.indexOf('"' + n + '"') >= 0 && fetchText('../assets/' + n).length > 40));
+  const sfx = fetchText('../assets/sfx/sfx.json');
+  const cues = ['wld_pickup_lich_tome_01','wld_pickup_spell_page_01','player_spectral_clone_cast_01','player_spectral_clone_whoosh_01','player_spectral_clone_expire_01','player_ethereal_shield_cast_01','player_ethereal_shield_loop_01','player_ethereal_shield_end_01','player_ethereal_shift_cast_01','player_ethereal_shift_loop_01','player_ethereal_shift_end_01','player_hellmouth_cast_01','player_hellmouth_open_01','player_hellmouth_sink_01','player_hellmouth_aftermath_01','player_bow_banshee_01','player_bow_spine_01','player_bow_hellmouth_01'];
+  check('sfx wired', cues.every(id => sfx.indexOf('"' + id + '"') >= 0 && fetchText('../assets/sfx/' + id + '.wav').length > 500));
+  check('ui hud', fetchText('../assets/ui/v0710/hud/btn_attack_48.png').length > 40 && fetchText('../assets/ui/v0710/dpad/stick_base_48.png').length > 40 && fetchText('../assets/ui/v0710/menu/mbtn_idle_9slice_12_s4.png').length > 40);
+  const atk = w.document.getElementById('bAtk');
+  check('f1 hit box', atk && atk.dataset.act === 'attack');
+}
+</script>
+</body>
+</html>
