@@ -1,0 +1,1052 @@
+{
+ "addon_menu_icons_oct29": {
+  "buttons": {
+   "back": {
+    "face": "brass",
+    "label": "BACK",
+    "live": "character create BACK",
+    "size": "48x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "cancel": {
+    "face": "brass",
+    "label": "CANCEL",
+    "live": "REST dialog CANCEL",
+    "size": "48x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "close": {
+    "face": "danger",
+    "label": "CLOSE",
+    "live": "inventory CLOSE",
+    "size": "48x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "close_notes": {
+    "face": "danger",
+    "label": "CLOSE NOTES",
+    "live": "STASH & NOTES \"CLOSE NOTES\"",
+    "size": "56x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "create": {
+    "face": "brass",
+    "label": "CREATE",
+    "live": "character create CREATE",
+    "size": "48x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "del": {
+    "face": "danger",
+    "label": "DEL",
+    "live": "characters list DEL",
+    "size": "32x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "drop_all": {
+    "face": "danger",
+    "label": "DROP ALL",
+    "live": "inventory DROP ALL",
+    "size": "48x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "look": {
+    "face": "stone",
+    "label": "LOOK",
+    "live": "characters list LOOK",
+    "size": "32x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "mark_seen": {
+    "face": "stone",
+    "label": "MARK ALL SEEN",
+    "live": "inventory \"\u2713 MARK ALL SEEN\" (+ _disabled = greyed live state)",
+    "size": "72x16",
+    "states": [
+     "idle",
+     "hover",
+     "down",
+     "disabled"
+    ]
+   },
+   "new_character": {
+    "face": "brass",
+    "label": "+ NEW CHARACTER",
+    "live": "characters list \"+ NEW CHARACTER\"",
+    "size": "72x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "notes": {
+    "face": "stone",
+    "label": "NOTES",
+    "live": "inventory NOTES",
+    "size": "48x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "play": {
+    "face": "stone",
+    "label": "PLAY",
+    "live": "characters list PLAY",
+    "size": "32x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "rest": {
+    "face": "stone",
+    "label": "REST",
+    "live": "inventory REST (+ pause REST uses mbtn chrome)",
+    "size": "48x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "sleep": {
+    "face": "brass",
+    "label": "SLEEP",
+    "live": "REST dialog SLEEP",
+    "size": "48x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   },
+   "sort": {
+    "face": "stone",
+    "label": "SORT",
+    "live": "inventory \"\u21c5 SORT\"",
+    "size": "48x16",
+    "states": [
+     "idle",
+     "hover",
+     "down"
+    ]
+   }
+  },
+  "extra_hexes": {
+   "OG": "#2a3a1c",
+   "OL": "#a8c860",
+   "OR": "#e07828"
+  },
+  "face_9slices": "menu/btns/mbtn_{danger,stone}_{state}_9slice_12_s4",
+  "hour_chips": {
+   "files": "menu/btns/btn_hour_{1..8}_{idle,hover,down,sel}_24x16 + btn_hour_chip_{state}_24x16 (blank) + _9slice_12_s4",
+   "live": "REST dialog 1h..8h"
+  },
+  "icons": {
+   "buy": {
+    "replaces": "trader BUY / USE \"buy\"",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "cancel": {
+    "replaces": "CANCEL (REST dialog)",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "close": {
+    "replaces": "CLOSE / \u00d7 (characters dialog)",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "drink": {
+    "replaces": "USE \"drink\" (water)",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "drop": {
+    "replaces": "DROP ALL",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "eat": {
+    "replaces": "food stack \ud83c\udf56 chip + USE \"eat\"",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "examine": {
+    "replaces": "USE \"examine\"",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "gate": {
+    "replaces": "GATE n counter / \ud83d\udddd",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "light": {
+    "replaces": "USE \"light\" (light torch/sconce)",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "locked": {
+    "replaces": "locked door/chest, skill lock",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "map_frag": {
+    "replaces": "scroll 0/4 counter",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "mark_seen": {
+    "replaces": "MARK ALL SEEN \u2713",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "notes": {
+    "replaces": "NOTES / STASH & NOTES",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "open": {
+    "replaces": "USE \"open\" (chest/door)",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "repair": {
+    "replaces": "orange repair flask chip (x3) + USE \"repair\"",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "rest": {
+    "replaces": "REST (inv + pause menu)",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "sell": {
+    "replaces": "trader SELL / USE \"sell\"",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "sleep": {
+    "replaces": "REST dialog title / SLEEP",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "sort": {
+    "replaces": "SORT \u21c5",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "torch": {
+    "replaces": "USE \"torch\" / unlit torch item",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   },
+   "use": {
+    "replaces": "#bUse generic",
+    "sizes": [
+     16,
+     24,
+     32,
+     48
+    ],
+    "states": [
+     "idle",
+     "down"
+    ]
+   }
+  },
+  "item_chips": {
+   "files": "menu/btns/chip_item_{idle,down,sel}_32x16 + _9slice_12_s4",
+   "live": "inventory flask x3 / food / scroll 0/4 / GATE 0 tiles"
+  },
+  "note": "menu/action icons add-on from Jake screenshots Oct 29 (first-pass palette + EXTRA)"
+ },
+ "files": [
+  "dpad/dpad_full.png",
+  "dpad/dpad_full_e_down.png",
+  "dpad/dpad_full_idle.png",
+  "dpad/dpad_full_n_down.png",
+  "dpad/dpad_full_s_down.png",
+  "dpad/dpad_full_w_down.png",
+  "dpad/dpad_seg_c_down.png",
+  "dpad/dpad_seg_c_idle.png",
+  "dpad/dpad_seg_e_down.png",
+  "dpad/dpad_seg_e_idle.png",
+  "dpad/dpad_seg_n_down.png",
+  "dpad/dpad_seg_n_idle.png",
+  "dpad/dpad_seg_s_down.png",
+  "dpad/dpad_seg_s_idle.png",
+  "dpad/dpad_seg_w_down.png",
+  "dpad/dpad_seg_w_idle.png",
+  "dpad/stick_base_48.png",
+  "dpad/stick_knob_24_down.png",
+  "dpad/stick_knob_24_idle.png",
+  "hud/btn_attack_16.png",
+  "hud/btn_attack_16_down.png",
+  "hud/btn_attack_16_idle.png",
+  "hud/btn_attack_32.png",
+  "hud/btn_attack_32_down.png",
+  "hud/btn_attack_32_idle.png",
+  "hud/btn_attack_48.png",
+  "hud/btn_attack_48_down.png",
+  "hud/btn_attack_48_idle.png",
+  "hud/btn_backpack_16.png",
+  "hud/btn_backpack_16_down.png",
+  "hud/btn_backpack_16_idle.png",
+  "hud/btn_backpack_24.png",
+  "hud/btn_backpack_24_down.png",
+  "hud/btn_backpack_24_idle.png",
+  "hud/btn_fireball_16.png",
+  "hud/btn_fireball_16_down.png",
+  "hud/btn_fireball_16_idle.png",
+  "hud/btn_fireball_32.png",
+  "hud/btn_fireball_32_down.png",
+  "hud/btn_fireball_32_idle.png",
+  "hud/btn_fireball_48.png",
+  "hud/btn_fireball_48_down.png",
+  "hud/btn_fireball_48_idle.png",
+  "hud/btn_frost_nova_16.png",
+  "hud/btn_frost_nova_16_down.png",
+  "hud/btn_frost_nova_16_idle.png",
+  "hud/btn_frost_nova_32.png",
+  "hud/btn_frost_nova_32_down.png",
+  "hud/btn_frost_nova_32_idle.png",
+  "hud/btn_frost_nova_48.png",
+  "hud/btn_frost_nova_48_down.png",
+  "hud/btn_frost_nova_48_idle.png",
+  "hud/btn_heal_16.png",
+  "hud/btn_heal_16_down.png",
+  "hud/btn_heal_16_idle.png",
+  "hud/btn_heal_24.png",
+  "hud/btn_heal_24_down.png",
+  "hud/btn_heal_24_idle.png",
+  "hud/btn_mana_16.png",
+  "hud/btn_mana_16_down.png",
+  "hud/btn_mana_16_idle.png",
+  "hud/btn_mana_24.png",
+  "hud/btn_mana_24_down.png",
+  "hud/btn_mana_24_idle.png",
+  "hud/btn_map_16.png",
+  "hud/btn_map_16_down.png",
+  "hud/btn_map_16_idle.png",
+  "hud/btn_map_32.png",
+  "hud/btn_map_32_down.png",
+  "hud/btn_map_32_idle.png",
+  "hud/btn_pause_16.png",
+  "hud/btn_pause_16_down.png",
+  "hud/btn_pause_16_idle.png",
+  "hud/btn_pause_32.png",
+  "hud/btn_pause_32_down.png",
+  "hud/btn_pause_32_idle.png",
+  "hud/btn_roll_16.png",
+  "hud/btn_roll_16_down.png",
+  "hud/btn_roll_16_idle.png",
+  "hud/btn_roll_32.png",
+  "hud/btn_roll_32_down.png",
+  "hud/btn_roll_32_idle.png",
+  "hud/btn_roll_48.png",
+  "hud/btn_roll_48_down.png",
+  "hud/btn_roll_48_idle.png",
+  "hud/btn_spin_16.png",
+  "hud/btn_spin_16_down.png",
+  "hud/btn_spin_16_idle.png",
+  "hud/btn_spin_32.png",
+  "hud/btn_spin_32_down.png",
+  "hud/btn_spin_32_idle.png",
+  "hud/btn_spin_48.png",
+  "hud/btn_spin_48_down.png",
+  "hud/btn_spin_48_idle.png",
+  "hud/plate_16_down.png",
+  "hud/plate_16_idle.png",
+  "hud/plate_24_down.png",
+  "hud/plate_24_idle.png",
+  "hud/plate_32_down.png",
+  "hud/plate_32_idle.png",
+  "hud/plate_48_down.png",
+  "hud/plate_48_idle.png",
+  "menu/btn_buy_down_32x14.png",
+  "menu/btn_buy_idle_32x14.png",
+  "menu/btn_sell_down_32x14.png",
+  "menu/btn_sell_idle_32x14.png",
+  "menu/btns/btn_back_down_48x16.png",
+  "menu/btns/btn_back_hover_48x16.png",
+  "menu/btns/btn_back_idle_48x16.png",
+  "menu/btns/btn_cancel_down_48x16.png",
+  "menu/btns/btn_cancel_hover_48x16.png",
+  "menu/btns/btn_cancel_idle_48x16.png",
+  "menu/btns/btn_close_down_48x16.png",
+  "menu/btns/btn_close_hover_48x16.png",
+  "menu/btns/btn_close_idle_48x16.png",
+  "menu/btns/btn_close_notes_down_56x16.png",
+  "menu/btns/btn_close_notes_hover_56x16.png",
+  "menu/btns/btn_close_notes_idle_56x16.png",
+  "menu/btns/btn_create_down_48x16.png",
+  "menu/btns/btn_create_hover_48x16.png",
+  "menu/btns/btn_create_idle_48x16.png",
+  "menu/btns/btn_del_down_32x16.png",
+  "menu/btns/btn_del_hover_32x16.png",
+  "menu/btns/btn_del_idle_32x16.png",
+  "menu/btns/btn_drop_all_down_48x16.png",
+  "menu/btns/btn_drop_all_hover_48x16.png",
+  "menu/btns/btn_drop_all_idle_48x16.png",
+  "menu/btns/btn_hour_1_down_24x16.png",
+  "menu/btns/btn_hour_1_hover_24x16.png",
+  "menu/btns/btn_hour_1_idle_24x16.png",
+  "menu/btns/btn_hour_1_sel_24x16.png",
+  "menu/btns/btn_hour_2_down_24x16.png",
+  "menu/btns/btn_hour_2_hover_24x16.png",
+  "menu/btns/btn_hour_2_idle_24x16.png",
+  "menu/btns/btn_hour_2_sel_24x16.png",
+  "menu/btns/btn_hour_3_down_24x16.png",
+  "menu/btns/btn_hour_3_hover_24x16.png",
+  "menu/btns/btn_hour_3_idle_24x16.png",
+  "menu/btns/btn_hour_3_sel_24x16.png",
+  "menu/btns/btn_hour_4_down_24x16.png",
+  "menu/btns/btn_hour_4_hover_24x16.png",
+  "menu/btns/btn_hour_4_idle_24x16.png",
+  "menu/btns/btn_hour_4_sel_24x16.png",
+  "menu/btns/btn_hour_5_down_24x16.png",
+  "menu/btns/btn_hour_5_hover_24x16.png",
+  "menu/btns/btn_hour_5_idle_24x16.png",
+  "menu/btns/btn_hour_5_sel_24x16.png",
+  "menu/btns/btn_hour_6_down_24x16.png",
+  "menu/btns/btn_hour_6_hover_24x16.png",
+  "menu/btns/btn_hour_6_idle_24x16.png",
+  "menu/btns/btn_hour_6_sel_24x16.png",
+  "menu/btns/btn_hour_7_down_24x16.png",
+  "menu/btns/btn_hour_7_hover_24x16.png",
+  "menu/btns/btn_hour_7_idle_24x16.png",
+  "menu/btns/btn_hour_7_sel_24x16.png",
+  "menu/btns/btn_hour_8_down_24x16.png",
+  "menu/btns/btn_hour_8_hover_24x16.png",
+  "menu/btns/btn_hour_8_idle_24x16.png",
+  "menu/btns/btn_hour_8_sel_24x16.png",
+  "menu/btns/btn_hour_chip_down_24x16.png",
+  "menu/btns/btn_hour_chip_down_9slice_12_s4.png",
+  "menu/btns/btn_hour_chip_hover_24x16.png",
+  "menu/btns/btn_hour_chip_hover_9slice_12_s4.png",
+  "menu/btns/btn_hour_chip_idle_24x16.png",
+  "menu/btns/btn_hour_chip_idle_9slice_12_s4.png",
+  "menu/btns/btn_hour_chip_sel_24x16.png",
+  "menu/btns/btn_hour_chip_sel_9slice_12_s4.png",
+  "menu/btns/btn_look_down_32x16.png",
+  "menu/btns/btn_look_hover_32x16.png",
+  "menu/btns/btn_look_idle_32x16.png",
+  "menu/btns/btn_mark_seen_disabled_72x16.png",
+  "menu/btns/btn_mark_seen_down_72x16.png",
+  "menu/btns/btn_mark_seen_hover_72x16.png",
+  "menu/btns/btn_mark_seen_idle_72x16.png",
+  "menu/btns/btn_new_character_down_72x16.png",
+  "menu/btns/btn_new_character_hover_72x16.png",
+  "menu/btns/btn_new_character_idle_72x16.png",
+  "menu/btns/btn_notes_down_48x16.png",
+  "menu/btns/btn_notes_hover_48x16.png",
+  "menu/btns/btn_notes_idle_48x16.png",
+  "menu/btns/btn_play_down_32x16.png",
+  "menu/btns/btn_play_hover_32x16.png",
+  "menu/btns/btn_play_idle_32x16.png",
+  "menu/btns/btn_rest_down_48x16.png",
+  "menu/btns/btn_rest_hover_48x16.png",
+  "menu/btns/btn_rest_idle_48x16.png",
+  "menu/btns/btn_sleep_down_48x16.png",
+  "menu/btns/btn_sleep_hover_48x16.png",
+  "menu/btns/btn_sleep_idle_48x16.png",
+  "menu/btns/btn_sort_down_48x16.png",
+  "menu/btns/btn_sort_hover_48x16.png",
+  "menu/btns/btn_sort_idle_48x16.png",
+  "menu/btns/chip_item_down_32x16.png",
+  "menu/btns/chip_item_down_9slice_12_s4.png",
+  "menu/btns/chip_item_idle_32x16.png",
+  "menu/btns/chip_item_idle_9slice_12_s4.png",
+  "menu/btns/chip_item_sel_32x16.png",
+  "menu/btns/chip_item_sel_9slice_12_s4.png",
+  "menu/btns/mbtn_danger_down_9slice_12_s4.png",
+  "menu/btns/mbtn_danger_hover_9slice_12_s4.png",
+  "menu/btns/mbtn_danger_idle_9slice_12_s4.png",
+  "menu/btns/mbtn_stone_disabled_9slice_12_s4.png",
+  "menu/btns/mbtn_stone_down_9slice_12_s4.png",
+  "menu/btns/mbtn_stone_hover_9slice_12_s4.png",
+  "menu/btns/mbtn_stone_idle_9slice_12_s4.png",
+  "menu/checkbox_off_12.png",
+  "menu/checkbox_on_12.png",
+  "menu/divider_64x5.png",
+  "menu/divider_9slice_24x5_s8.png",
+  "menu/header_9slice_24x12_s8.png",
+  "menu/header_sample_128x12.png",
+  "menu/icon_coin_8.png",
+  "menu/icons/icon_buy_16.png",
+  "menu/icons/icon_buy_16_down.png",
+  "menu/icons/icon_buy_16_idle.png",
+  "menu/icons/icon_buy_24.png",
+  "menu/icons/icon_buy_24_down.png",
+  "menu/icons/icon_buy_24_idle.png",
+  "menu/icons/icon_buy_32.png",
+  "menu/icons/icon_buy_32_down.png",
+  "menu/icons/icon_buy_32_idle.png",
+  "menu/icons/icon_buy_48.png",
+  "menu/icons/icon_buy_48_down.png",
+  "menu/icons/icon_buy_48_idle.png",
+  "menu/icons/icon_cancel_16.png",
+  "menu/icons/icon_cancel_16_down.png",
+  "menu/icons/icon_cancel_16_idle.png",
+  "menu/icons/icon_cancel_24.png",
+  "menu/icons/icon_cancel_24_down.png",
+  "menu/icons/icon_cancel_24_idle.png",
+  "menu/icons/icon_cancel_32.png",
+  "menu/icons/icon_cancel_32_down.png",
+  "menu/icons/icon_cancel_32_idle.png",
+  "menu/icons/icon_cancel_48.png",
+  "menu/icons/icon_cancel_48_down.png",
+  "menu/icons/icon_cancel_48_idle.png",
+  "menu/icons/icon_close_16.png",
+  "menu/icons/icon_close_16_down.png",
+  "menu/icons/icon_close_16_idle.png",
+  "menu/icons/icon_close_24.png",
+  "menu/icons/icon_close_24_down.png",
+  "menu/icons/icon_close_24_idle.png",
+  "menu/icons/icon_close_32.png",
+  "menu/icons/icon_close_32_down.png",
+  "menu/icons/icon_close_32_idle.png",
+  "menu/icons/icon_close_48.png",
+  "menu/icons/icon_close_48_down.png",
+  "menu/icons/icon_close_48_idle.png",
+  "menu/icons/icon_drink_16.png",
+  "menu/icons/icon_drink_16_down.png",
+  "menu/icons/icon_drink_16_idle.png",
+  "menu/icons/icon_drink_24.png",
+  "menu/icons/icon_drink_24_down.png",
+  "menu/icons/icon_drink_24_idle.png",
+  "menu/icons/icon_drink_32.png",
+  "menu/icons/icon_drink_32_down.png",
+  "menu/icons/icon_drink_32_idle.png",
+  "menu/icons/icon_drink_48.png",
+  "menu/icons/icon_drink_48_down.png",
+  "menu/icons/icon_drink_48_idle.png",
+  "menu/icons/icon_drop_16.png",
+  "menu/icons/icon_drop_16_down.png",
+  "menu/icons/icon_drop_16_idle.png",
+  "menu/icons/icon_drop_24.png",
+  "menu/icons/icon_drop_24_down.png",
+  "menu/icons/icon_drop_24_idle.png",
+  "menu/icons/icon_drop_32.png",
+  "menu/icons/icon_drop_32_down.png",
+  "menu/icons/icon_drop_32_idle.png",
+  "menu/icons/icon_drop_48.png",
+  "menu/icons/icon_drop_48_down.png",
+  "menu/icons/icon_drop_48_idle.png",
+  "menu/icons/icon_eat_16.png",
+  "menu/icons/icon_eat_16_down.png",
+  "menu/icons/icon_eat_16_idle.png",
+  "menu/icons/icon_eat_24.png",
+  "menu/icons/icon_eat_24_down.png",
+  "menu/icons/icon_eat_24_idle.png",
+  "menu/icons/icon_eat_32.png",
+  "menu/icons/icon_eat_32_down.png",
+  "menu/icons/icon_eat_32_idle.png",
+  "menu/icons/icon_eat_48.png",
+  "menu/icons/icon_eat_48_down.png",
+  "menu/icons/icon_eat_48_idle.png",
+  "menu/icons/icon_examine_16.png",
+  "menu/icons/icon_examine_16_down.png",
+  "menu/icons/icon_examine_16_idle.png",
+  "menu/icons/icon_examine_24.png",
+  "menu/icons/icon_examine_24_down.png",
+  "menu/icons/icon_examine_24_idle.png",
+  "menu/icons/icon_examine_32.png",
+  "menu/icons/icon_examine_32_down.png",
+  "menu/icons/icon_examine_32_idle.png",
+  "menu/icons/icon_examine_48.png",
+  "menu/icons/icon_examine_48_down.png",
+  "menu/icons/icon_examine_48_idle.png",
+  "menu/icons/icon_gate_16.png",
+  "menu/icons/icon_gate_16_down.png",
+  "menu/icons/icon_gate_16_idle.png",
+  "menu/icons/icon_gate_24.png",
+  "menu/icons/icon_gate_24_down.png",
+  "menu/icons/icon_gate_24_idle.png",
+  "menu/icons/icon_gate_32.png",
+  "menu/icons/icon_gate_32_down.png",
+  "menu/icons/icon_gate_32_idle.png",
+  "menu/icons/icon_gate_48.png",
+  "menu/icons/icon_gate_48_down.png",
+  "menu/icons/icon_gate_48_idle.png",
+  "menu/icons/icon_light_16.png",
+  "menu/icons/icon_light_16_down.png",
+  "menu/icons/icon_light_16_idle.png",
+  "menu/icons/icon_light_24.png",
+  "menu/icons/icon_light_24_down.png",
+  "menu/icons/icon_light_24_idle.png",
+  "menu/icons/icon_light_32.png",
+  "menu/icons/icon_light_32_down.png",
+  "menu/icons/icon_light_32_idle.png",
+  "menu/icons/icon_light_48.png",
+  "menu/icons/icon_light_48_down.png",
+  "menu/icons/icon_light_48_idle.png",
+  "menu/icons/icon_locked_16.png",
+  "menu/icons/icon_locked_16_down.png",
+  "menu/icons/icon_locked_16_idle.png",
+  "menu/icons/icon_locked_24.png",
+  "menu/icons/icon_locked_24_down.png",
+  "menu/icons/icon_locked_24_idle.png",
+  "menu/icons/icon_locked_32.png",
+  "menu/icons/icon_locked_32_down.png",
+  "menu/icons/icon_locked_32_idle.png",
+  "menu/icons/icon_locked_48.png",
+  "menu/icons/icon_locked_48_down.png",
+  "menu/icons/icon_locked_48_idle.png",
+  "menu/icons/icon_map_frag_16.png",
+  "menu/icons/icon_map_frag_16_down.png",
+  "menu/icons/icon_map_frag_16_idle.png",
+  "menu/icons/icon_map_frag_24.png",
+  "menu/icons/icon_map_frag_24_down.png",
+  "menu/icons/icon_map_frag_24_idle.png",
+  "menu/icons/icon_map_frag_32.png",
+  "menu/icons/icon_map_frag_32_down.png",
+  "menu/icons/icon_map_frag_32_idle.png",
+  "menu/icons/icon_map_frag_48.png",
+  "menu/icons/icon_map_frag_48_down.png",
+  "menu/icons/icon_map_frag_48_idle.png",
+  "menu/icons/icon_mark_seen_16.png",
+  "menu/icons/icon_mark_seen_16_down.png",
+  "menu/icons/icon_mark_seen_16_idle.png",
+  "menu/icons/icon_mark_seen_24.png",
+  "menu/icons/icon_mark_seen_24_down.png",
+  "menu/icons/icon_mark_seen_24_idle.png",
+  "menu/icons/icon_mark_seen_32.png",
+  "menu/icons/icon_mark_seen_32_down.png",
+  "menu/icons/icon_mark_seen_32_idle.png",
+  "menu/icons/icon_mark_seen_48.png",
+  "menu/icons/icon_mark_seen_48_down.png",
+  "menu/icons/icon_mark_seen_48_idle.png",
+  "menu/icons/icon_notes_16.png",
+  "menu/icons/icon_notes_16_down.png",
+  "menu/icons/icon_notes_16_idle.png",
+  "menu/icons/icon_notes_24.png",
+  "menu/icons/icon_notes_24_down.png",
+  "menu/icons/icon_notes_24_idle.png",
+  "menu/icons/icon_notes_32.png",
+  "menu/icons/icon_notes_32_down.png",
+  "menu/icons/icon_notes_32_idle.png",
+  "menu/icons/icon_notes_48.png",
+  "menu/icons/icon_notes_48_down.png",
+  "menu/icons/icon_notes_48_idle.png",
+  "menu/icons/icon_open_16.png",
+  "menu/icons/icon_open_16_down.png",
+  "menu/icons/icon_open_16_idle.png",
+  "menu/icons/icon_open_24.png",
+  "menu/icons/icon_open_24_down.png",
+  "menu/icons/icon_open_24_idle.png",
+  "menu/icons/icon_open_32.png",
+  "menu/icons/icon_open_32_down.png",
+  "menu/icons/icon_open_32_idle.png",
+  "menu/icons/icon_open_48.png",
+  "menu/icons/icon_open_48_down.png",
+  "menu/icons/icon_open_48_idle.png",
+  "menu/icons/icon_repair_16.png",
+  "menu/icons/icon_repair_16_down.png",
+  "menu/icons/icon_repair_16_idle.png",
+  "menu/icons/icon_repair_24.png",
+  "menu/icons/icon_repair_24_down.png",
+  "menu/icons/icon_repair_24_idle.png",
+  "menu/icons/icon_repair_32.png",
+  "menu/icons/icon_repair_32_down.png",
+  "menu/icons/icon_repair_32_idle.png",
+  "menu/icons/icon_repair_48.png",
+  "menu/icons/icon_repair_48_down.png",
+  "menu/icons/icon_repair_48_idle.png",
+  "menu/icons/icon_rest_16.png",
+  "menu/icons/icon_rest_16_down.png",
+  "menu/icons/icon_rest_16_idle.png",
+  "menu/icons/icon_rest_24.png",
+  "menu/icons/icon_rest_24_down.png",
+  "menu/icons/icon_rest_24_idle.png",
+  "menu/icons/icon_rest_32.png",
+  "menu/icons/icon_rest_32_down.png",
+  "menu/icons/icon_rest_32_idle.png",
+  "menu/icons/icon_rest_48.png",
+  "menu/icons/icon_rest_48_down.png",
+  "menu/icons/icon_rest_48_idle.png",
+  "menu/icons/icon_sell_16.png",
+  "menu/icons/icon_sell_16_down.png",
+  "menu/icons/icon_sell_16_idle.png",
+  "menu/icons/icon_sell_24.png",
+  "menu/icons/icon_sell_24_down.png",
+  "menu/icons/icon_sell_24_idle.png",
+  "menu/icons/icon_sell_32.png",
+  "menu/icons/icon_sell_32_down.png",
+  "menu/icons/icon_sell_32_idle.png",
+  "menu/icons/icon_sell_48.png",
+  "menu/icons/icon_sell_48_down.png",
+  "menu/icons/icon_sell_48_idle.png",
+  "menu/icons/icon_sleep_16.png",
+  "menu/icons/icon_sleep_16_down.png",
+  "menu/icons/icon_sleep_16_idle.png",
+  "menu/icons/icon_sleep_24.png",
+  "menu/icons/icon_sleep_24_down.png",
+  "menu/icons/icon_sleep_24_idle.png",
+  "menu/icons/icon_sleep_32.png",
+  "menu/icons/icon_sleep_32_down.png",
+  "menu/icons/icon_sleep_32_idle.png",
+  "menu/icons/icon_sleep_48.png",
+  "menu/icons/icon_sleep_48_down.png",
+  "menu/icons/icon_sleep_48_idle.png",
+  "menu/icons/icon_sort_16.png",
+  "menu/icons/icon_sort_16_down.png",
+  "menu/icons/icon_sort_16_idle.png",
+  "menu/icons/icon_sort_24.png",
+  "menu/icons/icon_sort_24_down.png",
+  "menu/icons/icon_sort_24_idle.png",
+  "menu/icons/icon_sort_32.png",
+  "menu/icons/icon_sort_32_down.png",
+  "menu/icons/icon_sort_32_idle.png",
+  "menu/icons/icon_sort_48.png",
+  "menu/icons/icon_sort_48_down.png",
+  "menu/icons/icon_sort_48_idle.png",
+  "menu/icons/icon_torch_16.png",
+  "menu/icons/icon_torch_16_down.png",
+  "menu/icons/icon_torch_16_idle.png",
+  "menu/icons/icon_torch_24.png",
+  "menu/icons/icon_torch_24_down.png",
+  "menu/icons/icon_torch_24_idle.png",
+  "menu/icons/icon_torch_32.png",
+  "menu/icons/icon_torch_32_down.png",
+  "menu/icons/icon_torch_32_idle.png",
+  "menu/icons/icon_torch_48.png",
+  "menu/icons/icon_torch_48_down.png",
+  "menu/icons/icon_torch_48_idle.png",
+  "menu/icons/icon_use_16.png",
+  "menu/icons/icon_use_16_down.png",
+  "menu/icons/icon_use_16_idle.png",
+  "menu/icons/icon_use_24.png",
+  "menu/icons/icon_use_24_down.png",
+  "menu/icons/icon_use_24_idle.png",
+  "menu/icons/icon_use_32.png",
+  "menu/icons/icon_use_32_down.png",
+  "menu/icons/icon_use_32_idle.png",
+  "menu/icons/icon_use_48.png",
+  "menu/icons/icon_use_48_down.png",
+  "menu/icons/icon_use_48_idle.png",
+  "menu/inv_slot_hover_24.png",
+  "menu/inv_slot_hover_9slice_12_s4.png",
+  "menu/inv_slot_idle_24.png",
+  "menu/inv_slot_idle_9slice_12_s4.png",
+  "menu/inv_slot_sel_24.png",
+  "menu/inv_slot_sel_9slice_12_s4.png",
+  "menu/mbtn_down_96x24.png",
+  "menu/mbtn_down_9slice_12_s4.png",
+  "menu/mbtn_hover_96x24.png",
+  "menu/mbtn_hover_9slice_12_s4.png",
+  "menu/mbtn_idle_96x24.png",
+  "menu/mbtn_idle_9slice_12_s4.png",
+  "menu/mbtn_small_down_48x16.png",
+  "menu/mbtn_small_hover_48x16.png",
+  "menu/mbtn_small_idle_48x16.png",
+  "menu/panel_9slice_24_s8.png",
+  "menu/panel_b_8.png",
+  "menu/panel_bl_8.png",
+  "menu/panel_br_8.png",
+  "menu/panel_c_8.png",
+  "menu/panel_inset_9slice_12_s4.png",
+  "menu/panel_inset_sample_96x48.png",
+  "menu/panel_l_8.png",
+  "menu/panel_r_8.png",
+  "menu/panel_sample_160x96.png",
+  "menu/panel_t_8.png",
+  "menu/panel_tl_8.png",
+  "menu/panel_tr_8.png",
+  "menu/shop_row_9slice_12_s4.png",
+  "menu/shop_row_sample_160x24.png",
+  "menu/slider_fill_9slice_12x8_s4.png",
+  "menu/slider_knob_6x12_down.png",
+  "menu/slider_knob_6x12_idle.png",
+  "menu/slider_sample_fill_64x8.png",
+  "menu/slider_track_64x8.png",
+  "menu/slider_track_9slice_12x8_s4.png"
+ ],
+ "hud": {
+  "attack": {
+   "primary_px": 48,
+   "sizes": [
+    16,
+    32,
+    48
+   ],
+   "slot": "#bAtk 88x88"
+  },
+  "backpack": {
+   "primary_px": 24,
+   "sizes": [
+    16,
+    24
+   ],
+   "slot": "#bInv 46x46"
+  },
+  "fireball": {
+   "primary_px": 32,
+   "sizes": [
+    16,
+    32,
+    48
+   ],
+   "slot": "#bS1 56x56"
+  },
+  "frost_nova": {
+   "primary_px": 32,
+   "sizes": [
+    16,
+    32,
+    48
+   ],
+   "slot": "#bS3 56x56"
+  },
+  "heal": {
+   "primary_px": 24,
+   "sizes": [
+    16,
+    24
+   ],
+   "slot": "#bHP 46x46"
+  },
+  "mana": {
+   "primary_px": 24,
+   "sizes": [
+    16,
+    24
+   ],
+   "slot": "#bMP 46x46"
+  },
+  "map": {
+   "primary_px": 16,
+   "sizes": [
+    16,
+    32
+   ],
+   "slot": "#tMap 36x30"
+  },
+  "pause": {
+   "primary_px": 16,
+   "sizes": [
+    16,
+    32
+   ],
+   "slot": "#tPause 36x30"
+  },
+  "roll": {
+   "primary_px": 32,
+   "sizes": [
+    16,
+    32,
+    48
+   ],
+   "slot": "#bRoll 56x56"
+  },
+  "spin": {
+   "primary_px": 32,
+   "sizes": [
+    16,
+    32,
+    48
+   ],
+   "slot": "#bS2 56x56"
+  }
+ },
+ "status": "PARKED"
+}

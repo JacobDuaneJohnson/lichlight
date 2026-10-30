@@ -247,5 +247,265 @@
   "loop": false,
   "anchor": "centre",
   "note": "low alpha 110/85/55; fade sequence or random"
+ },
+ "fx_hellmouth_open": {
+  "frames": [
+   "fx_hellmouth_open_01.png",
+   "fx_hellmouth_open_02.png",
+   "fx_hellmouth_open_03.png",
+   "fx_hellmouth_open_04.png",
+   "fx_hellmouth_open_05.png",
+   "fx_hellmouth_open_06.png"
+  ],
+  "size": [
+   48,
+   48
+  ],
+  "fps": 12,
+  "loop": false,
+  "anchor": [
+   24,
+   24
+  ],
+  "note": "state opening (frames 0-30 @60): play once ~0.5 s, hold 06 (or loop 05-06) until sink; draw under enemy, above floor; optional lighter/screen"
+ },
+ "fx_hellmouth_scar": {
+  "frames": [
+   "fx_hellmouth_scar_01.png",
+   "fx_hellmouth_scar_02.png",
+   "fx_hellmouth_scar_03.png",
+   "fx_hellmouth_scar_04.png"
+  ],
+  "size": [
+   48,
+   48
+  ],
+  "fps": 6,
+  "loop": false,
+  "anchor": [
+   24,
+   24
+  ],
+  "note": "state aftermath (frames 91-180): 01 hot -> 04 cold; hold 04 and fade alpha out by frame 180 (or keep 04 as decal)"
+ },
+ "fx_hellmouth_ash": {
+  "frames": [
+   "fx_hellmouth_ash_01.png",
+   "fx_hellmouth_ash_02.png",
+   "fx_hellmouth_ash_03.png"
+  ],
+  "size": [
+   8,
+   8
+  ],
+  "fps": 10,
+  "loop": false,
+  "anchor": [
+   4,
+   4
+  ],
+  "note": "particle chips: spawn on scar, drift up, step 01->03 then kill"
+ },
+ "fx_spectral_clone_outline": {
+  "frames": [
+   "fx_spectral_clone_outline_01.png",
+   "fx_spectral_clone_outline_02.png",
+   "fx_spectral_clone_outline_03.png",
+   "fx_spectral_clone_outline_04.png"
+  ],
+  "size": [
+   24,
+   24
+  ],
+  "fps": 8,
+  "loop": true,
+  "anchor": [
+   12,
+   22
+  ],
+  "note": "0-2500 ms decoy body: loop; anchor = feet"
+ },
+ "fx_spectral_clone_phase": {
+  "frames": [
+   "fx_spectral_clone_phase_01.png",
+   "fx_spectral_clone_phase_02.png",
+   "fx_spectral_clone_phase_03.png",
+   "fx_spectral_clone_phase_04.png"
+  ],
+  "size": [
+   24,
+   24
+  ],
+  "fps": 8,
+  "loop": false,
+  "anchor": [
+   12,
+   22
+  ],
+  "note": "2501-4000 ms phasing: ping-pong 01-04 or map sine alpha 0.1-0.7 to frame index; destroy after 04"
+ },
+ "fx_ethereal_shield_ring": {
+  "frames": [
+   "fx_ethereal_shield_ring_01.png",
+   "fx_ethereal_shield_ring_02.png",
+   "fx_ethereal_shield_ring_03.png",
+   "fx_ethereal_shield_ring_04.png"
+  ],
+  "size": [
+   48,
+   48
+  ],
+  "fps": 8,
+  "loop": true,
+  "anchor": [
+   24,
+   24
+  ],
+  "note": "centre = player centre, loop while isArmorActive (5000 ms)"
+ },
+ "fx_ethereal_shield_sparkle": {
+  "frames": [
+   "fx_ethereal_shield_sparkle_01.png",
+   "fx_ethereal_shield_sparkle_02.png",
+   "fx_ethereal_shield_sparkle_03.png"
+  ],
+  "size": [
+   8,
+   8
+  ],
+  "fps": 10,
+  "loop": false,
+  "anchor": [
+   4,
+   4
+  ],
+  "note": "foot particles while moving: spawn behind feet, drift backward, 01->03 then kill"
+ },
+ "fx_ethereal_shift": {
+  "frames": [
+   "fx_ethereal_shift_01.png",
+   "fx_ethereal_shift_02.png",
+   "fx_ethereal_shift_03.png",
+   "fx_ethereal_shift_04.png"
+  ],
+  "size": [
+   24,
+   24
+  ],
+  "fps": 15,
+  "loop": true,
+  "anchor": [
+   12,
+   22
+  ],
+  "note": "overlay/replace player draw while isInvincible (4000 ms); 03 = exclusion-style colour swap"
+ },
+ "arrow_spine_splinter": {
+  "frames": [
+   "arrow_spine_splinter_01.png",
+   "arrow_spine_splinter_02.png",
+   "arrow_spine_splinter_03.png"
+  ],
+  "size": [
+   4,
+   4
+  ],
+  "fps": 10,
+  "loop": false,
+  "anchor": [
+   2,
+   2
+  ],
+  "note": "trail chips: 2-3 behind arrow, 01->03 decay"
+ },
+ "arrow_hellmouth_ember": {
+  "frames": [
+   "arrow_hellmouth_ember_01.png",
+   "arrow_hellmouth_ember_02.png",
+   "arrow_hellmouth_ember_03.png"
+  ],
+  "size": [
+   8,
+   8
+  ],
+  "fps": 10,
+  "loop": false,
+  "anchor": [
+   4,
+   4
+  ],
+  "note": "1-2 backward sparks/frame, 01->03 over ~15-20 frames"
+ },
+ "arrow_default": {
+  "frames": [
+   "arrow_default_16.png"
+  ],
+  "size": [
+   16,
+   8
+  ],
+  "fps": 0,
+  "loop": false,
+  "anchor": [
+   8,
+   3
+  ],
+  "facing": "+X",
+  "uniqueId": "default",
+  "note": "tip on the right; rotate by heading"
+ },
+ "arrow_banshee": {
+  "frames": [
+   "arrow_banshee_16.png"
+  ],
+  "size": [
+   16,
+   8
+  ],
+  "fps": 0,
+  "loop": false,
+  "anchor": [
+   8,
+   3
+  ],
+  "facing": "+X",
+  "uniqueId": "Scream of the Banshee",
+  "note": "tip on the right; rotate by heading"
+ },
+ "arrow_spine": {
+  "frames": [
+   "arrow_spine_16.png"
+  ],
+  "size": [
+   16,
+   8
+  ],
+  "fps": 0,
+  "loop": false,
+  "anchor": [
+   8,
+   3
+  ],
+  "facing": "+X",
+  "uniqueId": "Spine of the First Lich",
+  "note": "tip on the right; rotate by heading"
+ },
+ "arrow_hellmouth": {
+  "frames": [
+   "arrow_hellmouth_16.png"
+  ],
+  "size": [
+   16,
+   8
+  ],
+  "fps": 0,
+  "loop": false,
+  "anchor": [
+   8,
+   3
+  ],
+  "facing": "+X",
+  "uniqueId": "Hellmouth Strider",
+  "note": "tip on the right; rotate by heading"
  }
 }
