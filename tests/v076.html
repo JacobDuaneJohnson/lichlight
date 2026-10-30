@@ -31,7 +31,9 @@ document.getElementById('g').addEventListener('load', () => {
 function sumRgb(px) { return px ? px[0] + px[1] + px[2] : -1; }
 function run(w) {
   const g = w.game;
-  check('boot', !!(g && g.version >= '0.7.6'), g && g.version);
+  const sem = s => String(s).split('.').map(n => parseInt(n, 10) || 0);
+  const gte = (a, b) => { const pa = sem(a), pb = sem(b), n = Math.max(pa.length, pb.length); for (let i = 0; i < n; i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); return true; };
+  check('boot', !!(g && gte(g.version, '0.7.6')), g && g.version);
   check('f7 map alpha', g.mapAlpha <= 0.5 && g.mapBg <= 0.2, g.mapAlpha + ' / ' + g.mapBg);
   check('f7 no grid stroke', !/stroke/.test(w.drawBigMap.toString()));
   check('f5 acid glow', g.LCOL.acid && g.LCOL.acid.join(',') === '92,255,58', g.LCOL.acid && g.LCOL.acid.join(','));
