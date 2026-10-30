@@ -40,6 +40,8 @@ function quiet(g, w) {
 function run(w) {
   const g = w.game;
   w.__noSampleSfx = true;
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.10' && ver.indexOf('"0.7.10"') >= 0, (g && g.version) + ' ' + ver);
   check('boot', !!(g && g.brazierEmissive && g.lichTome === null || g.newGame));
   check('gate pages', g.lichDevOn('gamedevjake.github.io', '?lichDev=1') === false && g.lichDevOn('localhost', '') === true && g.lichDevOn('localhost', '?lichDev=1') === true);
 
