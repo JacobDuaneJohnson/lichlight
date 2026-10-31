@@ -4,6 +4,14 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.10.2] - 2026-10-31
+
+_The screen sits in the middle_
+
+### Fixed
+- The whole screen sat down and to the right. The title, the buttons, and the settings were cut off along the right and the bottom. The same shift showed up in a run. The picture is centered again, on the title screen and while you play.
+- The tabbed satchel is still there: Character, Inventory, Consumables, Notes, Lich Tome, and Map.
+
 ## [0.7.10.1] - 2026-10-31
 
 _Plates, pages, and the tombstone_
@@ -712,6 +720,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
 [0.7.10.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.1
+[0.7.10.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.2
 [0.7.10]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10
 [0.7.9]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.9
 [0.7.8.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.8.1
