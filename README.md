@@ -2,7 +2,7 @@
 
 **[▶ Play Lichlight](https://gamedevjake.github.io/lichlight/)**
 
-Current version: **v0.7.10.3** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
+Current version: **v0.7.11** · [What's new](CHANGELOG.md) · [All releases](https://github.com/gamedevjake/lichlight/releases)
 
 Lichlight is a retro pixel-art dungeon crawler: Zelda-style top-down action meets Diablo 2-style loot. Beneath the drowned city of Vaelmoor, King Oswin Hollowmere sold his soul to the Pale Choir. Now the Bone King waits below.
 
@@ -33,17 +33,17 @@ Walk onto the stairs to go deeper. Gold, potions, keys, and torches are picked u
 - **Traps:** narrow corridors can hide pitfalls, dart traps, collapsing ceilings, rolling stones, and fire jets. Each one flashes a warning first, so roll.
 - **Torches:** wall torches and floor braziers start out. Walk up with a burning torch and use it (**F** / **USE**) to light them. They stay lit. Hit a wall torch to knock it out. Fireballs, Whirlwind, Frost Nova, and enemy shots put them out too. A burning torch, brazier, sconce, or fire pit relights your own torch. A champion's critical hit can snuff the torch in your hand.
 - **Survival:** watch **F**ood, **W**ater, and **R**est. When a bar runs low you move slower. Thirst and exhaustion drain life down to 1. Starvation keeps going: an empty stomach can drop you to 0 and you die. Eat rations from your bag (they turn up in crates, urns, and vaults, or from the trader), drink from stone basins and running water, and **REST** for 1 to 8 hours in a quiet room, a secret chamber, a wall-gap you squeezed through, or a secret passage, with no enemies nearby. 6 to 8 hours is a full rest. Corridors are still too exposed.
-- **Crypt shop:** every boss floor, a wall crumbles when the boss falls and the Hollow Pedlar is waiting in a side room. Sell selected backpack items or **Sell All** (it asks once and shows the gold), repair everything, and buy potions, rations, and Gate Keys.
+- **Crypt shop:** the Hollow Pedlar waits in the boss room, behind a gate. The gate opens about three seconds after the boss falls. There is no shop before the first boss. Sell selected backpack items or **Sell All** (it asks once and shows the gold), repair everything, and buy potions, rations, and Gate Keys.
 - **Zoom (computer):** `-` and `=` cycle 0.25x, 0.35x, 0.5x, 0.75x, and 1x. `0` returns to 1x. Darkness, torch light, and fog scale with that view, so unexplored rooms stay black. Phones stay on 1x / 1.15x / 1.25x / 1.35x.
 - **Notes:** worn glyph scraps turn up on the floors. They go into **NOTES** in the bag, which is enough to put a prism's sequence in order.
 - **Spiked gaps:** a break in a hallway is an open pit of spikes. You walk across it. Dodge-roll still hops it. Standing on the spikes cuts you, and a thought bubble complains. Nothing throws you back.
 - **Prisms:** about every 7th floor holds a lich-light prism. The crank is at its base. Scratch the order out of the notebook, and the gate that opens glows the same green as the beam. Solving it spills a soft green light through open doors and casts shadows. The room beyond is a chest of gold.
 - **Glimmer pools:** drink once for +25% bonus XP for five minutes. That pool is then dry.
-- **Map Fragments:** very rare. Collect 4 and use them from your bag to reveal the whole floor, including hidden walls and traps.
+- **Map Fragments:** very rare. Collect 4 and use them from your bag to mark the exit door on the map. The rest of the floor stays dark.
 - **Map icons:** the first time you see a puzzle sconce, lever, prism, plaque, crank, glyph socket, secret wall, platform, dark portal, or sink stone, its icon stays on the map (M) for that floor. Pieces you have not seen stay off the map.
 - **Satchels and backpacks:** the Bone King and later bosses can drop bags that add 5 or 10 slots (40 max).
 - **Drop All:** the **DROP ALL** button in the bag drops every backpack item after you confirm (Shift+click skips the confirm). Equipped gear stays on.
-- **Durability and Repair Potions:** weapons wear down as you land hits and armor wears down as you take them. Below 10% the item's icon turns red and you get a warning. At 0 the item shatters and is gone for good. Orange **Repair Potions** fully restore one item: select the potion in your bag, then tap the item. They turn up on the floor, in chests, on champions, and from every boss.
+- **Durability and Repair Potions:** weapons wear down as you land hits and armor wears down as you take them. Below 10% the item's icon turns red and you get a warning. At 0 the item shatters and is gone for good. Orange **Repair Potions** fully restore one item: select the potion in your bag and the Character panel opens so you can pick the worn piece. They turn up on the floor, in chests, on champions, and from every boss.
 
 ### Touch controls
 

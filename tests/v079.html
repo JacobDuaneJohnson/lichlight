@@ -32,7 +32,7 @@ function run(w) {
   w.__noSampleSfx = true;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.10.3' && ver.indexOf('"0.7.10.3"') >= 0, g && g.version + ' ' + ver);
+  check('version', g && g.version === '0.7.11' && ver.indexOf('"0.7.11"') >= 0, g && g.version + ' ' + ver);
   check('gate pages', g.lichDevOn('gamedevjake.github.io', '?lichDev=1') === false && g.lichDevOn('foo.github.io') === false);
 
   g.newGame();
@@ -196,11 +196,11 @@ function run(w) {
   check('f6 keeps lich vocal', g.bossGloats.indexOf('enm_boss_lich_vocal') < 0 && src.indexOf('enm_boss_lich_vocal') >= 0);
 
   const slider = w.document.getElementById('volMap');
-  check('f7 control', !!(slider && slider.min === '10' && slider.max === '100' && slider.step === '5'));
+  check('f7 control', !!(slider && slider.min === '10' && slider.max === '90' && slider.step === '5'));
   g.settings.mapOp = 10;
   check('f7 faint', Math.abs(g.mapAlpha - 0.42 * 0.1) < 0.0001 && Math.abs(g.mapBg - 0.14 * 0.1) < 0.0001 && g.mapOp === 10, g.mapAlpha + ' / ' + g.mapBg);
-  g.settings.mapOp = 100;
-  check('f7 solid', Math.abs(g.mapAlpha - 0.42) < 0.0001 && Math.abs(g.mapBg - 0.14) < 0.0001 && g.mapOp === 100, g.mapAlpha);
+  g.settings.mapOp = 90;
+  check('f7 solid', Math.abs(g.mapAlpha - 0.42 * 0.9) < 0.0001 && Math.abs(g.mapBg - 0.14 * 0.9) < 0.0001 && g.mapOp === 90, g.mapAlpha);
   g.settings.mapOp = 100;
   if (w.saveSettings) w.saveSettings();
 

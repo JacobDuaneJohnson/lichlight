@@ -164,6 +164,8 @@ function run(w) {
   check('f3 boss present', !!boss);
   if (boss && g.shop && g.shop.sealed) {
     w.killEnemy(boss);
+    check('f3 gate waits', g.shop.sealed === true, g.shop.sealed);
+    g.step(3.05);
     check('f3 wall crumbles', g.shop.sealed === false && w.tileAt(g.shop.tx, g.shop.ty) === 1, g.shop.sealed);
   }
   g.openShop();

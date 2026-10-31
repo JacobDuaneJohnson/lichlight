@@ -4,6 +4,38 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.11] - 2026-10-31
+
+_The gate, the chest, and the card_
+
+### Added
+- **Shop in the boss room.** The Hollow Pedlar waits behind a gate in the boss room. The gate opens about three seconds after the boss falls. No shop before the first boss.
+- **Exit scraps.** Four Map Fragments mark the exit door on the map. They do not reveal the floor.
+- **Victory chest.** About two seconds after a boss falls, a wood and iron chest bursts open and spits 100 gold. A victory chant plays with the burst.
+- **Boss laugh on the way down.** Using a dungeon exit plays a low laugh, once.
+- **Map button.** It is the same size as the potions, and you can drag it with the other touch buttons. Dragged buttons snap to a small grid.
+- **Character card.** The Character tab drops the Gate button and lists more of the run: necro potions, keys, death tolls, favorite spell, favorite weapon. Your hero stands there in the gear you have on, and idles.
+- **Spell cards.** Press and hold a spell in the Lich Tome to read what it does. The page shows the spell's icon.
+- **Puzzle loot.** A chest or secret that only opens after a puzzle always has loot, including one greater rare.
+
+### Changed
+- **Hellmouth** swallows ordinary enemies only. A boss in the maw takes 10% more damage while the skill lasts, and is not devoured.
+- **Sconce doors** open when every sconce is lit, in any order.
+- **Map opacity.** The slider, all the way up, makes the map 90% opaque.
+- **Repair Potion** opens the Character panel so you can choose what to repair.
+- **Examine** repeats the first line. It no longer says there is nothing else to see.
+- **The move pad** stays where you put your thumb. The knob follows. The base does not slide until you let go.
+
+### Fixed
+- Puzzle doors block both ways until the puzzle is solved. A secret passage can no longer walk you around one. If you are already stuck on the far side, the door opens so you are not sealed in.
+- Swiping across the spell buttons no longer leaves a spell held down, casting on its own.
+- HUD buttons no longer draw text on top of the art.
+- The satchel's new-item badge is no longer clipped by the button.
+- Notes in the satchel scroll.
+- Braziers stay cold, and use the unlit art, until you light them.
+- Item stats in the satchel scroll, in the side panel and in the press-and-hold card. Footer buttons no longer sit on top of each other.
+- Consumable slots draw their icons. Lich Tome spells draw theirs, in the same lettering as item stats.
+
 ## [0.7.10.3] - 2026-10-31
 
 _The satchel matches the mock_
@@ -729,6 +761,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
 [0.7.10.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.1
+[0.7.11]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.11
 [0.7.10.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.3
 [0.7.10.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.2
 [0.7.10]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10

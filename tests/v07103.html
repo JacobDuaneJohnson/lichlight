@@ -31,7 +31,7 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.10.3' && ver.indexOf('"0.7.10.3"') >= 0, (g && g.version) + ' ' + ver);
+  check('version', g && g.version === '0.7.11' && ver.indexOf('"0.7.11"') >= 0, (g && g.version) + ' ' + ver);
   check('no css zoom', src.indexOf('zoom:var(--ui)') < 0 && src.indexOf('zoom:var(--hud)') < 0);
   check('pack b art', src.indexOf('inv_stats_header_unique_9slice') >= 0 && src.indexOf('btn_mark_seen_idle_80x20') >= 0 && src.indexOf('slot_sel_24.png') >= 0);
   const frame = document.getElementById('g');
