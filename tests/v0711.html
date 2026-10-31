@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v0711</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:840px;height:420px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 280) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function reachFrom(g, sx, sy, maxX, maxY) {
+  const vis = {}, q = [[sx, sy]]; vis[sx + ',' + sy] = 1;
+  while (q.length) {
+    const [x, y] = q.pop();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const X = x + dx, Y = y + dy;
+      if (X < 0 || Y < 0 || X >= maxX || Y >= maxY || vis[X + ',' + Y]) continue;
+      if (g.tileAt(X, Y) === 0) continue;
+      vis[X + ',' + Y] = 1; q.push([X, Y]);
+    }
+  }
+  return vis;
+}
+function bounds(rooms) {
+  let maxX = 4, maxY = 4;
+  rooms.forEach(r => { maxX = Math.max(maxX, r.x + r.w + 3); maxY = Math.max(maxY, r.y + r.h + 3); });
+  return [maxX, maxY];
+}
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.11' && ver.indexOf('"0.7.11"') >= 0, (g && g.version) + ' ' + ver);
+  check('no dev hud on github', src.indexOf("h === 'github.io' || h.endsWith('.github.io')") >= 0 && src.indexOf('return false') >= 0);
+  check('no css zoom', src.indexOf('zoom:var(--ui)') < 0);
+  check('pack b shell', src.indexOf('inv_stats_header_unique_9slice') >= 0 && src.indexOf('btn_equip_idle_52x20') >= 0);
+  check('exit art wired', src.indexOf('map_icon_exit') >= 0 && src.indexOf('chest_victory_closed_32') >= 0);
+  check('chants wired', src.indexOf('meta_victory_chant_01') >= 0 && src.indexOf('meta_exit_boss_laugh_01') >= 0 && src.indexOf('meta_victory_01') < 0);
+  check('map slider max', w.document.getElementById('volMap').max === '90');
+  g.settings.mapOp = 100;
+  check('map opacity 90', Math.abs(g.mapOpacity() - 0.9) < 0.001, g.mapOpacity());
+  g.settings.mapOp = 90;
+  check('map opacity stays', Math.abs(g.mapOpacity() - 0.9) < 0.001, g.mapOpacity());
+
+  g.newGame();
+  const sub = w.document.querySelector('#bS1 .sub');
+  check('hud text hidden', sub && getComputedStyle(sub).fontSize === '0px', sub && getComputedStyle(sub).fontSize);
+  const badge = w.document.getElementById('newBadge');
+  check('badge escapes mask', getComputedStyle(w.document.getElementById('bInv')).overflow === 'visible', getComputedStyle(w.document.getElementById('bInv')).overflow);
+  const mapBtn = w.document.getElementById('tMap');
+  const mapW = parseFloat(w.getComputedStyle(mapBtn).width);
+  check('map button potion size', mapW >= 48, mapW);
+
+  w.__forcePPuzzle = 1;
+  w.__forcePPuzzleKind = 'braziers';
+  let sealedBoss = 0, leakedBoss = 0, vaultSealed = 0, vaultLeak = 0, tries = 0;
+  for (let i = 0; i < 8; i++) {
+    g.startFloor(5 + (i % 3) * 5, true);
+    tries++;
+    const rooms = g.rooms, [mx, my] = bounds(rooms), s = rooms[0];
+    const vis = reachFrom(g, s.cx, s.cy, mx, my);
+    const br = rooms.find(r => r.bossRoom);
+    const pd = g.doors.find(d => d.puzzle && d.bossGate && !d.open);
+    if (br && pd) {
+      if (vis[br.cx + ',' + br.cy]) leakedBoss++; else sealedBoss++;
+    }
+    const vault = g.doors.find(d => d.puzzle && d.rect && !d.open);
+    if (vault) {
+      const tx = vault.rect.x + 1, ty = vault.rect.y + 1;
+      if (vis[tx + ',' + ty]) vaultLeak++; else vaultSealed++;
+      const rare = g.ground.some(it => it.item && it.item.rarity >= 2 && Math.floor(it.x / 16) >= vault.rect.x && Math.floor(it.x / 16) < vault.rect.x + vault.rect.w && Math.floor(it.y / 16) >= vault.rect.y && Math.floor(it.y / 16) < vault.rect.y + vault.rect.h);
+      if (!rare) vaultLeak += 0; // counted below
+      check('vault rare ' + i, rare, rare);
+    }
+    const cold = (g.braziers || []).filter(b => b.lit !== 0 && b.lit !== false);
+    if (cold.length) check('braziers cold ' + i, false, cold.length);
+  }
+  check('boss door blocks', sealedBoss > 0 && leakedBoss === 0, sealedBoss + ' sealed, ' + leakedBoss + ' leaked / ' + tries);
+  check('vault door blocks', vaultSealed > 0 && vaultLeak === 0, vaultSealed + ' / leak ' + vaultLeak);
+  delete w.__forcePPuzzle; delete w.__forcePPuzzleKind;
+
+  g.startFloor(6, true);
+  const door = { open: false, puzzle: 'p_braziers', prog: 0, tiles: [] };
+  const sconces = [0, 1, 2].map(i => ({ door, kind: 'sconce', idx: i, on: false, x: 0, y: 0 }));
+  g.puzzles.push(...sconces);
+  g.player.torchT = 100;
+  w.lightSconce(sconces[2]);
+  w.lightSconce(sconces[0]);
+  check('sconce any order keeps lights', sconces[2].on && sconces[0].on && !door.open, sconces.map(s => s.on).join(','));
+  w.lightSconce(sconces[1]);
+  check('sconce all opens', door.open === true, door.open);
+
+  const prop = { kind: 'statue', x: 10, y: 10, v: 0 };
+  w.examineObj(prop, () => 'A CRACKED IDOL.');
+  const thought = g.thought;
+  check('examine first', (thought.text || '').indexOf('NOTHING ELSE') < 0 && (thought.text || '').length > 3, thought.text);
+  const saved = thought.text;
+  thought.life = 0;
+  w.examineObj(prop, () => 'A DIFFERENT LINE.');
+  check('examine repeats', thought.text === saved && (thought.text || '').indexOf('NOTHING ELSE') < 0, thought.text);
+
+  g.player.mapFrags = 4;
+  g.exitPing = false;
+  w.useMapFrags();
+  check('fragments mark exit only', g.exitPing === true && g.player.mapFrags === 0, 'ping ' + g.exitPing + ' frags ' + g.player.mapFrags);
+  const seenBefore = g.seenAt ? null : null;
+  const fragFn = src.slice(src.indexOf('function useMapFrags'), src.indexOf('function revealFloor'));
+  check('fragments skip full reveal', fragFn.indexOf('revealFloor') < 0 && fragFn.indexOf('exitPing = true') >= 0, fragFn.slice(0, 180));
+
+  const boss = g.enemies.find(e => e.T && e.T.boss) || null;
+  if (!boss) {
+    g.startFloor(5, true);
+  }
+  const b2 = g.enemies.find(e => e.T && e.T.boss);
+  check('shop behind boss', !!(g.shop && g.shop.sealed), g.shop && (g.shop.bossShop + ' ' + g.shop.sealed));
+  if (w.ensureTome) w.ensureTome(g.player);
+  if (w.unlockSpell) w.unlockSpell('hellmouth');
+  g.player.mp = 99;
+  const trash = g.enemies.find(e => e && e.T && !e.T.boss && !e.dead);
+  if (trash && b2) { trash.x = g.player.x + 16; trash.y = g.player.y; b2.x = g.player.x + 28; b2.y = g.player.y; const hp0 = b2.hp; if (w.castHellmouth) w.castHellmouth(); check('boss not devoured', b2.hp === hp0 && !b2.dead, b2.hp); check('boss maw vuln', b2.mawVuln > 0, b2.mawVuln); if (trash && !trash.dead) check('trash in the maw', !!(g.player.activeHellSinks && g.player.activeHellSinks.length), (g.player.activeHellSinks && g.player.activeHellSinks.length)); }
+  if (b2 && g.shop) {
+    const hp = b2.hp;
+    w.killEnemy(b2);
+    check('shop waits 3s', g.shop.sealed === true, g.shop.openAt);
+    check('victory waits', g.vic && g.vic.phase === 'wait', g.vic && g.vic.phase);
+    g.step(2.1);
+    check('victory chest up', g.vic && g.vic.phase !== 'wait', g.vic && g.vic.phase);
+    g.step(1.2);
+    check('shop gate open', g.shop.sealed === false, g.shop.sealed);
+    const coins = g.ground.filter(o => o.coin || (o.gold === 1)).length;
+    check('hundred gold', coins >= 100, coins);
+    check('boss toll', g.player.tolls && g.player.tolls.boss >= 1, JSON.stringify(g.player.tolls));
+    void hp;
+  }
+
+  const weapon = g.makeItem(3, 1);
+  weapon.dur = 2; weapon.maxDur = 20; weapon.slot = 'weapon';
+  g.player.equip.weapon = weapon;
+  g.player.rpPot = 1;
+  w.openInv();
+  w.toggleRepairMode();
+  check('repair opens character', w.document.getElementById('satchel').dataset.tab === 'character', w.document.getElementById('satchel').dataset.tab);
+  const gate = w.document.getElementById('gkN');
+  check('gate hidden', !gate || getComputedStyle(gate).display === 'none', gate && getComputedStyle(gate).display);
+  check('hero canvas', !!w.document.getElementById('charHero') || !!w.document.getElementById('charScroll'));
+
+  w.satchelOpenTab('consumables');
+  const chips = w.document.querySelectorAll('#consPane .cons-chip img');
+  check('consumable icons', chips.length >= 5, chips.length);
+
+  g.player.lichTome.isAcquired = true;
+  g.unlockSpell('fireball');
+  w.satchelOpenTab('tome');
+  const tomeImg = w.document.querySelector('#tomePane .tome-page img');
+  check('tome icon', !!tomeImg && (tomeImg.src || '').indexOf('skill_') >= 0, tomeImg && tomeImg.src);
+
+  w.satchelOpenTab('notes');
+  g.player.notes = [];
+  for (let n = 0; n < 12; n++) g.player.notes.push({ title: 'NOTE ' + n, body: 'A long scrap about the crypt and the order of the glyphs.\nSecond line of the scrap.' });
+  w.satchelOpenTab('notes');
+  const notes = w.document.getElementById('notesPane');
+  check('notes overflow', notes && notes.scrollHeight >= notes.clientHeight, notes && (notes.scrollHeight + '/' + notes.clientHeight));
+
+  g.player.inv[0] = g.makeItem(8, 3);
+  w.satchelOpenTab('inventory');
+  const slot = w.document.querySelector('#grid .slot');
+  if (slot) slot.dispatchEvent(new w.PointerEvent('pointerdown', { bubbles: true, cancelable: true, pointerType: 'mouse', clientX: 8, clientY: 8 }));
+  const scroll = w.document.getElementById('invStatsScroll');
+  check('stats scroll', !!scroll && scroll.scrollHeight >= 20, scroll && scroll.scrollHeight);
+  const cv = w.document.getElementById('invStatsCv');
+  check('stats canvas kept', cv && +cv.width >= 96 && +cv.height === 108, cv && (cv.width + 'x' + cv.height));
+
+  for (const k in g.held) g.held[k] = true;
+  w.releaseBar();
+  const stuck = ['s1', 's2', 's3', 's4', 's5', 's6', 's7'].some(k => g.held[k]);
+  check('release clears spells', !stuck, JSON.stringify(g.held));
+
+  const coldProps = (g.bprops || []).filter(o => /brazier/.test(o.k) && o.lit !== 0 && o.lit !== false);
+  check('biome braziers cold', coldProps.length === 0, coldProps.length);
+}
+</script>
+</body>
+</html>

@@ -395,6 +395,25 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .dh-well{flex:1 1 auto;min-width:40px;margin:0 6px 4px;padding:2px 6px;background:url(assets/ui/v07101/desktop/bar/center_well_9slice_12_s4.png) center/100% 100% no-repeat;display:flex;flex-direction:column;justify-content:center;gap:1px}
 .dh-well .row{display:flex;justify-content:space-between;gap:6px;white-space:nowrap}
 #deskHud{background:url(assets/ui/v07101/desktop/bar/desk_bar_9slice_64x40_s16.png) center bottom / 100% 78% no-repeat}
+/* v0.7.11: HUD labels stay off the art, the satchel badge is not clipped, map matches potions */
+#touch .btn .sub,#touch .btn .ico{font-size:0!important;color:transparent!important;text-shadow:none!important}
+#bInv{overflow:visible}
+#bInv .nbadge{z-index:6;top:-6px;right:-6px;min-width:16px;height:16px;line-height:16px;font-size:10px}
+#cornerbar #tMap,#tMap{width:48px;height:48px;border-radius:50%}
+#gkN{display:none!important}
+#satchel #stats{overflow:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+#satchel #notesPane{overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+#invStatsScroll,#holdBody,#tomeHold{scrollbar-width:thin;scrollbar-color:#a08050 #1a120c}
+#invStatsCv{clip-path:inset(0 0 86px 0)}
+#invStatsScroll{position:absolute;left:4px;right:3px;top:20px;bottom:3px;overflow:auto;touch-action:pan-y;z-index:2}
+#holdStats{position:fixed;z-index:40;width:min(280px,78vw);max-height:min(240px,70vh);display:flex;flex-direction:column;image-rendering:pixelated;border-style:solid;border-width:8px;border-image:url(assets/ui/v07101/satchel/content/inv_stats_panel_9slice_12_s4.png) 4 fill / 8px / 0 stretch;background:#1a120e}
+#holdStats.hidden{display:none!important}
+#holdStats .ist-head{position:relative;height:17px;flex:0 0 17px;margin:2px 2px 0;background:url(assets/ui/v07101/satchel/content/inv_stats_header_common_9slice_24x17_s6.png) center/100% 100% no-repeat}
+#holdStats[data-rar="magic"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_magic_9slice_24x17_s6.png)}
+#holdStats[data-rar="rare"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_rare_9slice_24x17_s6.png)}
+#holdStats[data-rar="unique"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_unique_9slice_24x17_s6.png)}
+#holdBody,#tomeHold{overflow:auto;touch-action:pan-y;flex:1;min-height:0;max-height:200px}
+#charHero{position:absolute;left:2px;top:2px;width:36px;height:58px;image-rendering:pixelated;pointer-events:none}
 </style>
 </head>
 <body>
@@ -443,7 +462,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
           <div class="foot-l">
             <div class="invb foot-for foot-inventory"><button class="sat-btn" id="sortBtn" type="button">SORT</button><button class="sat-btn" id="seenBtn" type="button">MARK ALL SEEN</button><button class="sat-btn" id="dropAllBtn" type="button" title="Drop every backpack item (Shift+click skips the confirm)">DROP ALL</button></div>
             <div class="invb foot-for foot-character"><button class="sat-btn" id="restBtn" type="button" title="Rest in a safe room">REST</button><span id="gkN" title="Gate Keys (iron gates)">GATE 0</span></div>
-            <div class="invb foot-for foot-consumables"><button class="sat-btn text stone" id="rpBtn" type="button" title="Repair Potion: select, then pick an item to repair"><img id="rpImg" alt=""><span id="rpN">0</span></button><button class="sat-btn text stone" id="ratBtn" type="button" title="Eat a ration">FOOD <span id="ratN">0</span></button><button class="sat-btn text stone" id="fragBtn" type="button" title="Map Fragments: 4 reveal this floor">MAP <span id="fragN">0/4</span></button><button class="sat-btn" id="useBtn" type="button">USE</button></div>
+            <div class="invb foot-for foot-consumables"><button class="sat-btn text stone" id="rpBtn" type="button" title="Repair Potion: select, then pick an item to repair"><img id="rpImg" alt=""><span id="rpN">0</span></button><button class="sat-btn text stone" id="ratBtn" type="button" title="Eat a ration">FOOD <span id="ratN">0</span></button><button class="sat-btn text stone" id="fragBtn" type="button" title="Map Fragments: 4 mark the exit door">MAP <span id="fragN">0/4</span></button><button class="sat-btn" id="useBtn" type="button">USE</button></div>
             <div class="invb foot-for foot-notes"><button class="sat-btn" id="closeNotesBtn" type="button">CLOSE NOTES</button></div>
           </div>
           <div class="foot-r">
@@ -480,7 +499,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <label>MUSIC <input type="range" id="volMusic" min="0" max="100" step="5"></label>
     <label>SFX <input type="range" id="volSfx" min="0" max="100" step="5"></label>
     <label>AMBIENCE <input type="range" id="volAmb" min="0" max="100" step="5"></label>
-    <label>MAP <input type="range" id="volMap" min="10" max="100" step="5" title="Map overlay opacity, 10% to 100%"></label>
+    <label>MAP <input type="range" id="volMap" min="10" max="90" step="5" title="Map overlay opacity. All the way up is 90% opaque."></label>
   </div>
   <div class="help" id="helpTxt"></div>
   <div class="verbar"><a id="whatsNew" href="https://github.com/gamedevjake/lichlight/releases" target="_blank" rel="noopener">WHAT'S NEW</a><span id="verTxt"></span></div>
@@ -526,7 +545,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.10.3'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.11'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -3064,7 +3083,7 @@ function save() {
   try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId, world: DPLANE ? DPLANE.home : worldSnap(), /* v0.7.3 §7: never save the temporary plane */
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
       gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0),
-      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, necroSeen: !!(p.necroSeen || p.npPot > 0), hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p), spellBar: Array.isArray(p.spellBar) ? p.spellBar.slice(0, 4) : [null, null, null, null] } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
+      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, necroSeen: !!(p.necroSeen || p.npPot > 0), hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p), spellBar: Array.isArray(p.spellBar) ? p.spellBar.slice(0, 4) : [null, null, null, null], tolls: p.tolls || null, favCast: p.favCast || null, favWep: p.favWep || null } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
 }
 // ---- v0.6.3 B10: full save state. The whole live floor (layout, explored tiles, doors, puzzles, chests, secrets, loot, enemies, props...)
 // plus your position is packed into the save; Continue drops you back on the same spot. Older saves (no world) start the floor fresh as before.
@@ -3093,7 +3112,7 @@ const strTiles = s => typeof s === 'string' ? Array.from(s, Number) : s;
 function worldSnap() { if (!player || !map.length || !rooms.length) return null; const p = player;
   return { v: WORLD_V, depth, MW, MH, time: Math.round(time * 100) / 100, map: tileStr(map), seen: seen.map(b => b ? 1 : 0).join(''), mapVar: tileStr(mapVar),
     px: Math.round(p.x * 10) / 10, py: Math.round(p.y * 10) / 10, fx: p.fx, fy: p.fy,
-    s: { champKeysFloor, entId, floorTheme, floorRevealed: !!floorRevealed, vineBurnN, floorEnt, entPrev },
+    s: { champKeysFloor, entId, floorTheme, floorRevealed: !!floorRevealed, exitPing: !!exitPing, vineBurnN, floorEnt, entPrev },
     g: wPack({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, motes, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool, debris, critters, v071: v071Snap(), v072: v072Snap(), v073: v073Snap(), v075: v075Snap() }) }; }
 function worldRestore(w, sd) { // -> true when the saved floor was restored
   if (!w || w.v !== WORLD_V || w.depth !== sd || !w.g || !w.MW || !w.MH) return false;
@@ -3102,7 +3121,7 @@ function worldRestore(w, sd) { // -> true when the saved floor was restored
   ({ rooms, torches, passages, enemies, ground, chests, secrets, braziers, glimmers, doors, puzzles, traps, props, decor, waters, basins, shop, annexes, setp, webs, pblocks, v05Flags, vines, books, floorPool } = G);
   motes = G.motes || []; debris = G.debris || []; critters = Array.isArray(G.critters) ? G.critters : []; climb = null; for (const k of ['passages', 'enemies', 'ground', 'chests', 'secrets', 'braziers', 'glimmers', 'doors', 'puzzles', 'traps', 'props', 'decor', 'waters', 'basins', 'annexes', 'setp', 'webs', 'pblocks', 'vines', 'books', 'torches']) if (!Array.isArray(G[k])) throw new Error('world: ' + k);
   v05Flags = v05Flags || {}; floorPool = floorPool || [];
-  ({ champKeysFloor, entId, floorTheme, floorRevealed, vineBurnN, floorEnt, entPrev } = Object.assign({ champKeysFloor: 0, entId: 0, floorTheme: 'drowned', floorRevealed: false, vineBurnN: 0, floorEnt: null, entPrev: null }, w.s || {}));
+  ({ champKeysFloor, entId, floorTheme, floorRevealed, exitPing, vineBurnN, floorEnt, entPrev } = Object.assign({ champKeysFloor: 0, entId: 0, floorTheme: 'drowned', floorRevealed: false, exitPing: false, vineBurnN: 0, floorEnt: null, entPrev: null }, w.s || {}));
   if (!floorEnt || !ENT_BY[floorEnt.id]) setFloorEntrance(depth); // v0.7.0: pre-0.7 saves get an entrance now
   v071Restore(G.v071); // v0.7.1: pits / hazards / fire pits (older saves: none)
   v072Restore(G.v072); /* v0.7.2: biome, levers / platforms, secret rooms (older saves: biome from depth) */
@@ -3564,8 +3583,7 @@ jz.addEventListener('pointermove', e => {
   if (touchHold.id === e.pointerId && !touchHold.moved) return; // still a possible item tap / hold: don't steer yet
   const k = hudScale();
   let dx = e.clientX - joy.ox, dy = e.clientY - joy.oy; const d = Math.hypot(dx, dy);
-  if (d > JR) { const ex = d - JR; joy.ox += dx / d * ex; joy.oy += dy / d * ex; dx = e.clientX - joy.ox; dy = e.clientY - joy.oy;
-    jb.style.left = (joy.ox / k) + 'px'; jb.style.top = (joy.oy / k) + 'px'; }
+  if (d > JR) { dx = dx / d * JR; dy = dy / d * JR; } /* v0.7.11 B17: the outer dial stays where the finger went down */
   joy.x = dx / JR; joy.y = dy / JR;
   jk.style.left = (60 + dx / k) + 'px'; jk.style.top = (60 + dy / k) + 'px';
 });
@@ -3581,7 +3599,7 @@ document.querySelectorAll('#touch .btn').forEach(b => {
 });
 // suppress zoom / scroll / selection / long-press menus
 ['gesturestart', 'gesturechange', 'gestureend', 'dblclick', 'contextmenu', 'selectstart'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
-document.addEventListener('touchmove', e => { if (!e.target.closest('#dtext,input[type=range],.v4box,#grid,#stats')) e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove', e => { if (!e.target.closest('#dtext,input[type=range],.v4box,#grid,#stats,#notesPane,#invStatsScroll,#holdStats,#holdBody,#tomeBody,#tomeHold,#consPane')) e.preventDefault(); }, { passive: false });
 document.addEventListener('touchstart', e => {
   if (!touchMode) { touchMode = true; updateTouchUI(); }
   if (e.touches.length > 1 && !e.target.closest('.btn,#joyzone')) e.preventDefault();
@@ -3630,7 +3648,7 @@ function syncAudioUI() {
   if (!(settings.shake in SHAKE_MULT)) settings.shake = 'full';
   $('mShake').textContent = 'SHAKE: ' + settings.shake.toUpperCase();
   $('volMusic').value = settings.musicVol; $('volSfx').value = settings.sfxVol; $('volAmb').value = settings.ambVol != null ? settings.ambVol : 65;
-  if ($('volMap')) { const op = Math.round(mapOpacity() * 100); settings.mapOp = op; $('volMap').value = op; }
+  if ($('volMap')) { const op = Math.round(mapOpacity() * 100); settings.mapOp = op; $('volMap').value = op; $('volMap').max = '90'; }
   applyVolumes(); saveSettings();
 }
 $('mSound').addEventListener('click', () => { initAudio(); settings.sound = !settings.sound; syncAudioUI(); });
@@ -3639,7 +3657,7 @@ $('mShake').addEventListener('click', () => { settings.shake = { full: 'low', lo
 $('volAmb').addEventListener('input', e => { initAudio(); settings.ambVol = +e.target.value; syncAudioUI(); });
 $('volMusic').addEventListener('input', e => { initAudio(); settings.musicVol = +e.target.value; syncAudioUI(); });
 $('volSfx').addEventListener('input', e => { initAudio(); settings.sfxVol = +e.target.value; syncAudioUI(); sfx('pick', { cue: 'ui_slider_tick_01' }); });
-$('volMap').addEventListener('input', e => { settings.mapOp = clamp(Math.round(+e.target.value) || 100, 10, 100); syncAudioUI(); });
+$('volMap').addEventListener('input', e => { settings.mapOp = clamp(Math.round(+e.target.value) || 90, 10, 90); syncAudioUI(); });
 $('sortBtn').addEventListener('click', e => { e.preventDefault(); repairMode = false; sortInventory(); });
 $('rpBtn').addEventListener('click', e => { e.preventDefault(); toggleRepairMode(); });
 function toggleRepairMode() {
@@ -3648,7 +3666,7 @@ function toggleRepairMode() {
   if (!(p.rpPot > 0)) { invNote = 'You have no Repair Potions. They turn up on the floor, in chests, and on champions and bosses.'; sfx('fail'); renderInv(); return; }
   if (!repairables().length) { invNote = 'Nothing needs repair.'; sfx('fail'); renderInv(); return; }
   repairMode = true; sfx('pick', { cue: 'ui_click_01' }); renderInv();
-  if (typeof satchelOpenTab === 'function') satchelOpenTab('inventory');
+  if (typeof satchelOpenTab === 'function') satchelOpenTab('character'); /* v0.7.11 B9: repair picks a worn piece on the character doll */
 }
 function repairPick(it) { // in repair mode: tap/click an item
   if (!it || !needsRepair(it)) { invNote = it ? 'That item is not damaged - pick a highlighted one.' : ''; sfx('fail'); renderInv(); return; }
@@ -3857,6 +3875,7 @@ function damageEnemy(e, dmg, kx, ky, col = '#fff', crit = false, src) {
   if (T.ai === 'guard') { const s = src || player, a = Math.atan2(s.y - e.y, s.x - e.x), da = Math.abs(((a - e.fa + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
     if (da < 1.0) { dmg *= .15; if ((e.immT || 0) < time) { addText(e.x, e.y - 14, 'BLOCK', '#c8c8d8'); e.immT = time + .4; } kx *= .2; ky *= .2; } }
   if (T.armor && e.mode !== 'stun') dmg *= T.armor;
+  if (e.mawVuln > 0) dmg *= 1.1; // v0.7.11 B3: Hellmouth marks bosses, it does not swallow them
   dmg = Math.max(1, Math.round(dmg));
   const kb = T.boss ? .1 : T.ai === 'golem' ? .3 : 1;
   e.hp -= dmg; e.flash = .12; e.kx += kx * kb; e.ky += ky * kb; vocHurt(e); // v0.7.2 §8
@@ -4160,7 +4179,7 @@ function drawGoldHud(x, y) {
   if (im) ctx.drawImage(im, ix, iy - (im.height > 10 ? 5 : 1));
   drawText(String(goldHud.shown | 0), ix + ((im && im.width) || 8) + 2, iy, '#ffe060');
 }
-function mapOpacity() { let v = +settings.mapOp; if (!isFinite(v)) v = 100; return clamp(Math.round(v), 10, 100) / 100; }
+function mapOpacity() { let v = +settings.mapOp; if (!isFinite(v)) v = 90; if (v > 90) v = 90; return clamp(Math.round(v), 10, 90) / 100; } /* v0.7.11 B16: slider full = 90% opaque */
 function update(dt) {
   time += dt;
   if (climb) { updateClimb(dt); return; } // v0.7.0: input frozen while climbing down
@@ -4247,7 +4266,7 @@ function update(dt) {
 // =====================================================================
 let glimmers = []; // v0.4.5: rare glimmering pools (thirst + XP blessing)
 const GLIM_CHANCE = .3, XPBUFF = .25, XPBUFF_TIME = 300;
-let doors = [], puzzles = [], traps = [], props = [], decor = [], waters = [], basins = [], shop = null, floorRevealed = false, annexes = [];
+let doors = [], puzzles = [], traps = [], props = [], decor = [], waters = [], basins = [], shop = null, floorRevealed = false, exitPing = false, annexes = [];
 const BAG_MAX = 40, FRAG_NEED = 4;
 function invSize() { return INV_SIZE + clamp(Math.floor(+(player && player.bagBonus) || 0), 0, BAG_MAX - INV_SIZE); }
 function inRect(x, y, R) { return x >= R.x && x < R.x + R.w && y >= R.y && y < R.y + R.h; }
@@ -4443,7 +4462,7 @@ function drawBuffHUD(x, y) { const s = buffText(); if (!s) return; const p = pla
   ctx.fillStyle = '#0a1818'; ctx.fillRect(x, y - 1, 7, 7); ctx.fillStyle = low ? '#407070' : '#a0fff0'; ctx.fillRect(x + 3, y, 1, 5); ctx.fillRect(x + 1, y + 2, 5, 1); ctx.fillStyle = '#fff'; ctx.fillRect(x + 3, y + 2, 1, 1);
   drawText(s, x + 9, y, low ? '#5a9090' : '#a0fff0'); }
 function clearFloorExtras() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; annexes = []; clearV05(); clearV06(); if (typeof V72 !== 'undefined') { V72 = v072Empty(); padIndex(); } if (typeof V73 !== 'undefined') { V73 = v073Empty(); DPLANE = null; } if (typeof V75 !== 'undefined') V75 = v075Empty(); } // tests / arenas (v0.7.2: + levers / platforms / squeeze gaps)
-function placeV04Pre() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; floorRevealed = false; annexes = []; clearV05(); clearV06();
+function placeV04Pre() { glimmers = []; doors = []; puzzles = []; traps = []; props = []; decor = []; waters = []; basins = []; shop = null; floorRevealed = false; exitPing = false; annexes = []; clearV05(); clearV06();
   placeShop(); placeVaults(); placeBookVault(); }
 // v0.4.4: secret passages - real hidden shortcuts linking rooms that are far apart on the chain.
 // A straight 1-wide tunnel through solid rock, sealed by a cracked wall at BOTH ends (break either side).
@@ -4561,7 +4580,7 @@ function openDoor(d, quiet) {
 }
 function doorHint(d) {
   if (d.puzzle === 'p_levers') return 'A sealed stone slab. Three marks... three levers somewhere behind you must all be pulled.';
-  if (d.puzzle === 'p_braziers') return 'A sealed slab with three ember marks. Light the cold sconces nearby in order: one mark, two, three.';
+  if (d.puzzle === 'p_braziers') return 'A sealed slab with three ember marks. Light the cold sconces nearby, in any order.';
   if (d.puzzle === 'p_block') return 'A sealed slab. A worn plate nearby wants a heavy stone block pushed onto it.';
   if (d.puzzle === 'lever') return 'A sealed stone door. Three painted marks: ' + d.seq.map(i => LEVER_COL[i][0]).join(', ') + '. Levers nearby...';
   if (d.puzzle === 'rune') return 'A sealed stone door carved with three runes. Touch the matching runes in order.';
@@ -4572,6 +4591,7 @@ function bloodCost() { return Math.ceil(.15 * player.st.maxHp); }
 function useDoor(d) {
   const p = player;
   if (d.kind === 'gate') {
+    if (d.shopGate && !d.open) { sfx('locked', { cue: 'wld_door_locked_01' }); flashMsg(shop && shop.openAt ? 'The gate is lifting...' : 'A sealed gate. It opens after the boss falls.', '#a0b0c0'); return; }
     if ((p.gateKeys || 0) > 0) { p.gateKeys--; openDoor(d); flashMsg('The Gate Key turns. The iron gate grinds open.' + (p.gateKeys ? ` (${p.gateKeys} left)` : ''), '#c0d0e0'); }
     else { sfx('locked', { cue: 'wld_door_locked_01' }); flashMsg('A locked iron gate. It needs a Gate Key (chest keys won\'t fit).', '#a0b0c0'); }
     return;
@@ -4630,8 +4650,8 @@ function interactables() {
 }
 function flameRelights(L, close) { const p = player; if (!p) return;
   if (!torchFull()) for (const o of puzzles) if (o.kind === 'sconce' && o.on && close(o.x, o.y, 18)) L.push({ x: o.x, y: o.y - 6, r: 16, label: 'LIGHT TORCH', use: relightFrom, ref: o, tier: 1 });
-  if (typeof V72 !== 'undefined' && V72 && V72.bprops) for (const o of V72.bprops) { if (o.k !== 'wall_torch_iron' && o.k !== 'brazier_iron') continue; const x = (o.tx + .5) * TS, y = (o.ty + .5) * TS; if (!close(x, y, 18)) continue;
-    if (ironCold(o)) { if (p.torchT > 0) L.push({ x, y, r: 16, label: o.k === 'brazier_iron' ? 'LIGHT BRAZIER' : 'LIGHT SCONCE', use: () => lightFixture(o, 'iron'), ref: o, tier: 1 }); }
+  if (typeof V72 !== 'undefined' && V72 && V72.bprops) for (const o of V72.bprops) { if (o.k !== 'wall_torch_iron' && !/brazier/.test(o.k)) continue; const x = (o.tx + .5) * TS, y = (o.ty + .5) * TS; if (!close(x, y, 18)) continue;
+    if (ironCold(o) || bpropCold(o)) { if (p.torchT > 0) L.push({ x, y, r: 16, label: /brazier/.test(o.k) ? 'LIGHT BRAZIER' : 'LIGHT SCONCE', use: () => lightFixture(o, 'iron'), ref: o, tier: 1 }); }
     else if (!torchFull()) L.push({ x, y, r: 16, label: 'LIGHT TORCH', use: relightFrom, ref: o, tier: 1 }); } }
 function nearestInteract() { const p = player; let best = null, bd = 1e9;
   let bt = -1; // v0.5.0: priority tiers first (door / gate / chest / shop > puzzle > other > drink), then distance
@@ -4778,8 +4798,8 @@ function bossExtraDrops(e) {
 }
 function useMapFrags() {
   const p = player; if ((p.mapFrags || 0) < FRAG_NEED) { invNote = `You need ${FRAG_NEED} Map Fragments (you have ${p.mapFrags || 0}).`; renderInv(); return; }
-  if (floorRevealed) { invNote = 'This floor is already revealed.'; renderInv(); return; }
-  p.mapFrags -= FRAG_NEED; revealFloor(); sfx('lvl', { cue: 'meta_quest_complete_01' }); invNote = 'The fragments knit together: the whole floor - secrets and all - is revealed. (M)'; renderInv();
+  if (exitPing) { invNote = 'The exit door is already marked on your map.'; renderInv(); return; }
+  p.mapFrags -= FRAG_NEED; exitPing = true; sfx('lvl', { cue: 'meta_quest_complete_01' }); invNote = 'The scraps point to the exit door. The rest of the floor stays dark. (M)'; renderInv();
 }
 function revealFloor() { floorRevealed = true; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const k = y * MW + x; if (map[k] !== TILE.WALL || walkable(x + 1, y) || walkable(x - 1, y) || walkable(x, y + 1) || walkable(x, y - 1)) seen[k] = true; }
   for (const d of doors) { for (const t of d.tiles) seen[t.y * MW + t.x] = true; if (d.rect) for (let y = d.rect.y; y < d.rect.y + d.rect.h; y++) for (let x = d.rect.x; x < d.rect.x + d.rect.w; x++) seen[y * MW + x] = true; }
@@ -5384,10 +5404,11 @@ function blockSolidAt(tx, ty) { for (const b of pblocks) if (b.tx === tx && b.ty
 function passageOpen(d) { openDoor(d); flashMsg('Somewhere, a stone slab grinds aside...', '#c8b8a0'); eventThought('puzzle', 1, 0); }
 function pullLever(o) { const d = o.door; if (d.open || o.on) return; o.on = true; d.prog = puzzles.filter(q => q.door === d && q.on).length; sfx('lever'); burst(o.x, o.y - 8, '#c0b080', 8, 30);
   if (d.prog >= 3) passageOpen(d); else flashMsg(`A lever clanks into place. (${d.prog}/3)`, '#c8b8a0'); }
-function lightSconce(o) { const p = player, d = o.door; if (d.open || o.on) return;
+function lightSconce(o) { const p = player, d = o.door; if (d.open || o.on) return; // v0.7.11 B15: any order, no backtracking
   if (p.torchT <= 0) { sfx('fail'); flashMsg('A cold sconce. You need a lit torch to kindle it.', '#a08870'); return; }
-  if (o.idx === d.prog) { o.on = true; d.prog++; sfx('sconce'); burst(o.x, o.y - 10, '#ffb040', 10, 30); if (d.prog >= 3) passageOpen(d); else flashMsg('The sconce catches. (' + d.prog + '/3)', '#ffb040'); }
-  else { sfx('fail'); d.prog = 0; for (const q of puzzles) if (q.door === d && q.on) { q.on = false; burst(q.x, q.y - 10, '#666', 6, 20); } burst(o.x, o.y - 10, '#666', 6, 20); flashMsg('The flames gutter out together. Wrong order - count the marks.', '#a08870'); } }
+  o.on = true; d.prog = puzzles.filter(q => q.door === d && q.kind === 'sconce' && q.on).length; sfx('sconce'); burst(o.x, o.y - 10, '#ffb040', 10, 30);
+  const need = puzzles.filter(q => q.door === d && q.kind === 'sconce').length || 3;
+  if (d.prog >= need) passageOpen(d); else flashMsg('The sconce catches. (' + d.prog + '/' + need + ')', '#ffb040'); }
 function pushBlock(b) { const p = player, d = b.door; if (d.open) return false;
   let dir = Math.sign(b.x - p.x); if (Math.abs(b.x - p.x) < 4) dir = Math.sign(p.fx) || 1;
   const free = tx => tx >= b.rx0 && tx <= b.rx1 && tileAt(tx, b.ty) === TILE.FLOOR && !blockSolidAt(tx, b.ty);
@@ -5581,7 +5602,8 @@ function applyBed(d, instant) { const B = bedFor(d); music.bed = B.id; music.bed
   if (music.lp) { music.lp.frequency.cancelScheduledValues(t); music.lp.frequency.setTargetAtTime(B.lp, t, tc); } return B; }
 function motif(t) { const B = music.bedObj || BEDS[0]; B.motif.forEach((m, i) => { if (Math.random() < .25 && i) return; tone(t + i * rand(.5, .8), mtof(m), 1.6, i % 2 ? 'sine' : 'triangle', .022, bus.amb); }); }
 // ---- 12: touch layout editor: drag buttons, swap sides (stick on the right), reset. Saved in cryptdelve-settings.touchLayout ----
-const TL_DEF = { bAtk: [26, 26, 88], bS1: [158, 42, 56], bS2: [142, 100, 56], bS3: [100, 142, 56], bS4: [236, 128, 56], bS5: [284, 128, 56], bS6: [236, 176, 56], bS7: [284, 176, 56], bRoll: [42, 158, 56], bUse: [160, 170, 48], bHP: [222, 16, 48], bMP: [214, 74, 48], bInv: [10, 222, 48] }; // v0.7.10.1 B5: clone/ward/shift/maw drag with the rest. right, bottom, size (px)
+const TL_DEF = { bAtk: [26, 26, 88], bS1: [158, 42, 56], bS2: [142, 100, 56], bS3: [100, 142, 56], bS4: [236, 128, 56], bS5: [284, 128, 56], bS6: [236, 176, 56], bS7: [284, 176, 56], bRoll: [42, 158, 56], bUse: [160, 170, 48], bHP: [222, 16, 48], bMP: [214, 74, 48], bInv: [10, 222, 48], tMap: [8, 8, 48] }; // v0.7.11 F5: map is potion-sized and moves with the touch HUD. right, bottom, size (px)
+const TL_GRID = 4;
 function touchLayout() { const L = settings.touchLayout; if (!L || typeof L !== 'object') return { swap: false, pos: {} }; if (!L.pos || typeof L.pos !== 'object') L.pos = {}; L.swap = !!L.swap; return L; }
 function tlCenter(id) { const L = touchLayout(), D = TL_DEF[id]; if (!D) return null; const W = appW, H = appH, p = L.pos[id];
   let cx, cy; if (p && Number.isFinite(p.cx) && Number.isFinite(p.cy)) { cx = p.cx * W; cy = p.cy * H; } else { cx = W - D[0] - D[2] / 2; cy = H - D[1] - D[2] / 2; if (L.swap && id !== 'bInv') cx = W - cx; } // the bag stays top-right (clear of the HUD bars)
@@ -5597,8 +5619,8 @@ function openTouchEditor() { setState('tlayout'); $('touch').classList.add('edit
 function closeTouchEditor() { $('touch').classList.remove('editing'); $('tlEdit').classList.add('hidden'); saveSettings(); setState('pause'); $('mResume').classList.remove('hidden'); $('mCont').classList.add('hidden'); }
 function tlSwap() { const L = touchLayout(); L.swap = !L.swap; for (const id in L.pos) L.pos[id].cx = 1 - L.pos[id].cx; settings.touchLayout = L; saveSettings(); applyTouchLayout(); }
 function tlReset() { settings.touchLayout = { swap: false, pos: {} }; saveSettings(); applyTouchLayout(); }
-function tlMoveTo(id, x, y) { const L = touchLayout(), D = TL_DEF[id]; if (!D) return; const r = D[2] / 2; L.pos[id] = { cx: clamp(x, r + 2, appW - r - 2) / appW, cy: clamp(y, r + 2, appH - r - 2) / appH }; settings.touchLayout = L; applyTouchLayout(); }
-$('touch').addEventListener('pointerdown', e => { if (state !== 'tlayout') return; const b = e.target.closest('.btn'); if (!b || !TL_DEF[b.id]) return; e.preventDefault(); e.stopPropagation();
+function tlMoveTo(id, x, y) { const L = touchLayout(), D = TL_DEF[id]; if (!D) return; const r = D[2] / 2; x = Math.round(x / TL_GRID) * TL_GRID; y = Math.round(y / TL_GRID) * TL_GRID; L.pos[id] = { cx: clamp(x, r + 2, appW - r - 2) / appW, cy: clamp(y, r + 2, appH - r - 2) / appH }; settings.touchLayout = L; applyTouchLayout(); }
+$('touch').addEventListener('pointerdown', e => { if (state !== 'tlayout') return; const b = e.target.closest('.btn, .tbtn'); if (!b || !TL_DEF[b.id]) return; e.preventDefault(); e.stopPropagation();
   const c = tlCenter(b.id); tlDrag.id = e.pointerId; tlDrag.el = b; tlDrag.ox = e.clientX - c.x; tlDrag.oy = e.clientY - c.y; b.classList.add('down'); }, true);
 window.addEventListener('pointermove', e => { if (state !== 'tlayout' || tlDrag.id !== e.pointerId || !tlDrag.el) return; e.preventDefault(); tlMoveTo(tlDrag.el.id, e.clientX - tlDrag.ox, e.clientY - tlDrag.oy); }, { passive: false });
 ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, e => { if (tlDrag.id !== e.pointerId) return; if (tlDrag.el) tlDrag.el.classList.remove('down'); tlDrag.id = null; tlDrag.el = null; saveSettings(); }));
@@ -5661,13 +5683,12 @@ const PLAYER_BUBBLE = 6.95, MOB_BUBBLE = 4.4, BUBBLE_W = 36; // v0.7.10.1 B11: t
 function wrapBubble(t) { const out = []; for (const para of String(t).split('\n')) { let line = '';
     for (const w of para.split(' ')) { if (line && (line + ' ' + w).length > BUBBLE_W) { out.push(line); line = w; } else line = line ? line + ' ' + w : w; }
     if (line) out.push(line); } return out.slice(0, 3); }
-const EXAM_REPEAT = 'NOTHING ELSE TO SEE.';
-function examineObj(o, textFn) { // v0.6.3 B1: full copy the first time only; later examines -> one short line (never a new bubble on top of itself)
-  if (o && o.examined) { if (thought.life > .6 && thought.ent === player && thought.text === EXAM_REPEAT) return; examineSay(EXAM_REPEAT); return; }
-  if (o) o.examined = true; examineSay(textFn()); }
+function examineObj(o, textFn) { // v0.7.11 B14: a second look repeats the first line. Never "nothing else to see."
+  if (o && o.examLine) { if (thought.life > .6 && thought.ent === player && thought.text === o.examLine) return; examineSay(o.examLine); return; }
+  const line = textFn(); if (o) { o.examLine = line; o.examined = true; } examineSay(line); }
 function examineSay(text) { const p = player; if (!p) return; sayExamine = true; try { sayThought(p, text, PLAYER_BUBBLE); } finally { sayExamine = false; } thought.next = Math.max(thought.next, 20); thought.mobNext = Math.max(thought.mobNext, 8); sfx('examine'); }
 let bubbleDraw = null;
-const DOOR_EXAM = { p_levers: 'THREE MARKS. THREE LEVERS\nSOMEWHERE BEHIND ME.', p_braziers: 'EMBER MARKS: ONE, TWO, THREE.\nLIGHT THE SCONCES IN ORDER.', p_block: 'A WORN PLATE NEARBY WANTS\nA HEAVY STONE BLOCK.',
+const DOOR_EXAM = { p_levers: 'THREE MARKS. THREE LEVERS\nSOMEWHERE BEHIND ME.', p_braziers: 'EMBER MARKS. LIGHT THE COLD\nSCONCES. ANY ORDER WILL DO.', p_block: 'A WORN PLATE NEARBY WANTS\nA HEAVY STONE BLOCK.',
   rune: 'THREE CARVED RUNES. TOUCH\nTHEIR TWINS IN ORDER.', plate: 'THREE WORN PLATES IN THIS\nROOM. STAND ON ALL OF THEM.' };
 function doorExamine(d) { const bk = d.book !== undefined ? '\nINK AND DUST BEHIND IT.' : '';
   if (d.puzzle === 'lever') return 'PAINTED MARKS: ' + d.seq.map(i => LEVER_COL[i][0]).join(', ') + '.\nPULL THE LEVERS IN THAT ORDER.' + bk;
@@ -6190,6 +6211,7 @@ function drawHUD() {
   for (const e of enemies) if (e.state === 'chase' && !e.hidden && !e.disg) { const i = Math.floor(e.x / TS) - ox, j = Math.floor(e.y / TS) - oy; if (i >= 0 && j >= 0 && i < cw && j < ch) { ctx.fillStyle = '#f33'; ctx.fillRect(mx + i * mmS, my + j * mmS, mmS, mmS); } }
   ctx.fillStyle = Math.floor(time * 4) % 2 ? '#fff' : '#4f4'; ctx.fillRect(mx + (ptx - ox) * mmS, my + (pty - oy) * mmS, mmS, mmS);
   if (typeof drawMinimapDeath === 'function') drawMinimapDeath(mx, my, ox, oy, mmS);
+  if (typeof drawMinimapExit === 'function') drawMinimapExit(mx, my, ox, oy, mmS);
   }
   drawDurWarn();
   if (!touchMode) { drawD2Panel(); drawSurvivalHUD(4, VH - 41, 16); drawBuffHUD(4, VH - 50); { const gl = 'GATE KEYS ' + (p.gateKeys || 0); drawText(gl, 96, VH - 41, p.gateKeys ? '#c0d0e0' : '#777'); drawText('FOOD ' + (p.rations || 0), 96 + textW(gl) + 6, VH - 41, p.rations ? '#d0b070' : '#777'); } } if (mapOpen) drawBigMap();
@@ -6629,11 +6651,12 @@ function placeBiomeProps(d) { const b = V72.biome; if (!b) return; const P = BIO
   rooms.forEach((r, ri) => { let n = irand(2, 3) + (r.w * r.h > 60 ? 1 : 0) + (ri === 0 ? -1 : 0);
     for (let tries = 0; tries < 30 && n > 0; tries++) { const anim = Math.random() < .7, k = anim ? pick(P.anim) : pick(P.stat);
       if (BPROP_HANG[k] || BPROP_BASE[k]) { const x = irand(r.x, r.x + r.w - 1), y = r.y; if (!free(x, y) || tileAt(x, y - 1) !== TILE.WALL || torches.some(t => Math.abs(t.x - (x * TS + 8)) < 12 && Math.floor(t.y / TS) === y - 1)) continue;
-        used.add(y * MW + x); const hangP = { k, tx: x, ty: y, hang: BPROP_BASE[k] ? 0 : 1, ph: irand(0, 3), anim: CASTLE_PROPS.stat.includes(k) ? 0 : 1 }; if (k === 'wall_torch_iron' || k === 'brazier_iron') hangP.lit = 0; V72.bprops.push(hangP); n--; continue; }
+        used.add(y * MW + x); const hangP = { k, tx: x, ty: y, hang: BPROP_BASE[k] ? 0 : 1, ph: irand(0, 3), anim: CASTLE_PROPS.stat.includes(k) ? 0 : 1 }; if (/brazier|wall_torch/.test(k)) hangP.lit = 0; V72.bprops.push(hangP); n--; continue; }
       const x = irand(r.x, r.x + r.w - 1), y = irand(r.y, r.y + r.h - 1); if (!free(x, y) || (x === r.cx && y === r.cy)) continue;
-      used.add(y * MW + x); const floorP = { k, tx: x, ty: y, floor: BPROP_FLOOR[k] ? 1 : 0, ph: irand(0, 3), anim: anim ? 1 : 0 }; if (k === 'wall_torch_iron' || k === 'brazier_iron') floorP.lit = 0; V72.bprops.push(floorP); n--; } }); }
+      used.add(y * MW + x); const floorP = { k, tx: x, ty: y, floor: BPROP_FLOOR[k] ? 1 : 0, ph: irand(0, 3), anim: anim ? 1 : 0 }; if (/brazier|wall_torch/.test(k)) floorP.lit = 0; V72.bprops.push(floorP); n--; } }); }
 function nearDoorT(x, y, rr) { for (const d of doors) for (const t of d.tiles) if (Math.abs(t.x - x) <= rr && Math.abs(t.y - y) <= rr) return true; const s = entStairs(); return !!(s && Math.abs(s.tx - x) <= rr + 1 && Math.abs(s.ty - y) <= rr + 1); }
-function bpropImg(o) { const fps = BPROP_FPS[o.k] || 8; return o.anim ? ART['prop_' + o.k + '_0' + ((Math.floor(time * fps) + o.ph) % 4 + 1)] || ART['prop_' + o.k] : ART['prop_' + o.k]; }
+function bpropCold(o) { return !!o && /brazier/.test(o.k) && (o.lit === 0 || o.lit === false); }
+function bpropImg(o) { if (bpropCold(o)) return ART.brazier_unlit || ART['prop_' + o.k + '_01'] || ART['prop_' + o.k]; const fps = BPROP_FPS[o.k] || 8; return o.anim ? ART['prop_' + o.k + '_0' + ((Math.floor(time * fps) + o.ph) % 4 + 1)] || ART['prop_' + o.k] : ART['prop_' + o.k]; }
 // ---------- §5 levers + platforms ----------
 function padIndex() { V72.padIdx = new Map(); for (const q of V72.pads) V72.padIdx.set(q.ty * MW + q.tx, q); }
 function padAt(tx, ty) { return V72.padIdx ? V72.padIdx.get(ty * MW + tx) || null : null; }
@@ -6777,7 +6800,7 @@ function v072Interact(L, close) { if (climb || pitAct) return; const p = player;
   if (!torchFull()) for (const f of V71.firepits) { const F = FIREPIT_FLAME[f.n] || FIREPIT_FLAME[2], X = f.tx * TS, Y = f.ty * TS, x = clamp(p.x, X + F.x0, X + F.x1), y = clamp(p.y + 2, Y + F.y0, Y + F.y1) - 2; if (!close(x, y, 18)) continue; /* v0.7.3 §12: measured to the flames */
     if (Math.hypot(x - p.x, y - p.y) < FIRE_RELIGHT_R && !firepitFlameAt(p.x, p.y)) L.push({ x, y, r: FIRE_RELIGHT_R, label: 'LIGHT TORCH', use: () => { v072Stats.relights++; relightFrom(); }, ref: f, tier: 1, gp: 1 }); } }
 function v072Lights(L, view) {
-  for (const o of V72.bprops) { if (ironCold(o)) continue; const Lt = BPROP_LIGHT[o.k] || (o.lit ? ['amber', 20, .55] : null); if (!Lt) continue; const x = (o.tx + .5) * TS, y = (o.ty + .5) * TS - (o.hang ? 14 : 4); if (!view(x, y, Lt[1] * Math.max(1, glNum('envFall', 1)))) continue;
+  for (const o of V72.bprops) { if (ironCold(o) || bpropCold(o)) continue; const Lt = BPROP_LIGHT[o.k] || (o.lit ? ['amber', 20, .55] : null); if (!Lt) continue; const x = (o.tx + .5) * TS, y = (o.ty + .5) * TS - (o.hang ? 14 : 4); if (!view(x, y, Lt[1] * Math.max(1, glNum('envFall', 1)))) continue;
     const f = flickN(time * 1.1, o.tx * .7 + o.ty), lit = envTune({ x, y, r: Lt[1] * (1 + .06 * f), col: Lt[0], a: Lt[2] * (1 + .08 * f) }); if (Lt[1] >= 40) { const polys = bandPolys(x, y, lit.r + 4, 56, 'bp' + o.tx + ',' + o.ty); lit.polys = polys; lit.poly = polys[0]; } L.push(lit); }
   for (const q of V72.pads) if (q.st >= 1 && view((q.tx + .5) * TS, (q.ty + .5) * TS, 20)) L.push({ x: (q.tx + .5) * TS, y: (q.ty + .5) * TS, r: 14, col: 'teal', a: q.st === 2 ? .4 : .25 }); }
 function drawV072Floor(t0x, t0y, t1x, t1y) { const inV = (tx, ty, m) => tx >= t0x - m && tx <= t1x + m && ty >= t0y - m && ty <= t1y + m;
@@ -7758,11 +7781,14 @@ function castHellmouth() {
   const p = player, hits = mawTargets();
   cue('player_hellmouth_cast_01');
   if (!hits.length) { flashMsg('The maw finds no one in sight.', '#ff7040'); return; }
+  const bosses = hits.filter(e => e.T && e.T.boss), trash = hits.filter(e => !(e.T && e.T.boss));
   cue('player_hellmouth_open_01');
-  for (const e of hits) {
+  for (const e of trash) {
     e.hmFreeze = true;
     p.activeHellSinks.push({ enemyRef: e, frame: 0, state: 'opening', x: e.x, y: e.y, killed: false });
   }
+  for (const e of bosses) { e.hmFreeze = false; e.mawVuln = Math.max(e.mawVuln || 0, 3); }
+  if (bosses.length && !trash.length) flashMsg('The maw cannot swallow a boss. Wounds open wider.', '#ff7040');
 }
 function castAdvanced(i) {
   const p = player, S = TOME_ADV[i];
@@ -7817,6 +7843,7 @@ function tickHellmouth(dt) {
     const s = p.activeHellSinks[i];
     s.frame += step;
     const e = s.enemyRef;
+    if (e && e.T && e.T.boss) { e.hmFreeze = false; e.mawVuln = Math.max(e.mawVuln || 0, 3); p.activeHellSinks.splice(i, 1); continue; }
     if (s.frame <= 30) {
       s.state = 'opening';
       if (e && !e.dead) { e.hmFreeze = true; e.x = s.x; e.y = s.y; }
@@ -8366,10 +8393,13 @@ function pressBar(i) {
   const idx = TOME_IDS.indexOf(id);
   if (!tomeReady(idx)) { flashMsg('Discover spells hidden in the world to use the Lich Tome', '#aaa'); return; }
   const sk = 's' + (idx + 1);
+  for (let k = 1; k <= 7; k++) if (('s' + k) !== sk) held['s' + k] = false; /* v0.7.11 B4: a swipe must not leave the last spell held */
   held[sk] = true; tapQ[sk] = performance.now() + 250; barHeld = idx;
 }
 function releaseBar() {
-  if (barHeld >= 0) { held['s' + (barHeld + 1)] = false; barHeld = -1; }
+  for (let k = 1; k <= 7; k++) held['s' + k] = false;
+  barHeld = -1;
+  document.querySelectorAll('#touch .btn.down').forEach(b => { if (/^bS/.test(b.id)) b.classList.remove('down'); });
 }
 function cancelCharge101() {
   const p = player; if (!p) return;
@@ -9136,6 +9166,7 @@ function satchelDress() {
   document.querySelectorAll('#satTabs .sat-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === satchelTab));
   document.querySelectorAll('.sat-pane').forEach(p => p.classList.toggle('on', p.dataset.pane === satchelTab));
   sizeSatchel();
+  if (state !== 'inv') satchelPaint();
 }
 const _render101 = renderInv;
 renderInv = function () { _render101(); if ($('satchel')) satchelDress(); };
@@ -9152,6 +9183,562 @@ if (window.game) {
     tombs: { get() { return V101.tombs; } },
     lastDeath: { get() { return V101.lastDeath; } },
     barSel: { get() { return V101.barSel; } }
+  });
+}
+
+// ===== v0.7.11: puzzle seals, boss shop, victory chest, satchel, HUD =====
+ICONS.food = makeSprite(['..kkkk..', '.kyyyyk.', 'kyykyyyk', 'kyyyyyyk', 'kyykyyyk', '.kyyyyk.', '..kkkk..']);
+ICONS.map = makeSprite(['kkkkkkkk', 'kyyyyyyk', 'kykykyyk', 'kyyykyyk', 'kyyyyyyk', 'kykykyyk', 'kkkkkkkk']);
+ICONS.gate = KEY_ICON;
+const SPELL_ICON = { fireball: 'assets/skill_fireball_16.png', spin: 'assets/skill_whirlwind_16.png', frostNova: 'assets/skill_frost_nova_16.png', spectralClone: 'assets/skill_spectral_clone_16.png', etherealShield: 'assets/skill_ethereal_shield_16.png', etherealShift: 'assets/skill_ethereal_shift_16.png', hellmouth: 'assets/skill_hellmouth_16.png' };
+const SPELL_CARD = {
+  fireball: ['MANA 4', 'COOLDOWN 0.45S', 'A BOLT OF FIRE', 'AIM WITH THE STICK OR CURSOR'],
+  spin: ['MANA 8', 'COOLDOWN 1.6S', 'SPIN AND CUT NEARBY FOES'],
+  frostNova: ['MANA 14', 'COOLDOWN 4.5S', 'A RING OF COLD'],
+  spectralClone: ['MANA 12', 'COOLDOWN 8S', 'A DECOY DRAWS ENEMIES', 'YOU GO UNSEEN FOR 4S'],
+  etherealShield: ['MANA 10', 'COOLDOWN 15S', 'A WARD SOAKS HITS'],
+  etherealShift: ['MANA 14', 'COOLDOWN 12S', 'INVINCIBLE FOR A MOMENT'],
+  hellmouth: ['MANA 18', 'COOLDOWN 6S', 'DEVOURS NON-BOSSES IN SIGHT', 'BOSSES TAKE +10% DAMAGE', 'FOR 3 SECONDS']
+};
+let vic711 = null, holdOn = false;
+function greaterRare711() { return makeItem(depth + 2, 2); }
+function exitTile711() {
+  if (!map || !map.length) return null;
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (map[y * MW + x] === TILE.STAIRS) return { tx: x, ty: y };
+  return null;
+}
+function drawExitIcon711(ox, oy, s, size) {
+  if (!exitPing) return;
+  const t = exitTile711(); if (!t) return;
+  const w = size || Math.max(8, s);
+  const im = (w >= 12 && (ART.map_icon_exit_door_16 || ART.map_icon_exit_16)) || ART.map_icon_exit_door || ART.map_icon_exit;
+  ctx.imageSmoothingEnabled = false;
+  if (im) ctx.drawImage(im, Math.round(ox + (t.tx + .5) * s - w / 2), Math.round(oy + (t.ty + .5) * s - w / 2), w, w);
+  else { ctx.fillStyle = '#e8c840'; ctx.fillRect(Math.round(ox + t.tx * s), Math.round(oy + t.ty * s), Math.max(2, s), Math.max(2, s)); }
+}
+function drawMinimapExit(mx, my, ox, oy, mmS) {
+  if (!exitPing) return;
+  const t = exitTile711(); if (!t) return;
+  const i = t.tx - ox, j = t.ty - oy;
+  if (i < 0 || j < 0) return;
+  const im = ART.map_icon_exit || ART.map_icon_exit_door;
+  if (im) ctx.drawImage(im, mx + i * mmS - 3, my + j * mmS - 3, 8, 8);
+  else { ctx.fillStyle = '#e8c840'; ctx.fillRect(mx + i * mmS, my + j * mmS, mmS, mmS); }
+}
+function passageBypass711(p, vis) {
+  const tiles = p && p.tiles; if (!tiles || tiles.length < 2 || !p.a || !p.b) return false;
+  const set = new Set(tiles.map(t => t[0] + ',' + t[1]));
+  const openNear = (tx, ty) => {
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const x = tx + dx, y = ty + dy;
+      if (set.has(x + ',' + y)) continue;
+      if (tileAt(x, y) !== TILE.WALL) return y * MW + x;
+    }
+    return -1;
+  };
+  const a = openNear(p.a[0], p.a[1]), b = openNear(p.b[0], p.b[1]);
+  if (a < 0 || b < 0) return false;
+  return !vis[a] !== !vis[b];
+}
+function removePassage711(p) {
+  const tiles = p.tiles || [];
+  for (let k = 1; k < tiles.length - 1; k++) { const x = tiles[k][0], y = tiles[k][1]; if (y >= 0 && x >= 0 && y < MH && x < MW) map[y * MW + x] = TILE.WALL; }
+  const ends = [p.a, p.b];
+  for (let i = secrets.length - 1; i >= 0; i--) {
+    const s = secrets[i];
+    if (ends.some(e => e && s.tx === e[0] && s.ty === e[1])) secrets.splice(i, 1);
+  }
+}
+function lockPuzzleBypasses711() {
+  if (!rooms.length || !map.length) return 0;
+  const vis = bfsCount(rooms[0].cx, rooms[0].cy).vis;
+  let n = 0;
+  for (let i = passages.length - 1; i >= 0; i--) if (passageBypass711(passages[i], vis)) { removePassage711(passages[i]); passages.splice(i, 1); n++; }
+  if (n) { mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear(); }
+  return n;
+}
+function markGatedLoot711() {
+  if (!rooms.length || !map.length) return;
+  const vis = bfsCount(rooms[0].cx, rooms[0].cy).vis;
+  const reach = (tx, ty) => tx >= 0 && ty >= 0 && tx < MW && ty < MH && !!vis[ty * MW + tx];
+  for (const c of chests) if (c && !reach(c.tx, c.ty)) c.gatedRare = 1;
+  for (const s of secrets) {
+    if (!s || s.broken) continue;
+    let far = false;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const x = s.tx + dx, y = s.ty + dy;
+      if (tileAt(x, y) === TILE.WALL) continue;
+      if (!reach(x, y)) far = true;
+    }
+    if (far) s.gatedRare = 1;
+  }
+  if (typeof V72 !== 'undefined' && V72 && V72.schests) for (const c of V72.schests) if (c && !reach(c.tx, c.ty)) c.gatedRare = 1;
+  for (const d of doors) {
+    if (!d || !d.puzzle || d.open || !d.rect) continue;
+    const R = d.rect;
+    const pile = ground.filter(g => { const tx = Math.floor(g.x / TS), ty = Math.floor(g.y / TS); return tx >= R.x && tx < R.x + R.w && ty >= R.y && ty < R.y + R.h; });
+    if (pile.some(g => g.item && (g.item.rarity | 0) >= 2)) continue;
+    const it = pile.find(g => g.item);
+    if (it) it.item = greaterRare711();
+    else ground.push({ x: (R.x + R.w / 2) * TS, y: (R.y + R.h / 2) * TS, bob: 1, lock: false, item: greaterRare711() });
+  }
+}
+function rescueSealed711() {
+  if (!player || !rooms.length || !map.length) return false;
+  const start = rooms[0].cy * MW + rooms[0].cx;
+  for (let n = 0; n < 6; n++) {
+    const tx = Math.floor(player.x / TS), ty = Math.floor(player.y / TS);
+    if (tx < 0 || ty < 0 || tx >= MW || ty >= MH) return false;
+    const vis = bfsCount(tx, ty).vis;
+    if (vis[start]) return n > 0;
+    if (puzzles.some(o => { const x = Math.floor(o.x / TS), y = Math.floor(o.y / TS); return x >= 0 && y >= 0 && vis[y * MW + x]; })) return false;
+    let opened = false;
+    for (const d of doors) {
+      if (!d.puzzle || d.open) continue;
+      const touch = d.tiles.some(t => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => {
+        const x = t.x + dx, y = t.y + dy;
+        return tileAt(x, y) !== TILE.WALL && vis[y * MW + x];
+      }));
+      if (touch) { openDoor(d, true); opened = true; break; }
+    }
+    if (!opened) return false;
+  }
+  return true;
+}
+function giveGated711(obj, x, y) {
+  if (!obj || !obj.gatedRare || obj._gatedGave) return;
+  obj._gatedGave = 1;
+  dropAt(ground, x, y, { item: greaterRare711() });
+}
+const _openChest711 = openChest;
+openChest = function (c) { const r = _openChest711(c); if (c && c.open && c.gatedRare) giveGated711(c, c.x, c.y + 12); return r; };
+const _break711 = breakSecret;
+breakSecret = function (s) { const r = _break711(s); if (s && s.broken && s.gatedRare) giveGated711(s, (s.tx + .5) * TS, (s.ty + .5) * TS + 8); return r; };
+const _secChest711 = openSecretChest;
+openSecretChest = function (c) { const r = _secChest711(c); if (c && c.open && c.gatedRare) giveGated711(c, (c.tx + .5) * TS, (c.ty + .5) * TS + 10); return r; };
+const _placeShop711 = placeShop;
+placeShop = function () {
+  if (window.__forceShop === false || window.__forceShop === 0) return;
+  if (!bossForDepth(depth)) return _placeShop711();
+};
+function placeBossShop711() {
+  if (shop || window.__forceShop === false || window.__forceShop === 0) return shop;
+  if (!bossForDepth(depth) && !window.__forceShop) return null;
+  const bo = enemies.find(e => e.T && e.T.boss);
+  const br = rooms.find(r => r.bossRoom) || (bo && roomOf(Math.floor(bo.x / TS), Math.floor(bo.y / TS))) || null;
+  let A = br ? (carveAnnex([br], 4, 5, 3, 4) || carveAnnex([br], 3, 4, 3, 3)) : null;
+  if (!A) { _placeShop711(); if (shop) shop.bossShop = 1; return shop; }
+  map[A.dy * MW + A.dx] = TILE.WALL;
+  const R = A.rect;
+  const door = { kind: 'gate', tiles: [{ x: A.dx, y: A.dy }], open: false, skin: 'iron', shopGate: 1, noKey: 1 };
+  doors.push(door);
+  shop = { x: (R.x + R.w / 2) * TS, y: (R.y + 1) * TS + 6, rect: R, room: br, tx: A.dx, ty: A.dy, sealed: true, bossShop: 1, gate: door, stock: { ration: 3 + irand(0, 3), gkey: 1 + irand(0, 2) }, offers: rollShopOffers() };
+  torches.push({ x: R.x * TS + 8, y: (R.y - 1) * TS + 6, out: true });
+  torches.push({ x: (R.x + R.w - 1) * TS + 8, y: (R.y - 1) * TS + 6, out: true });
+  mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear();
+  return shop;
+}
+const _crumble711 = crumbleShop;
+crumbleShop = function () {
+  if (shop && shop.bossShop) { if (shop.sealed) shop.openAt = time + 3; return; }
+  return _crumble711();
+};
+function openShopGate711() {
+  if (!shop || !shop.sealed) return;
+  shop.sealed = false; shop.openAt = 0;
+  if (shop.gate && !shop.gate.open) openDoor(shop.gate, true);
+  else if (shop.tx != null) { map[shop.ty * MW + shop.tx] = TILE.FLOOR; mapVer++; if (typeof polyCache !== 'undefined') polyCache.clear(); }
+  sfx('gate'); flashMsg('The gate lifts. The Hollow Pedlar waits beyond.', '#e8c840');
+}
+function scheduleVic711(e) {
+  const q = (typeof safeSpot === 'function') ? safeSpot(e.x, e.y + 14) : { x: e.x, y: e.y + 14 };
+  vic711 = { at: time + 2, x: q.x, y: q.y, phase: 'wait', t: 0, spat: false };
+}
+function tickVic711(dt) {
+  if (!vic711 || state !== 'play') return;
+  if (vic711.phase === 'wait') {
+    if (time < vic711.at) return;
+    vic711.phase = 'appear'; vic711.t = 0;
+    cue(Math.random() < 0.5 ? 'meta_victory_chant_01' : 'meta_victory_chant_02');
+    return;
+  }
+  vic711.t += dt;
+  if (vic711.phase === 'appear' && vic711.t >= 0.45) { vic711.phase = 'open'; vic711.t = vic711.t - 0.45; }
+  if ((vic711.phase === 'open' || vic711.phase === 'idle') && !vic711.spat && vic711.t >= 0.28) {
+    vic711.spat = true; burstCoins(vic711.x, vic711.y, 100); cue('wld_loot_drop_01');
+  }
+  if (vic711.phase === 'open' && vic711.t >= 0.55) vic711.phase = 'idle';
+}
+function drawVic711() {
+  if (!vic711 || vic711.phase === 'wait') return;
+  const x = Math.round(vic711.x), y = Math.round(vic711.y);
+  const burstT = vic711.phase === 'appear' ? vic711.t : vic711.phase === 'open' ? 0.45 + Math.min(0.3, vic711.t) : 1;
+  if (burstT < 0.72) {
+    const fi = clamp(1 + Math.floor(burstT / 0.72 * 8), 1, 8);
+    const im = ART['fx_victory_chest_burst_0' + fi] || ART['fx_victory_chest_burst32_0' + fi];
+    if (im) ctx.drawImage(im, Math.round(x - im.width / 2), Math.round(y - im.height / 2));
+  }
+  let chest = ART.chest_victory_closed_32;
+  if (vic711.phase === 'appear') chest = ART['chest_victory_appear_0' + clamp(1 + Math.floor(vic711.t / 0.45 * 4), 1, 4)] || chest;
+  else if (vic711.phase === 'open') chest = ART['chest_victory_open_0' + clamp(1 + Math.floor(vic711.t / 0.55 * 4), 1, 4)] || ART.chest_victory_open_32 || chest;
+  else chest = ART.chest_victory_open_32 || ART.chest_victory_open_empty_04 || chest;
+  if (chest) ctx.drawImage(chest, Math.round(x - chest.width / 2), Math.round(y - chest.height + 8));
+}
+function playExitLaugh711() {
+  if (floorEnt && floorEnt.laughed) return;
+  if (floorEnt) floorEnt.laughed = 1;
+  cue(Math.random() < 0.5 ? 'meta_exit_boss_laugh_01' : 'meta_exit_boss_laugh_02');
+}
+function tick711(dt) {
+  if (shop && shop.sealed && shop.openAt && time >= shop.openAt) openShopGate711();
+  for (const e of enemies) if (e && e.mawVuln > 0) e.mawVuln = Math.max(0, e.mawVuln - dt);
+  tickVic711(dt);
+}
+const _post711 = placeV04Post;
+placeV04Post = function () { const r = _post711(); placeBossShop711(); lockPuzzleBypasses711(); markGatedLoot711(); return r; };
+const _start711 = startFloor;
+startFloor = function (d, fresh) { vic711 = null; const r = _start711(d, fresh); rescueSealed711(); return r; };
+const _restore711 = worldRestore;
+worldRestore = function (w, sd) { const ok = _restore711(w, sd); if (ok) rescueSealed711(); return ok; };
+const _kill711 = killEnemy;
+killEnemy = function (e) {
+  const boss = !!(e && e.T && e.T.boss), champ = !!(e && e.elite && !boss), present = !!(e && enemies.includes(e));
+  const r = _kill711(e);
+  if (present && !enemies.includes(e) && player) {
+    player.tolls = player.tolls || { foe: 0, champ: 0, boss: 0 };
+    if (boss) { player.tolls.boss++; scheduleVic711(e); }
+    else if (champ) player.tolls.champ++;
+    else player.tolls.foe++;
+  }
+  return r;
+};
+const _ent711 = entUse;
+entUse = function () { const before = climb; const r = _ent711(); if (r && !before && climb) playExitLaugh711(); return r; };
+const _cast711 = castSkill;
+castSkill = function (i) {
+  const p = player, before = p && p.cds ? (p.cds[i] || 0) : 0;
+  const r = _cast711(i);
+  if (p && (p.cds[i] || 0) > before) { p.favCast = p.favCast || {}; const id = TOME_IDS[i] || ('skill' + i); p.favCast[id] = (p.favCast[id] || 0) + 1; }
+  return r;
+};
+const _atk711 = doAttack;
+doAttack = function (fixed) {
+  if (player) { const w = player.equip && player.equip.weapon; const name = w ? (w.name || 'WEAPON') : 'FISTS'; player.favWep = player.favWep || {}; player.favWep[name] = (player.favWep[name] || 0) + 1; }
+  return _atk711(fixed);
+};
+const _upd711 = update;
+update = function (dt) { const r = _upd711(dt); if (state === 'play') tick711(dt); return r; };
+const _drawChests711 = drawChests;
+drawChests = function () { _drawChests711(); drawVic711(); };
+const _icons711 = drawMapIcons077;
+drawMapIcons077 = function (ox, oy, s) { _icons711(ox, oy, s); drawExitIcon711(ox, oy, s, Math.max(8, s)); };
+const _satMap711 = fillSatMap;
+fillSatMap = function () {
+  _satMap711();
+  const c = $('satMap'); if (!c || !exitPing || !map || !map.length) return;
+  const x = c.getContext('2d'), sc = Math.min(c.width / MW, c.height / MH), ox = (c.width - MW * sc) / 2, oy = (c.height - MH * sc) / 2;
+  const t = exitTile711(); if (!t) return;
+  const w = Math.max(8, sc * 1.2);
+  const im = ART.map_icon_exit_door || ART.map_icon_exit;
+  x.imageSmoothingEnabled = false;
+  if (im) x.drawImage(im, Math.round(ox + (t.tx + .5) * sc - w / 2), Math.round(oy + (t.ty + .5) * sc - w / 2), w, w);
+  else { x.fillStyle = '#e8c840'; x.fillRect(ox + t.tx * sc, oy + t.ty * sc, Math.max(2, sc), Math.max(2, sc)); }
+};
+function favLabel711(map) { let best = '', n = 0; if (map) for (const k in map) if (map[k] > n) { n = map[k]; best = k; } return best ? best.replace(/([a-z])([A-Z])/g, '$1 $2') : 'NONE'; }
+function paintLines711(lines, w, col) {
+  const h = Math.max(10, 4 + lines.length * 9);
+  const c = pxCanvas(Math.max(20, w | 0), h);
+  lines.forEach((t, i) => pxText(c.x, t, 2, 2 + i * 9, (col && col[i]) || (String(t).charAt(0) === "'" ? SAT_LORE : SAT_TAN), true, w - 2));
+  c.c.style.width = w + 'px'; c.c.style.height = h + 'px';
+  return c.c;
+}
+function itemStatLines711(it) {
+  if (!it) return ['TAP A SLOT.', 'DOUBLE-TAP EQUIPS.', 'HOLD FOR THE FULL CARD.'];
+  const lines = [kindLabel(it)];
+  if (it.min || it.max) lines.push('DMG ' + (it.min || 0) + '-' + (it.max || 0));
+  if (it.spd) lines.push('SPD ' + (Math.round(it.spd * 10) / 10) + '/S');
+  if (it.def) lines.push('DEF ' + it.def);
+  if (it.block) lines.push('BLOCK ' + it.block + '%');
+  lines.push('CRIT ' + ((it.mods && it.mods.crit) ? ('+' + it.mods.crit + '%') : '0'));
+  if (it.range) lines.push('RANGE ' + it.range);
+  lines.push('REQ LV ' + reqOf(it));
+  if (hasDur(it) && it.maxDur) lines.push('DUR ' + it.dur + '/' + it.maxDur);
+  for (const k in (it.mods || {})) { if (k === 'crit' || k === 'dmg') continue; const a = AFFIX.find(q => q.k === k); if (a) lines.push(a.txt(it.mods[k])); }
+  for (const q of it.powers || []) { const t = powerLine(q); if (t) lines.push(t); }
+  if (it.lore) lines.push("'" + it.lore + "'");
+  return lines;
+}
+function bindDragScroll(el) {
+  if (!el || el.dataset.dragscroll) return;
+  el.dataset.dragscroll = '1';
+  let id = null, y0 = 0, top0 = 0;
+  el.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('button,a')) return; id = e.pointerId; y0 = e.clientY; top0 = el.scrollTop; });
+  el.addEventListener('pointermove', e => { if (e.pointerId !== id) return; const sc = (satM && satM.scale) || 1; el.scrollTop = top0 - (e.clientY - y0) / sc; });
+  const end = e => { if (e.pointerId === id) id = null; };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+}
+function ensureHold711() {
+  let el = $('holdStats');
+  if (!el) { el = document.createElement('div'); el.id = 'holdStats'; el.className = 'hidden'; el.innerHTML = '<div class="ist-head"></div><div id="holdBody"></div>'; document.body.appendChild(el); }
+  return el;
+}
+function showHold711(title, lines, rar, x, y) {
+  const el = ensureHold711();
+  el.dataset.rar = rar || 'common';
+  el.classList.remove('hidden');
+  const head = el.querySelector('.ist-head'); head.innerHTML = '';
+  const nc = pxCanvas(200, 12); pxCenter(nc.x, title || 'ITEM', 3, '#f4ecd4', 200);
+  nc.c.style.width = '100%'; nc.c.style.height = '12px'; head.appendChild(nc.c);
+  const body = $('holdBody'); body.innerHTML = '';
+  body.appendChild(paintLines711(lines, 200));
+  bindDragScroll(body);
+  const w = 236, h = Math.min(220, 40 + lines.length * 9);
+  let left = (x || 24) + 14, top = (y || 24) - 10;
+  if (left + w > window.innerWidth - 8) left = Math.max(8, (x || 24) - w - 8);
+  if (top + h > window.innerHeight - 8) top = Math.max(8, window.innerHeight - h - 8);
+  el.style.left = left + 'px'; el.style.top = top + 'px';
+  holdOn = true;
+}
+function hideHold711() { holdOn = false; const el = $('holdStats'); if (el) el.classList.add('hidden'); }
+function showItemHold711(it, x, y) {
+  if (!it) return;
+  hideTip();
+  const rar = ['common', 'magic', 'rare', 'unique'][it.rarity | 0] || 'common';
+  showHold711(it.name || 'ITEM', itemStatLines711(it), rar, x, y);
+}
+const _showTip711 = showTip;
+showTip = function (it, x, y, cmp) {
+  if (state === 'inv' && it && slotLP) { showItemHold711(it, x, y); return; }
+  return _showTip711(it, x, y, cmp);
+};
+const _slotTip711 = slotTipHandlers;
+slotTipHandlers = function (el, it, cmp) {
+  _slotTip711(el, it, cmp);
+  if (!it) return;
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'mouse') return;
+    clearTimeout(slotLP);
+    const x = e.clientX, y = e.clientY;
+    slotLP = setTimeout(() => { if (state === 'inv') showItemHold711(it, x, y); }, 380);
+  });
+};
+document.addEventListener('pointerdown', e => {
+  if (!holdOn || state !== 'inv') return;
+  if (e.target.closest && e.target.closest('#holdStats')) return;
+  hideHold711();
+}, true);
+const _fillInv711 = fillInvStats;
+fillInvStats = function () {
+  _fillInv711();
+  const box = $('invStats'); if (!box) return;
+  let sc = $('invStatsScroll');
+  if (!sc) { sc = document.createElement('div'); sc.id = 'invStatsScroll'; box.appendChild(sc); }
+  const it = selectedItem();
+  const lines = it ? itemStatLines711(it) : (repairMode ? ['TAP A WORN PIECE', 'ON THE CHARACTER TAB'] : ['TAP A SLOT.', 'HOLD FOR THE FULL CARD.']);
+  sc.innerHTML = '';
+  sc.appendChild(paintLines711(lines, Math.max(48, (box.clientWidth || satM.statW || 172) - 16)));
+  bindDragScroll(sc);
+};
+let heroRAF = 0;
+function paintHero711() {
+  const box = $('stats'); if (!box || !player) return;
+  let cv = $('charHero');
+  if (!cv) { cv = document.createElement('canvas'); cv.id = 'charHero'; cv.width = 36; cv.height = 58; box.appendChild(cv); }
+  const x = cv.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, 36, 58);
+  const WS = wardSprites(player);
+  const step = Math.floor(time * 3) % 2;
+  const fr = (step ? WS.b : WS.a) || WS.a;
+  const img = fr && (fr.r || fr.l);
+  const bob = Math.round(Math.sin(time * 2.2) * 1);
+  if (img) x.drawImage(img, 10, 28 + bob);
+  else { x.fillStyle = '#e8dcc0'; x.fillRect(14, 30 + bob, 8, 12); }
+}
+function charLines711(p) {
+  const st = p.st || {}, t = p.tolls || { foe: 0, champ: 0, boss: 0 };
+  const lines = [
+    'LV ' + p.lvl + '  DEPTH ' + depth,
+    'LIFE ' + Math.ceil(p.hp) + '/' + (st.maxHp || 0),
+    'MANA ' + Math.floor(p.mp) + '/' + (st.maxMp || 0),
+    'DMG ' + (st.min || 0) + '-' + (st.max || 0),
+    'DEF ' + (st.def || 0) + '  BLK ' + (st.block || 0) + '%',
+    'CRIT ' + (st.crit || 0) + '%  ATK ' + Math.round((st.aspd || 1) * 100) + '%',
+    'FOOD ' + Math.round(p.hunger) + '  WATER ' + Math.round(p.thirst),
+    'REST ' + Math.round(p.fatigue),
+    'GOLD ' + p.gold + '  KEYS ' + (p.keys || 0),
+    'NECRO ' + (p.npPot || 0) + '  REPAIR ' + (p.rpPot || 0),
+    'RATIONS ' + (p.rations || 0) + '  TORCH ' + (p.torches || 0),
+    'GATE KEYS ' + (p.gateKeys || 0),
+    'FRAGMENTS ' + (p.mapFrags || 0) + '/' + FRAG_NEED,
+    'FOES ' + (t.foe || 0),
+    'CHAMPS ' + (t.champ || 0) + '  BOSSES ' + (t.boss || 0),
+    'FAV SPELL ' + favLabel711(p.favCast),
+    'FAV WEAPON ' + favLabel711(p.favWep)
+  ];
+  if (p.xpBuffT > 0 && typeof buffText === 'function') lines.push(buffText());
+  return lines;
+}
+const _paintChar711 = paintChar;
+paintChar = function () {
+  _paintChar711();
+  const p = player, box = $('stats'); if (!p || !box) return;
+  paintHero711();
+  let sc = $('charScroll');
+  if (!sc) { sc = document.createElement('div'); sc.id = 'charScroll'; sc.style.cssText = 'position:absolute;left:40px;right:2px;top:2px;bottom:2px;overflow:auto;touch-action:pan-y'; box.appendChild(sc); }
+  const w = Math.max(36, (box.clientWidth || 120) - 44);
+  sc.innerHTML = '';
+  sc.appendChild(paintLines711(charLines711(p), w));
+  bindDragScroll(sc);
+  box.style.overflow = 'hidden';
+  if (!heroRAF && state === 'inv' && satchelTab === 'character') heroRAF = requestAnimationFrame(function loop() { if (state === 'inv' && satchelTab === 'character') { paintHero711(); heroRAF = requestAnimationFrame(loop); } else heroRAF = 0; });
+};
+const _fillCons711 = fillCons;
+fillCons = function () {
+  const box = $('consPane'), p = player; if (!box || !p) return _fillCons711();
+  const rows = [
+    ['hp', 'LIFE', p.hpPot, 'LIFE FLASK'],
+    ['mp', 'MANA', p.mpPot, 'MANA FLASK'],
+    ['food', 'FOOD', p.rations || 0, 'RATION. RESTORES HUNGER'],
+    ['rp', 'REPAIR', p.rpPot || 0, 'REPAIR POTION. OPENS THE CHARACTER PANEL'],
+    ['map', 'MAP', (p.mapFrags || 0) + '/' + FRAG_NEED, 'MAP FRAGMENTS. FOUR MARK THE EXIT DOOR'],
+    ['gate', 'GATE', p.gateKeys || 0, 'GATE KEYS. IRON GATES']
+  ];
+  if (typeof necroKnown === 'function' && necroKnown()) rows.push(['np', 'NECRO', p.npPot || 0, 'NECRO POTION. WAKE AT HALF LIFE']);
+  if (!rows.some(r => r[0] === consPick)) consPick = rows[0][0];
+  box.innerHTML = '';
+  rows.forEach(r => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'cons-chip' + (consPick === r[0] ? ' sel' : '');
+    const icon = ICONS[r[0]];
+    if (icon && icon.toDataURL) { const im = document.createElement('img'); im.src = icon.toDataURL(); im.alt = r[1]; b.appendChild(im); }
+    const t = document.createElement('b'); t.textContent = r[2] + ''; b.appendChild(t);
+    b.addEventListener('click', () => {
+      consPick = r[0];
+      if (r[0] === 'rp') { if (!repairMode) toggleRepairMode(); else if (typeof satchelOpenTab === 'function') satchelOpenTab('character'); return; }
+      fillCons();
+    });
+    box.appendChild(b);
+  });
+  const det = $('consDetail');
+  if (det) {
+    const hit = rows.find(r => r[0] === consPick) || rows[0];
+    const dw = Math.max(40, det.clientWidth || (satM.cw || 394) - 8), dh = Math.max(12, det.clientHeight || 20);
+    det.textContent = '';
+    const c = pxCanvas(dw, dh); c.c.style.width = dw + 'px'; c.c.style.height = dh + 'px';
+    pxText(c.x, hit[3], 8, Math.max(2, ((dh - 5) / 2) | 0), SAT_TAN, true, dw - 6);
+    det.appendChild(c.c);
+  }
+};
+function spellLines711(id) {
+  const i = TOME_IDS.indexOf(id);
+  const head = [TOME_NAMES[i] || id];
+  return head.concat(SPELL_CARD[id] || ['A PAGE OF THE LICH TOME']);
+}
+const _fillTome711 = fillTomePane;
+fillTomePane = function () {
+  const box = $('tomePane'); if (!box || !player) return;
+  const t = ensureTome(player);
+  if (!t.isAcquired) { box.innerHTML = '<div class="tome-empty"><b>THE LICH TOME<br>YOU HAVE NOT FOUND IT.</b></div>'; return; }
+  const any = TOME_IDS.some(id => t.spells[id].isUnlocked);
+  if (!any) { box.innerHTML = '<div class="tome-empty"><b>THE LICH TOME<br>ITS PAGES HAVE BEEN TORN OUT.</b></div>'; return; }
+  const TW = { spells: 35, recipes: 39, enchantments: 59 };
+  box.innerHTML = '';
+  const sub = document.createElement('div'); sub.className = 'tome-sub';
+  ['spells', 'recipes', 'enchantments'].forEach(id => {
+    const on = tomeSub === id, hgt = on ? 16 : 11;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tome-tab' + (on ? ' on' : ''); b.dataset.sub = id;
+    b.style.width = TW[id] + 'px';
+    b.style.backgroundImage = 'url(assets/ui/v07101/satchel/tome_tabs/tome_tab_' + id + '_' + (on ? 'selected' : 'idle') + '_' + TW[id] + 'x' + hgt + '.png)';
+    b.textContent = id.toUpperCase();
+    b.addEventListener('click', () => { tomeSub = id; fillTomePane(); });
+    sub.appendChild(b);
+  });
+  box.appendChild(sub);
+  const body = document.createElement('div'); body.id = 'tomeBody';
+  if (tomeSub === 'recipes') { body.className = 'recipes'; body.appendChild(paintLines711(['NO RECIPES YET.'], 160)); }
+  else if (tomeSub === 'enchantments') { body.className = 'enchantments'; body.appendChild(paintLines711(['NO ENCHANTMENTS YET.'], 180)); }
+  else {
+    if (!tomePageId || !t.spells[tomePageId] || !t.spells[tomePageId].isUnlocked) tomePageId = TOME_IDS.find(id => t.spells[id].isUnlocked) || 'fireball';
+    const bar = spellBar();
+    TOME_IDS.forEach((id, n) => {
+      const on = t.spells[id].isUnlocked;
+      const row = document.createElement('div'); row.style.cssText = 'display:flex;align-items:center;gap:4px;margin:3px 0';
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'tome-page' + (!on ? ' lock' : tomePageId === id ? ' on' : '');
+      b.disabled = !on;
+      if (on && SPELL_ICON[id]) { const im = document.createElement('img'); im.src = SPELL_ICON[id]; im.alt = TOME_NAMES[n]; b.appendChild(im); }
+      let timer = 0, suppress = false;
+      b.addEventListener('pointerdown', e => {
+        if (!on) return;
+        const x = e.clientX, y = e.clientY;
+        timer = setTimeout(() => { suppress = true; showHold711(TOME_NAMES[n], spellLines711(id), 'magic', x, y); }, 380);
+      });
+      const clear = () => clearTimeout(timer);
+      b.addEventListener('pointerup', clear); b.addEventListener('pointercancel', clear);
+      b.addEventListener('click', () => {
+        if (suppress) { suppress = false; return; }
+        if (holdOn) { hideHold711(); return; }
+        tomePageId = id; fillTomePane();
+      });
+      const label = paintLines711([TOME_NAMES[n]], 120);
+      label.style.width = '120px'; label.style.height = '10px';
+      row.appendChild(b); row.appendChild(label);
+      body.appendChild(row);
+    });
+    const asg = document.createElement('div'); asg.style.marginTop = '4px';
+    const tag = paintLines711(['ASSIGN'], 48); tag.style.width = '48px'; tag.style.height = '10px'; asg.appendChild(tag);
+    [0, 1, 2, 3].forEach(s => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'tome-asg';
+      b.textContent = (s + 1) + (bar[s] === tomePageId ? '*' : '');
+      b.addEventListener('click', () => { assignSpell(tomePageId, s); fillTomePane(); syncSpellHud(); syncDesk(); });
+      asg.appendChild(b);
+    });
+    body.appendChild(asg);
+  }
+  box.appendChild(body);
+  bindDragScroll(body);
+};
+function fitFoot711() {
+  const foot = $('satFoot'); if (!foot) return;
+  const L = foot.querySelector('.foot-l'), R = foot.querySelector('.foot-r'); if (!L || !R) return;
+  L.style.transform = R.style.transform = '';
+  const need = L.scrollWidth + R.scrollWidth + 8, avail = foot.clientWidth || need;
+  if (need > avail + 1) {
+    const s = Math.max(0.62, avail / need);
+    L.style.transformOrigin = 'left center'; R.style.transformOrigin = 'right center';
+    L.style.transform = R.style.transform = 'scale(' + s.toFixed(3) + ')';
+  }
+}
+const _size711 = sizeSatchel;
+sizeSatchel = function () { const r = _size711(); fitFoot711(); const notes = $('notesPane'); if (notes) bindDragScroll(notes); return r; };
+const _openTE711 = openTouchEditor;
+openTouchEditor = function () { _openTE711(); const c = $('cornerbar'); if (c) { c.classList.remove('hidden'); c.classList.add('editing'); } };
+const _closeTE711 = closeTouchEditor;
+closeTouchEditor = function () { const c = $('cornerbar'); if (c) c.classList.remove('editing'); return _closeTE711(); };
+const corner = $('cornerbar');
+if (corner) corner.addEventListener('pointerdown', e => {
+  if (state !== 'tlayout') return;
+  const b = e.target.closest && e.target.closest('.tbtn');
+  if (!b || !TL_DEF[b.id]) return;
+  e.preventDefault(); e.stopPropagation();
+  const c = tlCenter(b.id); tlDrag.id = e.pointerId; tlDrag.el = b; tlDrag.ox = e.clientX - c.x; tlDrag.oy = e.clientY - c.y; b.classList.add('down');
+}, true);
+['bS1', 'bS2', 'bS3', 'bS4', 'bS5', 'bS6', 'bS7'].forEach(id => {
+  const b = $(id); if (!b) return;
+  b.addEventListener('pointerdown', e => { try { b.setPointerCapture(e.pointerId); } catch (_) {} }, true);
+  b.addEventListener('lostpointercapture', () => { b.classList.remove('down'); releaseBar(); });
+});
+document.addEventListener('pointermove', e => {
+  if (swipePtr !== e.pointerId || state !== 'play') return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const b = el && el.closest && el.closest('#touch .btn');
+  document.querySelectorAll('#touch .btn.down').forEach(n => { if (/^bS/.test(n.id) && n !== b) n.classList.remove('down'); });
+  if (!b || !/^bS/.test(b.id)) releaseBar();
+  else b.classList.add('down');
+}, true);
+if (window.game) {
+  Object.assign(window.game, { lockPuzzleBypasses: lockPuzzleBypasses711, markGatedLoot: markGatedLoot711, rescueSealed: rescueSealed711, placeBossShop: placeBossShop711, useMapFrags, lightSconce, castHellmouth, releaseBar, pressBar });
+  Object.defineProperties(window.game, {
+    exitPing: { get() { return exitPing; }, set(v) { exitPing = !!v; } },
+    vic: { get() { return vic711; } },
+    held: { get() { return held; } }
   });
 }
 
