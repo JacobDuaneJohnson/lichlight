@@ -243,9 +243,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #inv h3,.v4box h2{background:url(assets/ui/v0710/menu/header_9slice_24x12_s8.png) center/100% 100% no-repeat;image-rendering:pixelated;padding:2px 8px}
 /* v0.7.10.1 B1–B4, F1, F5: round HUD plates, square pause/map, fluid menus, tabbed satchel, desktop bar */
 :root{--ui:1;--hud:1}
-#menu,#profiles,#shop,#rest,#talk,#skills,#dead,#updModal,#rotate{zoom:var(--ui);width:calc(100% / var(--ui));height:calc(100% / var(--ui))}
-#touch,#cornerbar,#topbar,#tlEdit{zoom:var(--hud)}
-#touch,#cornerbar{width:calc(100% / var(--hud));height:calc(100% / var(--hud))}
+/* transform, not zoom: Chrome already divides a zoomed percentage size by zoom, so width:100%/zoom painted ~1/zoom too big and slid the menu and touch HUD down-right off the glass */
+#menu,#profiles,#shop,#rest,#talk,#skills,#dead,#updModal,#rotate{transform:scale(var(--ui));transform-origin:0 0;width:calc(100% / var(--ui));height:calc(100% / var(--ui));left:0;top:0;right:auto;bottom:auto}
+#touch,#cornerbar{transform:scale(var(--hud));transform-origin:0 0;width:calc(100% / var(--hud));height:calc(100% / var(--hud));left:0;top:0;right:auto;bottom:auto}
+#topbar,#tlEdit{transform:translateX(-50%) scale(var(--hud));transform-origin:top center}
 #menu .mrow,#menu .aopts{width:min(96%,1100px)}
 #menu .mbtn{flex:1 1 160px;max-width:340px}
 #bAtk,#bRoll,#bHP,#bMP,#bInv,#bUse,#bS1,#bS2,#bS3,#bS4,#bS5,#bS6,#bS7{background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;border-radius:50%}
@@ -274,7 +275,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #tMap{background-image:url(assets/ui/v07101/hud/composed/hud_map_32_idle.png)}
 .btn.hud-off{display:none!important}
 #touch.editing .btn.learned{display:flex!important}
-#inv{background:transparent;align-items:center;justify-content:center;padding:8px}
+#inv{background:transparent;align-items:center;justify-content:center;padding:8px;overflow:hidden}
 #satchel{position:relative;display:flex;flex-direction:column;width:min(calc(100% - 16px), 1260px);max-height:calc(100% - 8px);image-rendering:pixelated;border-style:solid;border-width:16px;border-image:url(assets/ui/v07101/satchel/frame/satchel_panel_9slice_24_s8.png) 8 fill / 16px / 0 stretch;background:transparent}
 .sat-tabs{display:flex;gap:2px;align-items:flex-end;min-height:28px;margin:-8px 4px 0}
 .sat-tab{flex:1 1 0;min-width:0;height:22px;border:0;padding:0 4px;color:#c8b8a0;font:bold 10px/22px "Courier New",monospace;background:url(assets/ui/v07101/satchel/tabs/tab_blank_idle_9slice_12x16_s4.png) center/100% 100% no-repeat;image-rendering:pixelated;cursor:pointer}
@@ -3452,26 +3453,30 @@ function drawBlade2(x, y) { ctx.fillStyle = '#e0e8f0'; for (let i = 0; i < 7; i+
 let touchMode = isTouch();
 const jz = $('joyzone'), jb = $('joybase'), jk = $('joyknob');
 const JR = 50;
+function hudScale() { const s = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hud')); return s > 0 ? s : 1; }
 function joyRest() {
+  const k = hudScale();
   const h = appH, sl = settings.touchLayout && settings.touchLayout.swap ? appW - 100 : 100;
-  jb.style.left = sl + 'px'; jb.style.top = (h - 95) + 'px'; jk.style.left = '60px'; jk.style.top = '60px'; jb.style.opacity = .45;
+  jb.style.left = (sl / k) + 'px'; jb.style.top = ((h - 95) / k) + 'px'; jk.style.left = '60px'; jk.style.top = '60px'; jb.style.opacity = .45;
 }
 jz.addEventListener('pointerdown', e => {
   e.preventDefault(); if (state === 'play' && dismissTapClient(e.clientX, e.clientY)) return; // v0.7.2 §9c tap-to-dismiss
   if (state === 'play') touchItemStart(e); if (joy.id !== null) return;
   joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; joy.x = joy.y = 0; joy.active = true;
   try { jz.setPointerCapture(e.pointerId); } catch (_) {}
-  jb.style.left = e.clientX + 'px'; jb.style.top = e.clientY + 'px'; jb.style.opacity = 1; jk.style.left = '60px'; jk.style.top = '60px';
+  const k0 = hudScale();
+  jb.style.left = (e.clientX / k0) + 'px'; jb.style.top = (e.clientY / k0) + 'px'; jb.style.opacity = 1; jk.style.left = '60px'; jk.style.top = '60px';
 });
 jz.addEventListener('pointermove', e => {
   touchItemMove(e);
   if (e.pointerId !== joy.id) return; e.preventDefault();
   if (touchHold.id === e.pointerId && !touchHold.moved) return; // still a possible item tap / hold: don't steer yet
+  const k = hudScale();
   let dx = e.clientX - joy.ox, dy = e.clientY - joy.oy; const d = Math.hypot(dx, dy);
   if (d > JR) { const ex = d - JR; joy.ox += dx / d * ex; joy.oy += dy / d * ex; dx = e.clientX - joy.ox; dy = e.clientY - joy.oy;
-    jb.style.left = joy.ox + 'px'; jb.style.top = joy.oy + 'px'; }
+    jb.style.left = (joy.ox / k) + 'px'; jb.style.top = (joy.oy / k) + 'px'; }
   joy.x = dx / JR; joy.y = dy / JR;
-  jk.style.left = (60 + dx) + 'px'; jk.style.top = (60 + dy) + 'px';
+  jk.style.left = (60 + dx / k) + 'px'; jk.style.top = (60 + dy / k) + 'px';
 });
 function joyEnd(e) { if (e.type === 'pointercancel' && e.pointerId === touchHold.id) touchHold.moved = true; if (e.type !== 'lostpointercapture') touchItemEnd(e); if (e.pointerId !== joy.id) return; joy.id = null; joy.active = false; joy.x = joy.y = 0; joyRest(); }
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => jz.addEventListener(ev, joyEnd));
@@ -5491,7 +5496,7 @@ function tlCenter(id) { const L = touchLayout(), D = TL_DEF[id]; if (!D) return 
 function applyTouchLayout() { const L = touchLayout(), custom = L.swap || Object.keys(L.pos).length > 0;
   for (const id in TL_DEF) { const b = document.getElementById(id); if (!b) continue;
     if (!custom) { b.style.left = b.style.top = b.style.right = b.style.bottom = ''; continue; }
-    const c = tlCenter(id); b.style.right = b.style.bottom = 'auto'; b.style.left = Math.round(c.x - c.r) + 'px'; b.style.top = Math.round(c.y - c.r) + 'px'; }
+    const c = tlCenter(id), k = hudScale(); b.style.right = b.style.bottom = 'auto'; b.style.left = Math.round(c.x / k - c.r) + 'px'; b.style.top = Math.round(c.y / k - c.r) + 'px'; }
   const z = document.getElementById('joyzone'); if (z) { z.style.left = L.swap ? 'auto' : ''; z.style.right = L.swap ? '0' : ''; }
   if (typeof joy === 'undefined' || joy.id === null) joyRest(); }
 const tlDrag = { id: null, el: null, ox: 0, oy: 0 };
@@ -8292,6 +8297,8 @@ function fitUi101() {
   hud = Math.max(0.84, Math.min(hud, 1.22));
   document.documentElement.style.setProperty('--ui', s.toFixed(3));
   document.documentElement.style.setProperty('--hud', hud.toFixed(3));
+  if (window.__tlReady && typeof applyTouchLayout === 'function') applyTouchLayout();
+  else if (typeof joyRest === 'function') joyRest();
   placeDesk101();
   if (state === 'inv') sizeSatchel();
 }

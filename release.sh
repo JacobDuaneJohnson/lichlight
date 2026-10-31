@@ -18,6 +18,8 @@ TAG="v$VER"; DATE="$(date +%F)"
 [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || die "not on main"
 git rev-parse -q --verify "refs/tags/$TAG" >/dev/null && die "tag $TAG already exists"
 grep -q "^const VERSION = '" index.html || die "VERSION constant not found in index.html"
+OLD_VER="$(sed -n "s/^const VERSION = '\\([^']*\\)';/\\1/p" index.html | head -1)"
+[[ -n "$OLD_VER" ]] || die "could not read the current VERSION"
 grep -q "^## \[$VER\]" CHANGELOG.md && die "CHANGELOG.md already has $VER"
 command -v gh >/dev/null || die "gh CLI not installed"
 
@@ -26,6 +28,19 @@ sed -i "s/^const VERSION = '[^']*';/const VERSION = '$VER';/" index.html
 sed -i "s/^Current version: \*\*v[0-9.]*\*\*/Current version: **$TAG**/" README.md
 printf '{"version":"%s"}\n' "$VER" > version.json   # players on older builds see an "Update available" prompt
 grep -q "^const VERSION = '$VER';" index.html && grep -q "\"$VER\"" version.json || die "VERSION / version.json mismatch"
+# The suite pins the live version. Rewrite that pin, and don't let 0.7.10 swallow 0.7.10.1.
+if [[ -n "${OLD_VER:-}" && "$OLD_VER" != "$VER" ]]; then
+  python3 - "$OLD_VER" "$VER" <<'PY'
+import pathlib, re, sys
+old, new = sys.argv[1:]
+pat = re.compile(re.escape(old) + r'(?![0-9.])')
+for p in pathlib.Path('tests').glob('*.html'):
+    s = p.read_text()
+    t = pat.sub(new, s)
+    if t != s:
+        p.write_text(t)
+PY
+fi
 # 2. prepend the notes to CHANGELOG.md (above the newest entry) + add the link reference
 python3 - "$VER" "$DATE" "$TITLE" "$NOTES" <<'PY'
 import sys, re
