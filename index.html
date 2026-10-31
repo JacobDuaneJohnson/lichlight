@@ -241,6 +241,78 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .slot{background:none;border-style:solid;border-width:8px;border-image:url(assets/ui/v0710/menu/inv_slot_idle_9slice_12_s4.png) 4 fill / 8px / 0 stretch;image-rendering:pixelated}
 .slot.sel{border-image-source:url(assets/ui/v0710/menu/inv_slot_sel_9slice_12_s4.png)}
 #inv h3,.v4box h2{background:url(assets/ui/v0710/menu/header_9slice_24x12_s8.png) center/100% 100% no-repeat;image-rendering:pixelated;padding:2px 8px}
+/* v0.7.10.1 B1–B4, F1, F5: round HUD plates, square pause/map, fluid menus, tabbed satchel, desktop bar */
+:root{--ui:1;--hud:1}
+#menu,#profiles,#shop,#rest,#talk,#skills,#dead,#updModal,#rotate{zoom:var(--ui);width:calc(100% / var(--ui));height:calc(100% / var(--ui))}
+#touch,#cornerbar,#topbar,#tlEdit{zoom:var(--hud)}
+#touch,#cornerbar{width:calc(100% / var(--hud));height:calc(100% / var(--hud))}
+#menu .mrow,#menu .aopts{width:min(96%,1100px)}
+#menu .mbtn{flex:1 1 160px;max-width:340px}
+#bAtk,#bRoll,#bHP,#bMP,#bInv,#bUse,#bS1,#bS2,#bS3,#bS4,#bS5,#bS6,#bS7{background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;border-radius:50%}
+#bAtk{background-image:url(assets/ui/v07101/hud/composed/hud_attack_72_idle.png)}
+#bAtk.down{background-image:url(assets/ui/v07101/hud/composed/hud_attack_72_down.png)}
+#bRoll{background-image:url(assets/ui/v07101/hud/composed/hud_roll_48_idle.png)}
+#bRoll.down{background-image:url(assets/ui/v07101/hud/composed/hud_roll_48_down.png)}
+#bHP,#bMP,#bInv,#bUse{width:48px;height:48px}
+#bHP{background-image:url(assets/ui/v07101/hud/composed/hud_heal_48_idle.png)}
+#bHP.down{background-image:url(assets/ui/v07101/hud/composed/hud_heal_48_down.png)}
+#bMP{background-image:url(assets/ui/v07101/hud/composed/hud_mana_48_idle.png)}
+#bMP.down{background-image:url(assets/ui/v07101/hud/composed/hud_mana_48_down.png)}
+#bInv{background-image:url(assets/ui/v07101/hud/composed/hud_satchel_48_idle.png);border-radius:50%}
+#bInv.down{background-image:url(assets/ui/v07101/hud/composed/hud_satchel_48_down.png)}
+#bUse{background-image:url(assets/ui/v07101/hud/composed/hud_examine_48_idle.png)}
+#bUse.down{background-image:url(assets/ui/v07101/hud/composed/hud_examine_48_down.png)}
+#bUse.act-light{background-image:url(assets/ui/v07101/hud/composed/hud_light_48_idle.png)}
+#bUse.act-light.down{background-image:url(assets/ui/v07101/hud/composed/hud_light_48_down.png)}
+#bUse.act-pull{background-image:url(assets/ui/v07101/hud/composed/hud_pull_48_idle.png)}
+#bUse.act-pull.down{background-image:url(assets/ui/v07101/hud/composed/hud_pull_48_down.png)}
+#bUse.act-exam{background-image:url(assets/ui/v07101/hud/composed/hud_examine_48_idle.png)}
+#bAtk .ico,#bRoll .ico,#bHP .ico,#bMP .ico,#bInv .ico,#bUse .ico,#bS1 .ico,#bS2 .ico,#bS3 .ico,#bS4 .ico,#bS5 .ico,#bS6 .ico,#bS7 .ico{background-image:none!important;width:0;height:0;overflow:hidden}
+#bS4,#bS5,#bS6,#bS7{width:56px;height:56px}
+#cornerbar .tbtn,#tPause,#tMap{width:32px;height:32px;background-size:100% 100%;background-repeat:no-repeat;background-position:center;border-radius:50%}
+#tPause{background-image:url(assets/ui/v07101/hud/composed/hud_pause_32_idle.png)}
+#tMap{background-image:url(assets/ui/v07101/hud/composed/hud_map_32_idle.png)}
+.btn.hud-off{display:none!important}
+#touch.editing .btn.learned{display:flex!important}
+#inv{background:transparent;align-items:center;justify-content:center;padding:8px}
+#satchel{position:relative;display:flex;flex-direction:column;width:min(calc(100% - 16px), 1260px);max-height:calc(100% - 8px);image-rendering:pixelated;border-style:solid;border-width:16px;border-image:url(assets/ui/v07101/satchel/frame/satchel_panel_9slice_24_s8.png) 8 fill / 16px / 0 stretch;background:transparent}
+.sat-tabs{display:flex;gap:2px;align-items:flex-end;min-height:28px;margin:-8px 4px 0}
+.sat-tab{flex:1 1 0;min-width:0;height:22px;border:0;padding:0 4px;color:#c8b8a0;font:bold 10px/22px "Courier New",monospace;background:url(assets/ui/v07101/satchel/tabs/tab_blank_idle_9slice_12x16_s4.png) center/100% 100% no-repeat;image-rendering:pixelated;cursor:pointer}
+.sat-tab.on{height:28px;color:#e8c840;background-image:url(assets/ui/v07101/satchel/tabs/tab_blank_selected_9slice_12x23_s4.png)}
+.sat-tab:disabled{opacity:.45}
+#satBody{flex:1;min-height:0;display:flex;padding:6px 4px 0}
+.sat-pane{display:none;flex:1;min-width:0;min-height:0}
+.sat-pane.on{display:flex;flex-direction:column}
+.char-row,.inv-row{display:flex;gap:8px;min-height:0;flex:1}
+#equip{grid-template-columns:repeat(4,var(--slot));align-content:start}
+#grid{grid-template-columns:repeat(7,var(--slot));max-height:calc(var(--slot) * 3 + 18px);align-content:start}
+#stats,#invStats,#notesPane,#consPane,#tomePane{flex:1;min-width:140px;overflow:auto;color:#e0d4bc;font-size:12px;line-height:1.35;text-align:left}
+#invStats{background:url(assets/ui/v07101/satchel/content/inv_stats_panel_9slice_12_s4.png) center/100% 100% no-repeat;padding:8px 10px;image-rendering:pixelated}
+#satMap{width:100%;height:100%;image-rendering:pixelated;background:#120c10}
+#satFoot{display:flex;justify-content:space-between;gap:8px;align-items:flex-end;padding-top:6px}
+.foot-l,.foot-r{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.foot-for{display:none}
+#satchel[data-tab="inventory"] .foot-inventory,#satchel[data-tab="character"] .foot-character,#satchel[data-tab="consumables"] .foot-consumables,#satchel[data-tab="notes"] .foot-notes{display:flex}
+#detail{display:flex;align-items:center;gap:4px}
+#dtext{display:none}
+#dbtns{display:flex;gap:4px}
+#dbtns button.close{display:none}
+#satClose{background:#402020;border-color:#a04040}
+#deskHud{position:absolute;z-index:7;pointer-events:auto;display:flex;align-items:flex-end;justify-content:space-between;image-rendering:pixelated;font:bold 11px "Courier New",monospace;color:#e8dcc0}
+#deskHud.hidden{display:none!important}
+.dh-globe{position:relative;flex:0 0 auto;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
+.dh-globe .fill{position:absolute;left:18%;right:18%;bottom:14%;background:#8a1820;border-radius:40%;overflow:hidden}
+.dh-globe.mp .fill{background:#1a2a5a}
+.dh-globe .fill i{display:block;width:100%;background:#c02028;position:absolute;left:0;bottom:0}
+.dh-globe.mp .fill i{background:#3050d0}
+.dh-globe b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;text-shadow:1px 1px 0 #000;pointer-events:none}
+.dh-slots{display:flex;align-items:flex-end;gap:4px}
+.dh-slot{position:relative;background-repeat:no-repeat;background-position:center;background-size:100% 100%;cursor:pointer}
+.dh-slot .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);pointer-events:none}
+.dh-slot .key{position:absolute;right:-2px;bottom:-2px;font-size:9px;color:#e8c840}
+.dh-well{flex:1 1 auto;min-width:40px;margin:0 6px 4px;padding:2px 6px;background:url(assets/ui/v07101/desktop/bar/center_well_9slice_12_s4.png) center/100% 100% no-repeat;display:flex;flex-direction:column;justify-content:center;gap:1px}
+.dh-well .row{display:flex;justify-content:space-between;gap:6px;white-space:nowrap}
+#deskHud{background:url(assets/ui/v07101/desktop/bar/desk_bar_9slice_64x40_s16.png) center bottom / 100% 78% no-repeat}
 </style>
 </head>
 <body>
@@ -270,11 +342,29 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <div class="tbtn" id="tPause" title="Pause">❚❚</div>
   <div class="tbtn" id="tMap" title="Map">⌗</div>
 </div>
+<div id="deskHud" class="hidden" aria-hidden="true"></div>
 <div id="gtip" class="hidden"></div>
 <div id="inv" class="hidden">
-  <div class="panel"><h3>EQUIPPED</h3><div id="equip"></div><div id="stats"></div></div>
-  <div class="panel"><h3>BACKPACK <span id="gold" class="c3"></span></h3><div id="grid"></div><div class="invb"><button class="sortb" id="sortBtn">⇅ SORT</button><button class="sortb seenb" id="seenBtn">✓ MARK ALL SEEN</button><button class="sortb" id="dropAllBtn" title="Drop every backpack item (Shift+click skips the confirm)">DROP ALL</button></div><div class="invb invb2"><button class="sortb" id="rpBtn" title="Repair Potion: select, then pick an item to repair"><img id="rpImg" alt=""><span id="rpN">0</span></button><button class="sortb" id="ratBtn" title="Eat a ration">🍖<span id="ratN">0</span></button><button class="sortb" id="fragBtn" title="Map Fragments: 4 reveal this floor">📜<span id="fragN">0/4</span></button><span class="sortb" id="gkN" title="Gate Keys (iron gates)" style="display:flex;align-items:center;padding:0 6px;background:#202428;border-color:#6a7a8a">GATE 0</span><button class="sortb" id="notesBtn" title="Stash notes and glyph clues">NOTES</button><button class="sortb" id="restBtn" title="Rest in a safe room">REST</button></div></div>
-  <div class="panel" id="detail"><div id="dtext"><span class="cg">Tap an item to see its stats.</span></div><div id="dbtns"></div></div>
+  <div id="satchel">
+    <div id="satTabs" class="sat-tabs"></div>
+    <div id="satBody">
+      <div class="sat-pane on" data-pane="character"><div class="char-row"><div id="equip"></div><div id="stats"></div></div></div>
+      <div class="sat-pane" data-pane="inventory"><div class="inv-row"><div id="grid"></div><div id="invStats"></div></div></div>
+      <div class="sat-pane" data-pane="consumables"><div id="consPane"></div></div>
+      <div class="sat-pane" data-pane="notes"><div id="notesPane"></div></div>
+      <div class="sat-pane" data-pane="tome"><div id="tomePane"></div></div>
+      <div class="sat-pane" data-pane="map"><canvas id="satMap" width="394" height="102"></canvas></div>
+    </div>
+    <div id="satFoot">
+      <div class="foot-l">
+        <div class="invb foot-for foot-inventory"><button class="sortb" id="sortBtn">⇅ SORT</button><button class="sortb seenb" id="seenBtn">✓ MARK ALL SEEN</button><button class="sortb" id="dropAllBtn" title="Drop every backpack item (Shift+click skips the confirm)">DROP ALL</button></div>
+        <div class="invb foot-for foot-character"><button class="sortb" id="restBtn" title="Rest in a safe room">REST</button><span class="sortb" id="gkN" title="Gate Keys (iron gates)">GATE 0</span></div>
+        <div class="invb foot-for foot-consumables"><button class="sortb" id="rpBtn" title="Repair Potion: select, then pick an item to repair"><img id="rpImg" alt=""><span id="rpN">0</span></button><button class="sortb" id="ratBtn" title="Eat a ration">🍖<span id="ratN">0</span></button><button class="sortb" id="fragBtn" title="Map Fragments: 4 reveal this floor">📜<span id="fragN">0/4</span></button></div>
+        <div class="invb foot-for foot-notes"><button class="sortb" id="closeNotesBtn" type="button">CLOSE NOTES</button></div>
+      </div>
+      <div class="foot-r"><span id="gold" class="c3"></span><div id="detail"><div id="dtext"><span class="cg">Tap an item to see its stats.</span></div><div id="dbtns"></div></div><button class="sortb" id="notesBtn" title="Stash notes and glyph clues">NOTES</button><button class="sortb" id="satClose" type="button">CLOSE</button></div>
+    </div>
+  </div>
 </div>
 <div id="menu" class="overlay">
   <h1 class="title">LICHLIGHT</h1>
@@ -288,7 +378,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <button class="mbtn small" id="mMusic">MUSIC: ON</button>
     <button class="mbtn small" id="mBattle">BATTLE MUSIC: OFF</button>
     <button class="mbtn small" id="mLight">LIGHTING: HIGH</button>
-    <button class="mbtn small" id="mGl">GL LIGHT: AUTO</button>
+    <button class="mbtn small" id="mGl">GL LIGHT: OFF</button>
     <button class="mbtn small" id="mZoom">TEST ZOOM: 1X</button>
     <button class="mbtn small" id="mSkills">SKILL KEYS</button>
     <button class="mbtn small hidden" id="mTouch">TOUCH CONTROLS</button>
@@ -1855,7 +1945,7 @@ function glDevMount() {
 }
 glLookLoad();
 let lightFramePath = 'canvas', GL = null;
-function glLightMode() { const m = settings.glLight; return m === 'on' || m === 'off' ? m : 'auto'; }
+function glLightMode() { const m = settings.glLight; if (m === 'on' || m === 'off' || m === 'auto') return m; return 'off'; } // v0.7.10.1 B10: unset GL LIGHT defaults OFF; a saved AUTO/ON/OFF stays
 function wantWebGLLighting() {
   if (window.__noWebGL || window.__forceCanvasLight) return false;
   if (glLightMode() === 'off') return false;
@@ -2882,7 +2972,7 @@ function save() {
   try { const p = player; localStorage.setItem('cryptdelve', JSON.stringify({ depth, itemId, world: DPLANE ? DPLANE.home : worldSnap(), /* v0.7.3 §7: never save the temporary plane */
     p: { lvl: p.lvl, xp: p.xp, gold: p.gold, hpPot: p.hpPot, mpPot: p.mpPot, inv: p.inv, equip: p.equip, kills: p.kills, found: p.found, keys: p.keys, rpPot: p.rpPot, torches: p.torches, torchT: Math.round(p.torchT * 10) / 10,
       gateKeys: p.gateKeys, rations: p.rations, hunger: Math.round(p.hunger), thirst: Math.round(p.thirst), fatigue: Math.round(p.fatigue), mapFrags: p.mapFrags, bagBonus: p.bagBonus, xpBuffT: Math.round(p.xpBuffT || 0),
-      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p) } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
+      learned: p.learned, slots: p.slotsFilled, look: p.look, pname: p.pname, gotRusty: !!p.gotRusty, npPot: p.npPot || 0, necroSeen: !!(p.necroSeen || p.npPot > 0), hp: Math.round(p.hp * 10) / 10, mp: Math.round(p.mp * 10) / 10, v73: p.v73, v74: p.v74, v77: p.v77, notes: Array.isArray(p.notes) ? p.notes.slice(0, 24) : [], lichTome: tomeSave(p), spellBar: Array.isArray(p.spellBar) ? p.spellBar.slice(0, 4) : [null, null, null, null] } })); lastSaveT = time; } catch (e) { saveErr = String(e && e.message || e); }
 }
 // ---- v0.6.3 B10: full save state. The whole live floor (layout, explored tiles, doors, puzzles, chests, secrets, loot, enemies, props...)
 // plus your position is packed into the save; Continue drops you back on the same spot. Older saves (no world) start the floor fresh as before.
@@ -3512,8 +3602,8 @@ function updateTouchUI() {
   $('topbar').classList.toggle('hidden', !(touchMode && state === 'play')); $('cornerbar').classList.toggle('hidden', !(touchMode && state === 'play')); // v0.7.1 §2: pause lower-left, map lower-right
   { const sk = document.getElementById('mSkills'); if (sk) sk.classList.toggle('hidden', touchMode); } // skill keys are a keyboard thing
   $('helpTxt').innerHTML = touchMode
-    ? 'Left thumb: drag anywhere to move<br>Right thumb: attack (tap; hold to charge), ROLL to dodge, skills, potions, bag; USE appears by doors, water, torches and traders &middot; &#x2317; map<br>USE the way down to descend into the deep. Hold attack for a power attack. Dodge-roll hops a spiked gap. You can walk across the spikes. They still cut you, and a thought pops up. Wall torches and floor braziers start cold; light them with your torch to mark the path. A burning torch, brazier, sconce, or fire pit relights your torch. Discovered puzzle pieces show on the map. A glimmer pool is one drink (+25% XP). NOTES in the bag holds glyph clues. Gold, potions and keys are picked up automatically; tap gear to pick it up, press-and-hold to inspect.'
-    : 'LEFT-CLICK walk / attack / pick up / open / use (hold to keep going) &middot; hold CTRL to stand in place (CTRL+CLICK attacks without moving) &middot; RIGHT-CLICK cast selected skill (F1-F3 to select) &middot; 1 2 3 cast skills at the cursor &middot; F use / drink / light &middot; R eat &middot; Z rest &middot; SPACE dodge roll toward cursor (K also) &middot; WASD also moves &middot; J attacks in place &middot; Q / E potions &middot; I inventory &middot; M / TAB map &middot; hold ALT item labels &middot; - / = zoom (0.25x to 1x) &middot; ESC pause<br>USE the way down to descend into the deep. Hold attack for a power attack. Dodge-roll hops a spiked gap. You can walk across the spikes. They still cut you, and a thought pops up. Wall torches and floor braziers start cold; light them with your torch to mark the path. A burning torch, brazier, sconce, or fire pit relights your torch (F). Discovered puzzle pieces show on the map (M). A glimmer pool is one drink (+25% XP). NOTES in the bag holds glyph clues. Gold, potions and keys are picked up automatically; click gear to walk over and pick it up, hover to inspect.';
+    ? 'Left thumb: drag anywhere to move<br>Right thumb: attack (tap; hold to charge), ROLL to dodge, up to four spells, potions, satchel. Swipe across attack, dodge, and spells. USE appears by doors, water, torches and traders &middot; &#x2317; map<br>The satchel is tabbed: Character, Inventory, Consumables, Notes, Lich Tome, Map. Assign spells from the tome. Pause includes Characters. Starvation can drop you to 0.'
+    : 'LEFT-CLICK walk / attack / pick up &middot; hold CTRL to stand still &middot; RIGHT-CLICK casts the selected spell slot &middot; 1 2 3 cast the first three bar slots &middot; 6 7 8 9 cast Clone, Ward, Shift, Hellmouth when those pages are yours &middot; Q / E potions &middot; I satchel &middot; M map &middot; ESC pause (Characters switches saves)<br>The bar holds four spells. Change them in the Lich Tome. Empty slots say so. Starvation can kill you. A Necro Potion leaves a tombstone and does not reset the floor.';
 }
 function pauseGame() { save(); setState('pause'); $('mResume').classList.remove('hidden'); $('mCont').classList.add('hidden'); }
 let confirmNew = false;
@@ -3648,9 +3738,9 @@ function commitEquip(it, fromIdx) { // fromIdx < 0: item was not sitting in the 
 }
 function dropItem(it) { if (!it) return; if (state === 'inv') cue('ui_item_drop_ground_01'); dropAt(ground, player.x, player.y + 2, { item: it }); ground[ground.length - 1].lock = true; }
 // ---------- combat ----------
-function addText(x, y, t, col, big) { texts.push({ x, y, t: String(t), col, life: big ? 1.6 : .9, vy: big ? -12 : -24 }); }
+function addText(x, y, t, col, big) { texts.push({ x, y, t: String(t), col, life: big ? 3.6 : 2.9, vy: big ? -12 : -24 }); } /* v0.7.10.1 B11: floating lines +2s */
 function burst(x, y, col, n = 8, sp = 60) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, s = rand(sp * .3, sp); parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.2, .5), col }); } }
-function flashMsg(t, col = '#fff') { msg = { t, life: 3.7, col }; } /* v0.7.3 §14: +1.5s (MSG_DWELL) */
+function flashMsg(t, col = '#fff') { msg = { t, life: 5.7, col }; } /* v0.7.10.1 B11: +2s on every toast (was 3.7) */
 function los(a, b) { const d = dist(a, b), n = Math.ceil(d / 6); for (let i = 1; i < n; i++) { const t = i / n; if (solidAt(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)) return false; } return true; }
 function nearestEnemy(range) { let best = null, bd = range; for (const e of enemies) { if (!targetable(e)) continue; const d = dist(e, player); if (d < bd && los(player, e)) { bd = d; best = e; } } return best; }
 function lethalFloor(x, y) { const h = (typeof hazAt === 'function') ? hazAt(Math.floor(x / TS), Math.floor(y / TS)) : 0; return h === 2 || h === 3; } // acid or lava
@@ -4038,7 +4128,7 @@ function update(dt) {
       else if (g.key) { p.keys += g.key; addText(g.x, g.y - 6, '+KEY', '#ffe060'); sfx('key'); ground.splice(i, 1); flashMsg('You found a key! (' + p.keys + ')', '#ffe060'); }
       else if (pickupExtra(g)) ground.splice(i, 1);
       else if (g.gold) { if (coinOverPit(g.x, g.y)) { ground.splice(i, 1); continue; } takeGold(g); sfx('gold'); ground.splice(i, 1); }
-      else if (g.pot === 'np') { if ((p.npPot || 0) >= NECRO_CAP) { flashMsg('You can only carry 2 Necro Potions.', '#7ee0c8'); g.lock = true; continue; } p.npPot = (p.npPot || 0) + 1; addText(g.x, g.y - 6, '+NECRO', '#7ee0c8'); sfx('pick', { cue: 'wld_pickup_potion_01' }); ground.splice(i, 1); flashMsg('Necro Potion (' + p.npPot + '/' + NECRO_CAP + ')', '#7ee0c8'); }
+      else if (g.pot === 'np') { if ((p.npPot || 0) >= NECRO_CAP) { flashMsg('You can only carry 2 Necro Potions.', '#7ee0c8'); g.lock = true; continue; } p.npPot = (p.npPot || 0) + 1; p.necroSeen = true; addText(g.x, g.y - 6, '+NECRO', '#7ee0c8'); sfx('pick', { cue: 'wld_pickup_potion_01' }); ground.splice(i, 1); flashMsg('Necro Potion (' + p.npPot + '/' + NECRO_CAP + ')', '#7ee0c8'); }
       else if (g.pot === 'rp') { p.rpPot = (p.rpPot || 0) + 1; addText(g.x, g.y - 6, '+REPAIR POT', '#ffa850'); sfx('pick', { cue: 'wld_pickup_potion_01' }); ground.splice(i, 1); flashMsg('Repair Potion (' + p.rpPot + ') - use it from the bag', '#ffa850'); }
       else if (g.pot) { if (g.pot === 'hp') p.hpPot++; else p.mpPot++; addText(g.x, g.y - 6, g.pot === 'hp' ? '+LIFE POT' : '+MANA POT', g.pot === 'hp' ? '#ff6060' : '#6080ff'); sfx('pick', { cue: 'wld_pickup_potion_01' }); ground.splice(i, 1); }
       // gear is never auto-picked: click / tap it (see requestPickup)
@@ -4518,7 +4608,7 @@ function updateSurvival(dt) {
   const busy = enemies.some(e => e.state === 'chase' && dist(e, p) < 170) ? 1.25 : 1;
   p.hunger = Math.max(0, p.hunger - SURV.hunger * dt); p.thirst = Math.max(0, p.thirst - SURV.thirst * dt); p.fatigue = Math.max(0, p.fatigue - SURV.fatigue * dt * busy);
   const drip = survDrip(p); /* v0.7.3 §11: hunger 1, thirst 1, rest 1.5 (was .5) units, stacking */
-  if (drip && p.hp > 0) { p.hp -= p.st.maxHp * .006 * drip * dt; if (p.hunger <= 0 && p.hp <= 0) { p.hp = 0; die('starvation', 'starve'); return true; } if (p.hp < 1) p.hp = 1; } // v0.7.8 F6: starvation can kill; thirst and fatigue still stop at 1
+  if (drip && p.hp > 0) { p.hp -= p.st.maxHp * .006 * drip * dt; if (p.hunger <= 0 && p.hp <= 0) { p.hp = 0; die('starvation', 'starve'); return true; } if (p.hp < 1 && p.hunger > 0) p.hp = 1; } // v0.7.10.1 B14: hunger drain can reach 0; thirst and fatigue still stop at 1
   const warn = (k, lvl, txt) => { const f = k + lvl; if (p[k] < lvl && !p.sw[f]) { p.sw[f] = 1; flashMsg(txt, '#d0a060'); } else if (p[k] > lvl + 10) p.sw[f] = 0; };
   if (!p.sw) p.sw = {};
   const drainSay = (key, empty, line) => { if (!empty) { p.sw[key] = 0; return; } if (p.hp <= 1) return; const nowT = Math.max(time, 0); if ((p.sw[key] || 0) > nowT) return; if (thought.life > 1.2 && thought.ent === p) return; p.sw[key] = nowT + 16; sayThought(p, line, PLAYER_BUBBLE); }; // v0.7.5 F6: only while the drain is actually hurting
@@ -4986,7 +5076,7 @@ function panelClick() { // desktop bottom panel: click a skill box to make it th
 $('dropAllBtn').addEventListener('click', e => { if (state === 'inv') requestDropAll(e.shiftKey); });
 $('ratBtn').addEventListener('click', () => { if (state !== 'inv') return; if (eatRation()) invNote = `You eat a ration. Hunger ${Math.round(player.hunger)}%. (${player.rations} left)`; else invNote = player.rations > 0 ? 'You are not hungry.' : 'No rations left. Find them in crates and urns, or buy them from a crypt pedlar.'; renderInv(); });
 $('fragBtn').addEventListener('click', () => { if (state === 'inv') useMapFrags(); });
-$('notesBtn').addEventListener('click', () => { if (state !== 'inv') return; notesMode = !notesMode; repairMode = false; dropAllAsk = false; renderInv(); });
+$('notesBtn').addEventListener('click', () => { if (state !== 'inv') return; repairMode = false; dropAllAsk = false; if (typeof satchelOpenTab === 'function') satchelOpenTab('notes'); else { notesMode = !notesMode; renderInv(); } });
 $('restBtn').addEventListener('click', () => openRest());
 $('mRest').addEventListener('click', () => openRest());
 $('rsGo').addEventListener('click', confirmRest); $('rsNo').addEventListener('click', () => setState('play'));
@@ -5393,7 +5483,7 @@ function applyBed(d, instant) { const B = bedFor(d); music.bed = B.id; music.bed
   if (music.lp) { music.lp.frequency.cancelScheduledValues(t); music.lp.frequency.setTargetAtTime(B.lp, t, tc); } return B; }
 function motif(t) { const B = music.bedObj || BEDS[0]; B.motif.forEach((m, i) => { if (Math.random() < .25 && i) return; tone(t + i * rand(.5, .8), mtof(m), 1.6, i % 2 ? 'sine' : 'triangle', .022, bus.amb); }); }
 // ---- 12: touch layout editor: drag buttons, swap sides (stick on the right), reset. Saved in cryptdelve-settings.touchLayout ----
-const TL_DEF = { bAtk: [26, 26, 88], bS1: [158, 42, 56], bS2: [142, 100, 56], bS3: [100, 142, 56], bRoll: [42, 158, 56], bUse: [160, 170, 52], bHP: [222, 16, 46], bMP: [214, 74, 46], bInv: [10, 222, 46] }; // right, bottom, size (px)
+const TL_DEF = { bAtk: [26, 26, 88], bS1: [158, 42, 56], bS2: [142, 100, 56], bS3: [100, 142, 56], bS4: [236, 128, 56], bS5: [284, 128, 56], bS6: [236, 176, 56], bS7: [284, 176, 56], bRoll: [42, 158, 56], bUse: [160, 170, 48], bHP: [222, 16, 48], bMP: [214, 74, 48], bInv: [10, 222, 48] }; // v0.7.10.1 B5: clone/ward/shift/maw drag with the rest. right, bottom, size (px)
 function touchLayout() { const L = settings.touchLayout; if (!L || typeof L !== 'object') return { swap: false, pos: {} }; if (!L.pos || typeof L.pos !== 'object') L.pos = {}; L.swap = !!L.swap; return L; }
 function tlCenter(id) { const L = touchLayout(), D = TL_DEF[id]; if (!D) return null; const W = appW, H = appH, p = L.pos[id];
   let cx, cy; if (p && Number.isFinite(p.cx) && Number.isFinite(p.cy)) { cx = p.cx * W; cy = p.cy * H; } else { cx = W - D[0] - D[2] / 2; cy = H - D[1] - D[2] / 2; if (L.swap && id !== 'bInv') cx = W - cx; } // the bag stays top-right (clear of the HUD bars)
@@ -5469,7 +5559,7 @@ function uniqueDropFx(x, y) { if (vfx6.length > 10) vfx6.splice(0, vfx6.length -
 function firstEquipCheck(slot, old) { const p = player; p.slotsFilled = p.slotsFilled || {}; const first = !old && !p.slotsFilled[slot]; p.slotsFilled[slot] = true;
   if (first) { sfx('firstequip'); addText(p.x, p.y - 18, 'GEARED UP!', '#ffe080', true); burst(p.x, p.y - 4, '#ffe080', 10, 40); } return first; }
 // ---- §13 / §14 / §21 thought bubbles: examine text in the bubble, +1.75s for the player, crisp anchor ----
-const PLAYER_BUBBLE = 4.95, MOB_BUBBLE = 2.4, BUBBLE_W = 36;
+const PLAYER_BUBBLE = 6.95, MOB_BUBBLE = 4.4, BUBBLE_W = 36; // v0.7.10.1 B11: thought bubbles +2s
 function wrapBubble(t) { const out = []; for (const para of String(t).split('\n')) { let line = '';
     for (const w of para.split(' ')) { if (line && (line + ' ' + w).length > BUBBLE_W) { out.push(line); line = w; } else line = line ? line + ' ' + w : w; }
     if (line) out.push(line); } return out.slice(0, 3); }
@@ -5698,7 +5788,7 @@ function puzzleGlintTargets() { const L = [];
   for (const b of pblocks) if (!b.on && !b.door.open) { L.push({ x: b.x, y: b.y - 7, s: 1.3 }); L.push({ x: b.plate.x, y: b.plate.y, s: 4.4 }); }
   for (const b of books) if (!b.read && bookOpen(b)) L.push({ x: b.x, y: b.y - 5, s: 2.7, col: BOOK_COL[b.skill] }); return L; }
 // ---- §20 depth banner: longer, bigger, higher ----
-const BANNER_T = 4.5;
+const BANNER_T = 6.5; // v0.7.10.1 B11: depth banner +2s
 function bannerY() { return touchMode ? 24 : 16; }
 function bannerBottom() { return bannerY() + (bossForDepth(depth) ? 28 : 21); }
 function drawBig(s, cx, y, col) { ctx.save(); ctx.translate(Math.round(cx - textW(s)), Math.round(y)); ctx.scale(2, 2); drawText(s, 0, 0, col, true); ctx.restore(); }
@@ -5795,7 +5885,7 @@ function drawLookPreview(cv, look) { if (!cv) return; const x = cv.getContext('2
   const k = Math.floor(Math.min(cv.width, cv.height) / 13); x.drawImage(S.a.r, Math.round((cv.width - 12 * k) / 2), Math.round((cv.height - 12 * k) / 2), 12 * k, 12 * k); }
 function refreshProfileUI() { const row = document.getElementById('profRow'); if (!row || !profiles) return; const P = activeProfile();
   $('profName').textContent = P.name + ' (' + profLabel(P) + ')'; drawLookPreview($('profMini'), P.look);
-  row.classList.toggle('hidden', state === 'pause');
+  row.classList.remove('hidden'); // v0.7.10.1 F4: Characters stays on the pause menu so the active save can change mid-run
   if (state !== 'pause') { $('mCont').classList.toggle('hidden', !loadSave()); }
   if (profOpen) renderProfiles(); }
 function swatchRow(kind, look, onPick) { const d = document.createElement('div'); d.className = 'pswr'; const lb = document.createElement('span'); lb.textContent = kind.toUpperCase(); d.appendChild(lb);
@@ -5985,11 +6075,11 @@ function drawHUD() {
       ctx.fillStyle = warn ? (Math.floor(time * 6) % 2 ? '#ff4020' : '#ffb040') : '#ffa030'; ctx.fillRect(bx, ty + 1, Math.round(30 * p.torchT / TORCH_TIME), 3);
       if (p.torchT <= 0) drawText('NO LIGHT', bx + 34, ty, Math.floor(time * 2) % 2 ? '#a08870' : '#605040'); }
     ctx.drawImage(ICONS.rp, 1, 36); drawText('X' + (p.rpPot || 0), 12, 39, p.rpPot ? '#ffa850' : '#777');
-    ctx.drawImage(ICONS.np, 48, 34); drawText('X' + (p.npPot || 0), 60, 39, p.npPot ? '#7ee0c8' : '#777');
+    if (typeof necroKnown !== 'function' || necroKnown()) { ctx.drawImage(ICONS.np, 48, 34); drawText('X' + (p.npPot || 0), 60, 39, p.npPot ? '#7ee0c8' : '#777'); } // v0.7.10.1 B13
     { const gx = 12 + textW('X' + (p.rpPot || 0)) + 6, gl = 'GATE X' + (p.gateKeys || 0); drawText(gl, gx, 39, p.gateKeys ? '#c0d0e0' : '#777'); drawText('FOOD X' + (p.rations || 0), gx + textW(gl) + 6, 39, p.rations ? '#d0b070' : '#777'); }
     drawSurvivalHUD(4, 47, 14); drawBuffHUD(4, 55); drawGoldHud(4, 66);
     ctx.fillStyle = '#000'; ctx.fillRect(0, VH - 2, VW, 2); ctx.fillStyle = '#c8a040'; ctx.fillRect(0, VH - 2, Math.round(VW * p.xp / xpNeed(p.lvl)), 2);
-  } else { drawText(`LV ${p.lvl}  DEPTH ${depth}`, 4, 4, '#d8c8a0'); drawText('NECRO ' + (p.npPot || 0), 4, 12, p.npPot ? '#7ee0c8' : '#666'); drawGoldHud(4, 24); }
+  } else { drawText(`LV ${p.lvl}  DEPTH ${depth}`, 4, 4, '#d8c8a0'); if (typeof necroKnown !== 'function' || necroKnown()) drawText('NECRO ' + (p.npPot || 0), 4, 12, p.npPot ? '#7ee0c8' : '#666'); drawGoldHud(4, 24); }
   // minimap (top right)
   if (!mapOpen) {
   const mmS = 2, mw = Math.min(MW * mmS, Math.floor(VW * .26)), mh = Math.min(MH * mmS, Math.floor(VH * .3));
@@ -6001,6 +6091,7 @@ function drawHUD() {
     if (t === TILE.WALL) continue; ctx.fillStyle = t === TILE.STAIRS ? '#ffe040' : t === TILE.PIT ? '#140a18' : hazAt(x, y) ? HAZ_MAP[hazAt(x, y)] : 'rgba(150,130,160,.6)'; ctx.fillRect(mx + i * mmS, my + j * mmS, mmS, mmS); }
   for (const e of enemies) if (e.state === 'chase' && !e.hidden && !e.disg) { const i = Math.floor(e.x / TS) - ox, j = Math.floor(e.y / TS) - oy; if (i >= 0 && j >= 0 && i < cw && j < ch) { ctx.fillStyle = '#f33'; ctx.fillRect(mx + i * mmS, my + j * mmS, mmS, mmS); } }
   ctx.fillStyle = Math.floor(time * 4) % 2 ? '#fff' : '#4f4'; ctx.fillRect(mx + (ptx - ox) * mmS, my + (pty - oy) * mmS, mmS, mmS);
+  if (typeof drawMinimapDeath === 'function') drawMinimapDeath(mx, my, ox, oy, mmS);
   }
   drawDurWarn();
   if (!touchMode) { drawD2Panel(); drawSurvivalHUD(4, VH - 41, 16); drawBuffHUD(4, VH - 50); { const gl = 'GATE KEYS ' + (p.gateKeys || 0); drawText(gl, 96, VH - 41, p.gateKeys ? '#c0d0e0' : '#777'); drawText('FOOD ' + (p.rations || 0), 96 + textW(gl) + 6, VH - 41, p.rations ? '#d0b070' : '#777'); } } if (mapOpen) drawBigMap();
@@ -6654,7 +6745,7 @@ function invDragEnd(e) { const D = invDrag; if (D.id === null || e.pointerId !==
 const ZOOMS = [1, 1.5, 2, 2.5]; let ZOOM = 1;
 const WALL_BITE_N = 18, MOB_DENSITY_MAX = 2.5, MOB_DMG_STEP = .08, MOB_DMG_MAX = 2.5;
 const DP_MIN_DEPTH = 10, DP_CHANCE = .2, DP_TIME = 60, DP_WARN = [.3, .15, .05], DP_FPS = 8, DP_BIOMES = ['bloody', 'demonic', 'lava'];
-const SURV_MANA = { thirst: .6, fatigue: 1 }, SURV_DRAIN = { hunger: 1, thirst: 1, fatigue: 1.5 }, FIRE_RELIGHT_R = 10, DOOR_HUM_R = 150, MSG_DWELL = 3.7;
+const SURV_MANA = { thirst: .6, fatigue: 1 }, SURV_DRAIN = { hunger: 1, thirst: 1, fatigue: 1.5 }, FIRE_RELIGHT_R = 10, DOOR_HUM_R = 150, MSG_DWELL = 5.7; // v0.7.10.1 B11
 const PRISM_STOPS = 8, PRISM_DWELL = .6, PRISM_TURN = .5, PRISM_P = .3, PRISM_FPS = 8;
 const PRISM_POOL = ['A_eye', 'B_trident', 'C_tri', 'D_hourglass', 'E_gate', 'F_anchor', 'G_moon', 'H_lozenge', 'I_ladder', 'J_chevron', 'K_sun', 'L_bolt'];
 const PRISM_THINK = "There's something behind here...", RESTED_THINK = 'refreshed and rested';
@@ -7671,7 +7762,7 @@ function v0710Before(dt) {
 function v0710After(dt) {
   const p = player;
   if (!p || state !== 'play') return;
-  if (p.lichTome && p.lichTome._banner) { flashMsg(p.lichTome._banner, '#e2c084'); msg.life = 6.5; p.lichTome._banner = ''; }
+  if (p.lichTome && p.lichTome._banner) { flashMsg(p.lichTome._banner, '#e2c084'); msg.life = 8.5; p.lichTome._banner = ''; } // v0.7.10.1 B11: banner +2s
   tickArrowFx();
 }
 function drawUnlitBraziers() {
@@ -8117,6 +8208,575 @@ if (window.game) {
     hellSinks: { get() { return player && player.activeHellSinks; } },
     props: { get() { return props; } },
     msg: { get() { return msg; } }
+  });
+}
+
+
+// ===== v0.7.10.1 hotfix: HUD plates, satchel tabs, four spell slots, enemy leash, necro stones =====
+const V101 = { tombs: [], lastDeath: null, deaths: 0, barSel: 0 };
+const SPELL_HUD = { fireball: 'hud_fireball_48', spin: 'hud_spin_48', frostNova: 'hud_frost_nova_48', spectralClone: 'hud_spectral_clone_48', etherealShield: 'hud_ethereal_shield_48', etherealShift: 'hud_ethereal_shift_48', hellmouth: 'hud_hellmouth_48' };
+const SPELL_SHORT = ['FIRE', 'SPIN', 'NOVA', 'CLONE', 'WARD', 'SHIFT', 'MAW'];
+let seekOverride = null, barHeld = -1, satchelTab = 'inventory', satchelPrev = 'inventory', tomeSub = 'spells';
+function necroKnown() { const p = player; return !!(p && (p.necroSeen || (p.npPot > 0))); }
+function tomeRightMsg() {
+  const t = player && player.lichTome;
+  if (!t || !t.isAcquired) return 'You have not discovered the Lich Tome';
+  return 'Discover spells hidden in the world to use the Lich Tome';
+}
+function spellBar(p) {
+  p = p || player;
+  if (!p) return [null, null, null, null];
+  if (!Array.isArray(p.spellBar) || p.spellBar.length !== 4) p.spellBar = [null, null, null, null];
+  while (p.spellBar.length < 4) p.spellBar.push(null);
+  p.spellBar = p.spellBar.slice(0, 4);
+  const t = p.lichTome;
+  if (t && t.spells) {
+    if (!t.isAcquired) { p.spellBar = [null, null, null, null]; return p.spellBar; }
+    p.spellBar = p.spellBar.map(id => (id && t.spells[id] && t.spells[id].isUnlocked) ? id : null);
+    if (t.isAcquired) {
+      const have = new Set(p.spellBar.filter(Boolean));
+      for (const id of TOME_IDS) {
+        if (!t.spells[id] || !t.spells[id].isUnlocked || have.has(id)) continue;
+        const slot = p.spellBar.indexOf(null);
+        if (slot < 0) break;
+        p.spellBar[slot] = id; have.add(id);
+      }
+    }
+  }
+  return p.spellBar;
+}
+function assignSpell(id, slot) {
+  const p = player, t = p && ensureTome(p);
+  if (!t || !t.isAcquired || !t.spells[id] || !t.spells[id].isUnlocked) return false;
+  slot = clamp(slot | 0, 0, 3);
+  const bar = spellBar(p);
+  const prev = bar.indexOf(id);
+  const displaced = bar[slot];
+  bar[slot] = id;
+  if (prev >= 0 && prev !== slot) bar[prev] = displaced === id ? null : displaced;
+  p.spellBar = bar;
+  return true;
+}
+function pressBar(i) {
+  cancelCharge101();
+  const p = player; if (!p || state !== 'play') return;
+  V101.barSel = i;
+  const t = ensureTome(p);
+  if (!t || !t.isAcquired) { flashMsg('You have not discovered the Lich Tome', '#aaa'); return; }
+  const id = (spellBar(p) || [])[i];
+  if (!id) { flashMsg('No spell assigned to that slot', '#aaa'); return; }
+  const idx = TOME_IDS.indexOf(id);
+  if (!tomeReady(idx)) { flashMsg('Discover spells hidden in the world to use the Lich Tome', '#aaa'); return; }
+  const sk = 's' + (idx + 1);
+  held[sk] = true; tapQ[sk] = performance.now() + 250; barHeld = idx;
+}
+function releaseBar() {
+  if (barHeld >= 0) { held['s' + (barHeld + 1)] = false; barHeld = -1; }
+}
+function cancelCharge101() {
+  const p = player; if (!p) return;
+  p.chg = -1; p.mchg = -1; p.pwrQ = null; p.tapA = 0; tapQ.attack = 0; p.chgLock = true;
+}
+const _atk101 = updateAttack074;
+updateAttack074 = function (dt) {
+  const p = player;
+  if (p && p.chgLock) { if (!held.attack) p.chgLock = false; else { p.chg = -1; p.mchg = -1; return; } }
+  return _atk101(dt);
+};
+function fitUi101() {
+  const w = appW || window.innerWidth || 800, h = appH || window.innerHeight || 450;
+  let s = Math.min(w / 520, h / 340);
+  s = Math.max(0.7, Math.min(s, 1.35));
+  if (h < 430) s = Math.min(s, Math.max(0.66, h / 480));
+  let hud = Math.min(w / 800, h / 430);
+  hud = Math.max(0.84, Math.min(hud, 1.22));
+  document.documentElement.style.setProperty('--ui', s.toFixed(3));
+  document.documentElement.style.setProperty('--hud', hud.toFixed(3));
+  placeDesk101();
+  if (state === 'inv') sizeSatchel();
+}
+const _resize101 = resize;
+resize = function () { const r = _resize101(); fitUi101(); return r; };
+function placeDesk101() {
+  const el = $('deskHud'); if (!el || !canvas) return;
+  const r = canvas.getBoundingClientRect();
+  const k = Math.max(1, Math.floor(Math.min((r.width || appW) / 420, (r.height || appH) * 0.15 / 52)));
+  const band = Math.max(52, Math.min(r.height * 0.22, 52 * k));
+  el.style.left = r.left + 'px';
+  el.style.width = Math.max(120, r.width) + 'px';
+  el.style.height = band + 'px';
+  el.style.top = (r.bottom - band) + 'px';
+  el.dataset.k = String(k);
+}
+function syncUseArt() {
+  const b = $('bUse'); if (!b) return;
+  const label = (($('bUseL') && $('bUseL').textContent) || '').toUpperCase();
+  b.classList.toggle('act-light', /LIGHT|TORCH|BRAZIER|SCONCE/.test(label));
+  b.classList.toggle('act-pull', /PULL|LEVER/.test(label));
+  b.classList.toggle('act-exam', /EXAM/.test(label));
+}
+function syncSpellHud() {
+  const p = player, t = p && p.lichTome, have = !!(t && t.isAcquired);
+  const bar = spellBar(p);
+  for (let i = 0; i < 7; i++) {
+    const b = $('bS' + (i + 1)); if (!b) continue;
+    const id = TOME_IDS[i], unlocked = !!(t && t.spells[id] && t.spells[id].isUnlocked && have);
+    b.classList.toggle('learned', unlocked);
+    if (i < 4) {
+      const sid = have ? bar[i] : null;
+      const show = have;
+      b.classList.toggle('hud-off', !show);
+      b.classList.toggle('locked', false);
+      const art = sid && SPELL_HUD[sid];
+      b.style.backgroundImage = art ? ('url(assets/ui/v07101/hud/composed/' + art + '_' + (b.classList.contains('down') ? 'down' : 'idle') + '.png)') : 'url(assets/ui/v07101/desktop/slots/slot_spell_empty_48.png)';
+      const sub = b.querySelector('.sub');
+      if (sub) sub.textContent = sid ? (SPELL_SHORT[TOME_IDS.indexOf(sid)] || '') : '';
+      const idx = sid ? TOME_IDS.indexOf(sid) : -1;
+      const cd = b.querySelector('.cd');
+      if (cd) {
+        const max = idx >= 0 ? (idx < 3 ? SKILLS[idx].cd : TOME_ADV[idx].cd) : 1;
+        const cur = idx >= 0 ? (p.cds[idx] || 0) : 0;
+        cd.style.height = (max ? cur / max * 100 : 0) + '%';
+      }
+    } else {
+      b.classList.toggle('hud-off', true);
+      b.classList.toggle('locked', false);
+      const sub = b.querySelector('.sub');
+      if (sub) sub.textContent = unlocked ? SPELL_SHORT[i] : '';
+    }
+  }
+}
+function syncDesk() {
+  const el = $('deskHud'); if (!el) return;
+  const show = !touchMode && state === 'play' && !!player;
+  el.classList.toggle('hidden', !show);
+  el.setAttribute('aria-hidden', show ? 'false' : 'true');
+  if (!show) return;
+  placeDesk101();
+  if (!el.dataset.built) buildDesk(el);
+  const p = player, s = p.st, bar = spellBar(p);
+  const hp = el.querySelector('.dh-globe.hp i'), mp = el.querySelector('.dh-globe.mp i');
+  const hpn = el.querySelector('.dh-globe.hp b'), mpn = el.querySelector('.dh-globe.mp b');
+  if (hp) hp.style.height = clamp(p.hp / (s.maxHp || 1), 0, 1) * 100 + '%';
+  if (mp) mp.style.height = clamp(p.mp / (s.maxMp || 1), 0, 1) * 100 + '%';
+  if (hpn) hpn.textContent = String(Math.ceil(p.hp));
+  if (mpn) mpn.textContent = String(Math.floor(p.mp));
+  const well = el.querySelector('.dh-well');
+  if (well) well.innerHTML = '<div class="row"><span>KEY ' + p.keys + '</span><span>TORCH ' + p.torches + '</span><span>RP ' + (p.rpPot || 0) + '</span><span>LV ' + p.lvl + '</span></div><div class="row"><span>GATE ' + (p.gateKeys || 0) + '</span><span>FOOD ' + (p.rations || 0) + '</span><span>' + (necroKnown() ? ('NECRO ' + (p.npPot || 0)) : '') + '</span><span>I BAG</span></div>';
+  el.querySelectorAll('.dh-spell').forEach((node, i) => {
+    const id = bar[i];
+    const art = id && SPELL_HUD[id];
+    node.style.backgroundImage = art ? ('url(assets/ui/v07101/hud/composed/' + art + '_idle.png)') : 'url(assets/ui/v07101/desktop/slots/slot_spell_empty_48.png)';
+    node.classList.toggle('sel', V101.barSel === i);
+    const idx = id ? TOME_IDS.indexOf(id) : -1;
+    const cd = node.querySelector('.cd');
+    const max = idx >= 0 ? (idx < 3 ? SKILLS[idx].cd : TOME_ADV[idx].cd) : 1;
+    const cur = idx >= 0 ? (p.cds[idx] || 0) : 0;
+    if (cd) cd.style.height = (idx >= 0 && max ? cur / max * 100 : 0) + '%';
+  });
+}
+function buildDesk(el) {
+  el.dataset.built = '1';
+  const k = 1;
+  const sz = 48;
+  el.innerHTML = '';
+  const globe = (kind) => {
+    const d = document.createElement('div'); d.className = 'dh-globe ' + kind;
+    d.style.width = (sz + 8) + 'px'; d.style.height = (sz + 8) + 'px';
+    d.style.backgroundImage = 'url(assets/ui/v07101/desktop/globes/globe_' + kind + '_frame_48.png)';
+    d.innerHTML = '<div class="fill"><i></i></div><b>0</b>';
+    return d;
+  };
+  const slot = (act, art, key) => {
+    const d = document.createElement('div'); d.className = 'dh-slot'; d.dataset.act = act;
+    d.style.width = sz + 'px'; d.style.height = sz + 'px';
+    d.style.backgroundImage = 'url(assets/ui/v07101/hud/composed/' + art + '_idle.png)';
+    d.innerHTML = '<i class="cd"></i><span class="key">' + key + '</span>';
+    d.addEventListener('pointerdown', e => { e.preventDefault(); deskAct(act); });
+    return d;
+  };
+  el.appendChild(globe('hp'));
+  const row = document.createElement('div'); row.className = 'dh-slots';
+  row.appendChild(slot('attack', 'hud_attack_48', 'LMB'));
+  row.appendChild(slot('hp', 'hud_heal_48', 'Q'));
+  row.appendChild(slot('mp', 'hud_mana_48', 'E'));
+  const well = document.createElement('div'); well.className = 'dh-well'; row.appendChild(well);
+  row.appendChild(slot('roll', 'hud_roll_48', 'SPC'));
+  for (let i = 0; i < 4; i++) {
+    const d = document.createElement('div'); d.className = 'dh-slot dh-spell'; d.dataset.bar = String(i);
+    d.style.width = sz + 'px'; d.style.height = sz + 'px';
+    d.innerHTML = '<i class="cd"></i><span class="key">' + (i + 1) + '</span>';
+    d.addEventListener('pointerdown', e => { e.preventDefault(); V101.barSel = i; pressBar(i); });
+    row.appendChild(d);
+  }
+  el.appendChild(row);
+  el.appendChild(globe('mp'));
+  void k;
+}
+function deskAct(act) {
+  if (act === 'attack') { held.attack = true; tapQ.attack = performance.now() + 250; setTimeout(() => { held.attack = false; }, 80); return; }
+  if (act === 'roll') { cancelCharge101(); action('roll'); return; }
+  if (act === 'hp' || act === 'mp') action(act);
+}
+drawD2Panel = function () { /* v0.7.10.1 F5: desktop HUD is the DOM bar */ };
+drawTomeBar = function () { /* lock row retired — four assignable slots */ };
+function giveUp101(e) {
+  const A = e && e.ai;
+  e.lostT = 0; e.stuckT = 0; e.holding = false; e.showQ = 2.6; e.cloneLock = false;
+  e.state = 'idle'; e.seenT = undefined;
+  if (A) { A.state = 'PATROL'; A.spotted = false; A.dir = null; A.showAlertIcon = false; A.engagedUntil = 0; A.stunBack = null; A.nextTick = aiClock + (A.cfg && A.cfg.patrolMs || 400); }
+}
+const _tomeSeek101 = tomeSeek;
+tomeSeek = function () { return seekOverride || _tomeSeek101(); };
+const _grid101 = gridEnemyUpdate;
+gridEnemyUpdate = function (e, dt, d, spd) {
+  const sk = _tomeSeek101();
+  const clone = !!(player && player.decoyObject && player.isPlayerUndetected);
+  const see = !!(sk && sightLOS(e, sk));
+  if (e.showQ > 0) e.showQ -= dt;
+  if (clone) {
+    e.cloneLock = true; e.lostT = 0; e.stuckT = 0; e.holding = false;
+    e.seenTX = Math.floor(player.decoyObject.x / TS); e.seenTY = Math.floor(player.decoyObject.y / TS);
+    seekOverride = null;
+  } else if (e.ai && (e.ai.state === 'CHASE' || e.ai.state === 'ALERT' || e.cloneLock)) {
+    e.cloneLock = false;
+    if (see) { e.lostT = 0; e.stuckT = 0; e.holding = false; e.seenTX = Math.floor(sk.x / TS); e.seenTY = Math.floor(sk.y / TS); seekOverride = null; }
+    else {
+      e.lostT = (e.lostT || 0) + dt;
+      if (e.lostT >= 5) { seekOverride = null; giveUp101(e); return; }
+      if (e.seenTX != null) seekOverride = { x: (e.seenTX + 0.5) * TS, y: (e.seenTY + 0.5) * TS, r: 5 };
+    }
+  } else seekOverride = null;
+  const prev = e.ai ? { tx: e.ai.tx, ty: e.ai.ty, fromX: e.ai.fromX, fromY: e.ai.fromY } : null;
+  try { _grid101(e, dt, d, spd); }
+  finally { seekOverride = null; }
+  const A = e.ai;
+  if (!A) return;
+  const steppedBack = prev && A.state === 'CHASE' && A.tx === prev.fromX && A.ty === prev.fromY && (A.tx !== prev.tx || A.ty !== prev.ty);
+  const stunned = A.state === 'STUNNED' && A.stunBack === 'CHASE';
+  const progress = prev && !steppedBack && (A.tx !== prev.tx || A.ty !== prev.ty);
+  if (steppedBack || stunned) {
+    if (steppedBack && prev) { A.tx = prev.tx; A.ty = prev.ty; A.fromX = prev.tx; A.fromY = prev.ty; }
+    if (stunned) { A.state = 'CHASE'; A.stunBack = null; if (e.mode === 'stun') e.mode = ''; }
+    A.nextTick = Math.max(A.nextTick, aiClock + 380);
+    if (!e.stuckSince) e.stuckSince = time;
+    e.stuckT = time - e.stuckSince;
+  } else if (progress || see) { e.stuckSince = 0; e.stuckT = 0; }
+  else if (e.stuckSince) e.stuckT = time - e.stuckSince;
+  if (!see && !clone && (A.state === 'CHASE' || A.state === 'ALERT')) A.engagedUntil = Math.min(A.engagedUntil || 0, aiClock);
+  if (!clone && (A.state === 'CHASE' || A.state === 'ALERT') && ((e.stuckT || 0) >= 5 || (e.lostT || 0) >= 5)) giveUp101(e);
+};
+function drawQuestion101(e) {
+  if (!e || !(e.showQ > 0) || e.hidden || e.disg) return;
+  const X = Math.round(e.x), Y = Math.round(e.y - 22 - (e.z || 0));
+  ctx.fillStyle = '#000'; ctx.fillRect(X - 4, Y - 1, 8, 9); ctx.fillRect(X - 3, Y, 6, 7);
+  ctx.fillStyle = '#ffe040';
+  ctx.fillRect(X - 2, Y, 4, 1); ctx.fillRect(X + 1, Y + 1, 1, 2); ctx.fillRect(X - 1, Y + 3, 2, 1); ctx.fillRect(X - 1, Y + 5, 1, 1);
+}
+const _world101 = v074World;
+v074World = function () { _world101(); for (const e of enemies) drawQuestion101(e); };
+const _castClone101 = castClone;
+castClone = function () {
+  _castClone101();
+  const d = player && player.decoyObject; if (!d) return;
+  for (const e of enemies) {
+    if (!e || e.dead || e.disg) continue;
+    const hot = e.state === 'chase' || (e.ai && e.ai.state && e.ai.state !== 'PATROL');
+    if (!hot && dist(e, player) > 260 && dist(e, d) > 260) continue;
+    e.cloneLock = true; e.lostT = 0; e.stuckT = 0; e.holding = false; e.showQ = 0;
+    e.seenTX = Math.floor(d.x / TS); e.seenTY = Math.floor(d.y / TS); e.seenX = d.x; e.seenY = d.y; e.seenT = time;
+    if (e.ai) { e.ai.state = 'CHASE'; e.ai.spotted = true; e.ai.nextTick = aiClock; e.ai.showAlertIcon = false; e.ai.engagedUntil = aiClock + 8000; }
+    e.state = 'chase';
+  }
+};
+const _tickDecoy101 = tickDecoy;
+tickDecoy = function (dt) {
+  const had = player && player.decoyObject;
+  const hx = had ? had.x : 0, hy = had ? had.y : 0;
+  _tickDecoy101(dt);
+  if (had && player && !player.decoyObject) {
+    for (const e of enemies) {
+      if (!e || e.dead) continue;
+      e.cloneLock = false;
+      e.seenTX = Math.floor(hx / TS); e.seenTY = Math.floor(hy / TS);
+      e.lostT = 0.05; e.stuckT = 0;
+      if (e.ai && e.ai.state === 'CHASE' && player && !sightLOS(e, player)) e.ai.engagedUntil = aiClock;
+    }
+  }
+};
+function drawTomb101(t) {
+  const key = t.variant === 'b' ? 'tombstone_b_16' : 'tombstone_16';
+  const im = (typeof ART !== 'undefined' && (ART[key] || ART.tombstone_16)) || null;
+  const x = t.tx * TS + 8, y = (t.ty + 1) * TS;
+  if (im) ctx.drawImage(im, Math.round(x - im.width / 2), Math.round(y - im.height));
+  else { ctx.fillStyle = '#828690'; ctx.fillRect(t.tx * TS + 5, t.ty * TS + 3, 6, 10); ctx.fillStyle = '#2eb8a0'; ctx.fillRect(t.tx * TS + 7, t.ty * TS + 6, 1, 1); }
+}
+const _ents101 = tomeEnts;
+tomeEnts = function (ents) {
+  _ents101(ents);
+  for (const t of V101.tombs) if (t.depth === depth) ents.push({ x: (t.tx + 0.5) * TS, y: (t.ty + 1) * TS - 1, r: 0, v73draw: () => drawTomb101(t) });
+};
+function drawMinimapDeath(mx, my, ox, oy, s) {
+  const d = V101.lastDeath; if (!d || d.depth !== depth || !mapSeen(d.tx, d.ty)) return;
+  const im = ART.map_icon_death;
+  const x = mx + (d.tx - ox) * s, y = my + (d.ty - oy) * s;
+  if (x < mx || y < my) return;
+  const sm = ctx.imageSmoothingEnabled; ctx.imageSmoothingEnabled = false;
+  if (im) ctx.drawImage(im, Math.round(x), Math.round(y), s, s);
+  else { ctx.fillStyle = '#c8e4d0'; ctx.fillRect(Math.round(x), Math.round(y), Math.max(1, s), Math.max(1, s)); }
+  ctx.imageSmoothingEnabled = sm;
+}
+const _icons101 = drawMapIcons077;
+drawMapIcons077 = function (ox, oy, s) {
+  _icons101(ox, oy, s);
+  const d = V101.lastDeath; if (!d || d.depth !== depth) return;
+  const im = (s >= 12 && ART.map_icon_death_16) || ART.map_icon_death; if (!im) return;
+  const sm = ctx.imageSmoothingEnabled; ctx.imageSmoothingEnabled = false;
+  const sz = im.width >= 16 && s >= 12 ? 16 : 8;
+  ctx.drawImage(im, Math.round(ox + (d.tx + 0.5) * s - sz / 2), Math.round(oy + (d.ty + 0.5) * s - sz / 2), sz, sz);
+  ctx.imageSmoothingEnabled = sm;
+};
+function placeTomb(tx, ty) {
+  if (!Number.isFinite(tx) || !Number.isFinite(ty)) return null;
+  V101.deaths++;
+  V101.lastDeath = { depth, tx: tx | 0, ty: ty | 0 };
+  if (player) { player.necroSeen = true; player.lastDeath = V101.lastDeath; }
+  if (V101.tombs.some(t => t.depth === depth && t.tx === (tx | 0) && t.ty === (ty | 0))) return V101.lastDeath;
+  V101.tombs.push({ tx: tx | 0, ty: ty | 0, depth, variant: V101.deaths % 2 ? 'b' : 'a' });
+  return V101.tombs[V101.tombs.length - 1];
+}
+const _die101 = die;
+die = function (killer, cause) {
+  if (player) V101.lastDeath = { depth, tx: Math.floor(player.x / TS), ty: Math.floor(player.y / TS) };
+  return _die101(killer, cause);
+};
+const _rez101 = resurrect;
+resurrect = function () {
+  const a = deathAct;
+  const tx = a ? Math.floor(a.x / TS) : (player ? Math.floor(player.x / TS) : 0);
+  const ty = a ? Math.floor(a.y / TS) : (player ? Math.floor(player.y / TS) : 0);
+  if (player && (player.npPot || 0) > 0) player.necroSeen = true;
+  const ok = _rez101();
+  if (ok) placeTomb(tx, ty);
+  return ok;
+};
+const _snap101 = worldSnap;
+worldSnap = function () {
+  const w = _snap101();
+  if (w) { w.tombs = V101.tombs.map(t => ({ tx: t.tx, ty: t.ty, depth: t.depth, variant: t.variant })); w.lastDeath = V101.lastDeath; w.deathN = V101.deaths; }
+  return w;
+};
+const _rest101 = worldRestore;
+worldRestore = function (w, sd) {
+  const ok = _rest101(w, sd);
+  if (ok && w) {
+    V101.tombs = Array.isArray(w.tombs) ? w.tombs.filter(t => t && Number.isFinite(t.tx)).map(t => ({ tx: t.tx | 0, ty: t.ty | 0, depth: t.depth | 0, variant: t.variant === 'b' ? 'b' : 'a' })) : [];
+    V101.lastDeath = w.lastDeath && Number.isFinite(w.lastDeath.tx) ? { depth: w.lastDeath.depth | 0, tx: w.lastDeath.tx | 0, ty: w.lastDeath.ty | 0 } : null;
+    V101.deaths = w.deathN | 0;
+  }
+  return ok;
+};
+const _floor101 = startFloor;
+startFloor = function (d, fresh) {
+  V101.tombs = V101.tombs.filter(t => t.depth !== d);
+  const r = _floor101(d, fresh);
+  if (player && Array.isArray(player.spellBar)) spellBar(player);
+  return r;
+};
+const _maybe101 = maybePage;
+maybePage = function (x, y, chance, salt) {
+  const t = player && player.lichTome;
+  if (!window.__forcePage && !(t && t.isAcquired)) return null;
+  return _maybe101(x, y, chance, salt);
+};
+const _deny101 = tomeDeny;
+tomeDeny = function (i) { flashMsg(tomeRightMsg(), '#aaa'); void _deny101; void i; };
+lockedSkillMsg = function () { flashMsg(tomeRightMsg(), '#aaa'); };
+const _touchHud101 = updateTouchHUD;
+updateTouchHUD = function () {
+  _touchHud101();
+  if (player && player.npPot > 0) player.necroSeen = true;
+  syncUseArt();
+  syncSpellHud();
+  syncDesk();
+};
+for (let i = 0; i < 4; i++) {
+  const b = $('bS' + (i + 1));
+  if (!b) continue;
+  b.addEventListener('pointerdown', e => {
+    if (state === 'tlayout') return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    b.classList.add('down');
+    pressBar(i);
+  }, true);
+  b.addEventListener('pointerup', () => { b.classList.remove('down'); releaseBar(); });
+  b.addEventListener('pointercancel', () => { b.classList.remove('down'); releaseBar(); });
+}
+$('bRoll') && $('bRoll').addEventListener('pointerdown', () => { if (state === 'play') cancelCharge101(); }, true);
+['bS5', 'bS6', 'bS7'].forEach(id => { const b = $(id); if (b) b.addEventListener('pointerdown', () => cancelCharge101(), true); });
+const SWIPE_OK = { bAtk: 'attack', bRoll: 'roll', bS1: 0, bS2: 1, bS3: 2, bS4: 3 };
+let swipePtr = null, swipeLast = null;
+document.addEventListener('pointerdown', e => {
+  const b = e.target && e.target.closest && e.target.closest('#touch .btn');
+  if (!b || !(b.id in SWIPE_OK) || state !== 'play') { swipePtr = null; return; }
+  swipePtr = e.pointerId; swipeLast = b.id;
+}, true);
+document.addEventListener('pointermove', e => {
+  if (swipePtr !== e.pointerId || state !== 'play') return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const b = el && el.closest && el.closest('#touch .btn, #cornerbar .tbtn');
+  if (!b) return;
+  if (b.id === 'bHP' || b.id === 'bMP' || b.id === 'bInv' || b.id === 'bUse' || b.id === 'tMap' || b.id === 'tPause') return;
+  if (!(b.id in SWIPE_OK) || b.id === swipeLast) return;
+  swipeLast = b.id;
+  const act = SWIPE_OK[b.id];
+  if (act === 'attack') { cancelCharge101(); held.attack = true; tapQ.attack = performance.now() + 180; setTimeout(() => { if (swipeLast !== 'bAtk') held.attack = false; }, 90); }
+  else if (act === 'roll') { cancelCharge101(); action('roll'); }
+  else pressBar(act);
+}, true);
+['pointerup', 'pointercancel'].forEach(ev => document.addEventListener(ev, e => { if (e.pointerId === swipePtr) { swipePtr = null; swipeLast = null; releaseBar(); } }));
+window.addEventListener('mousedown', e => {
+  if (e.button !== 2 || state !== 'play' || touchMode) return;
+  if (e.target && e.target.closest && e.target.closest('#deskHud, #inv, .overlay')) return;
+  e.stopImmediatePropagation();
+  e.preventDefault();
+  const t = player && player.lichTome;
+  if (!t || !t.isAcquired) { flashMsg('You have not discovered the Lich Tome', '#aaa'); return; }
+  const id = (spellBar() || [])[V101.barSel];
+  if (!id) {
+    const any = TOME_IDS.some(s => t.spells[s] && t.spells[s].isUnlocked);
+    flashMsg(any ? 'No spell assigned to that slot' : 'Discover spells hidden in the world to use the Lich Tome', '#aaa');
+    return;
+  }
+  pressBar(V101.barSel);
+}, true);
+window.addEventListener('mouseup', e => { if (e.button === 2) releaseBar(); }, true);
+window.addEventListener('keydown', e => {
+  if (state !== 'play' || e.repeat) return;
+  if (e.key === '1' || e.key === '2' || e.key === '3') { e.stopImmediatePropagation(); pressBar(+e.key - 1); }
+}, true);
+window.addEventListener('keyup', e => { if (e.key === '1' || e.key === '2' || e.key === '3') releaseBar(); }, true);
+function sizeSatchel() {
+  const host = $('satchel'); if (!host) return;
+  const w = appW || window.innerWidth, h = appH || window.innerHeight;
+  const scale = (!touchMode && w >= 1100 && h >= 640) ? 3 : 2;
+  const margin = Math.max(8, Math.round(w * 0.03));
+  const panelCss = Math.max(280, Math.min(w - margin * 2, scale === 3 ? 1260 : 1100));
+  const panelArt = Math.max(200, Math.floor(panelCss / scale));
+  const cw = panelArt - 26;
+  const cols = Math.max(4, Math.min(10, Math.floor((cw - 150 - 6) / 30)));
+  host.style.width = panelCss + 'px';
+  host.style.setProperty('--slot', Math.max(28, Math.floor((panelCss - 36) / (cols + 4))) + 'px');
+  const grid = $('grid');
+  if (grid) grid.style.gridTemplateColumns = 'repeat(' + cols + ', var(--slot))';
+  host.dataset.cols = String(cols);
+  host.dataset.scale = String(scale);
+}
+function satchelBoot() {
+  const host = $('satTabs'); if (!host || host.dataset.ready) return;
+  host.dataset.ready = '1';
+  [['character', 'Character'], ['inventory', 'Inventory'], ['consumables', 'Consumables'], ['notes', 'Notes'], ['tome', 'Lich Tome'], ['map', 'Map']].forEach(([id, label]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'sat-tab'; b.dataset.tab = id; b.textContent = label;
+    b.addEventListener('click', () => satchelOpenTab(id)); host.appendChild(b);
+  });
+  $('satClose').addEventListener('click', e => { e.preventDefault(); closeInv(); });
+  $('closeNotesBtn').addEventListener('click', e => { e.preventDefault(); satchelOpenTab(satchelPrev && satchelPrev !== 'notes' ? satchelPrev : 'inventory'); });
+}
+function satchelOpenTab(id) {
+  if (satchelTab !== 'notes') satchelPrev = satchelTab;
+  satchelTab = id;
+  notesMode = id === 'notes';
+  if (typeof renderInv === 'function') renderInv();
+}
+function fillInvStats() {
+  const box = $('invStats'); if (!box || !player) return;
+  const p = player;
+  const it = sel ? (sel.where === 'inv' ? p.inv[sel.idx] : p.equip[sel.slot]) : null;
+  if (dropAllAsk || repairMode || notesMode) { box.innerHTML = $('dtext') ? $('dtext').innerHTML : ''; return; }
+  if (!it) { box.innerHTML = '<div class="cg">Select an item. DMG, speed, crit and the unique line show here.</div>'; return; }
+  const rar = ['COMMON', 'MAGIC', 'RARE', 'UNIQUE'][it.rarity | 0] || 'COMMON';
+  const dmg = (it.min || it.max) ? ((it.min || 0) + '-' + (it.max || 0)) : '—';
+  const crit = (it.mods && it.mods.crit) || 0;
+  const lines = (typeof itemLines === 'function' ? itemLines(it) : []).map(l => '<div class="' + (l.c || '') + '">' + l.t + '</div>').join('');
+  const cur = sel.where === 'inv' ? p.equip[it.slot] : null;
+  const cmp = cur && sel.where === 'inv' ? '<div class="cg">vs equipped: ' + compareHTML(it, cur) + '</div>' : '';
+  box.innerHTML = '<div style="color:#e8c840;letter-spacing:1px">' + rar + '</div><div class="nm">' + it.name + '</div><div>' + String(it.slot || '').toUpperCase() + ' · LV ' + (it.lvl || 1) + '</div><div>DMG ' + dmg + ' · SPD ' + (it.spd || '—') + '</div><div>CRIT ' + crit + ' · ' + (it.bow ? 'BOW' : 'MELEE') + '</div>' + cmp + lines;
+}
+function fillCons() {
+  const box = $('consPane'), p = player; if (!box || !p) return;
+  const chip = (n, label) => '<div class="cons-chip"><b>' + label + '</b> ' + n + '</div>';
+  box.innerHTML = chip(p.hpPot, 'LIFE') + chip(p.mpPot, 'MANA') + chip(p.rations || 0, 'FOOD') + chip(p.rpPot || 0, 'REPAIR') + chip((p.mapFrags || 0) + '/' + FRAG_NEED, 'MAP') + chip(p.gateKeys || 0, 'GATE') + (necroKnown() ? chip(p.npPot || 0, 'NECRO') : '');
+}
+function fillNotesPane() {
+  const box = $('notesPane'); if (!box) return;
+  box.innerHTML = $('dtext') ? $('dtext').innerHTML : '';
+}
+function fillTomePane() {
+  const box = $('tomePane'); if (!box || !player) return;
+  const t = ensureTome(player);
+  if (!t.isAcquired) { box.innerHTML = '<div class="nm">THE LICH TOME</div><div>You have not discovered the Lich Tome.</div>'; return; }
+  const any = TOME_IDS.some(id => t.spells[id].isUnlocked);
+  if (!any) { box.innerHTML = '<div class="nm">THE LICH TOME</div><div>ITS PAGES HAVE BEEN TORN OUT.</div><div class="cg">Discover spells hidden in the world to use the Lich Tome.</div>'; return; }
+  const tabs = ['spells', 'recipes', 'enchantments'].map(id => '<button type="button" class="sat-tab' + (tomeSub === id ? ' on' : '') + '" data-sub="' + id + '">' + id.toUpperCase() + '</button>').join('');
+  let body = '';
+  if (tomeSub === 'recipes') body = '<div class="cg">No recipes yet.</div>';
+  else if (tomeSub === 'enchantments') body = '<div class="cg">No enchantments yet.</div>';
+  else {
+    const bar = spellBar();
+    body = TOME_IDS.map((id, n) => {
+      const on = t.spells[id].isUnlocked;
+      if (!on) return '<div class="cg">' + TOME_NAMES[n] + ' — page missing</div>';
+      const slots = [0, 1, 2, 3].map(s => '<button type="button" data-assign="' + id + '" data-slot="' + s + '">' + (s + 1) + (bar[s] === id ? '*' : '') + '</button>').join(' ');
+      return '<div class="tome-row"><b>' + TOME_NAMES[n] + '</b> ' + slots + '</div>';
+    }).join('');
+  }
+  box.innerHTML = '<div class="tome-sub">' + tabs + '</div>' + body;
+  box.querySelectorAll('[data-sub]').forEach(b => b.addEventListener('click', () => { tomeSub = b.dataset.sub; fillTomePane(); }));
+  box.querySelectorAll('[data-assign]').forEach(b => b.addEventListener('click', () => { assignSpell(b.dataset.assign, +b.dataset.slot); fillTomePane(); syncSpellHud(); syncDesk(); }));
+}
+function fillSatMap() {
+  const c = $('satMap'); if (!c || typeof map === 'undefined' || !map || !map.length) return;
+  const x = c.getContext('2d'); c.width = Math.max(200, c.clientWidth || 394); c.height = Math.max(80, c.clientHeight || 102);
+  x.imageSmoothingEnabled = false; x.fillStyle = '#120c10'; x.fillRect(0, 0, c.width, c.height);
+  const sc = Math.min(c.width / MW, c.height / MH), ox = (c.width - MW * sc) / 2, oy = (c.height - MH * sc) / 2;
+  for (let ty = 0; ty < MH; ty++) for (let tx = 0; tx < MW; tx++) {
+    if (!seen[ty * MW + tx]) continue;
+    const tile = tileAt(tx, ty);
+    x.fillStyle = tile === TILE.WALL ? '#241c22' : tile === TILE.STAIRS ? '#e8c840' : '#6a5864';
+    x.fillRect(ox + tx * sc, oy + ty * sc, Math.ceil(sc), Math.ceil(sc));
+  }
+  if (player) { x.fillStyle = '#fff'; x.fillRect(ox + player.x / TS * sc - 1, oy + player.y / TS * sc - 1, Math.max(2, sc), Math.max(2, sc)); }
+  const dth = V101.lastDeath;
+  if (dth && dth.depth === depth && ART.map_icon_death) x.drawImage(ART.map_icon_death, ox + dth.tx * sc, oy + dth.ty * sc, Math.max(8, sc), Math.max(8, sc));
+}
+function satchelDress() {
+  satchelBoot();
+  const host = $('satchel'); if (!host) return;
+  host.dataset.tab = satchelTab;
+  document.querySelectorAll('#satTabs .sat-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === satchelTab));
+  document.querySelectorAll('.sat-pane').forEach(p => p.classList.toggle('on', p.dataset.pane === satchelTab));
+  if (satchelTab === 'inventory') fillInvStats();
+  if (satchelTab === 'consumables') fillCons();
+  if (satchelTab === 'notes') fillNotesPane();
+  if (satchelTab === 'tome') fillTomePane();
+  if (satchelTab === 'map') fillSatMap();
+  sizeSatchel();
+}
+const _render101 = renderInv;
+renderInv = function () { _render101(); if ($('satchel')) satchelDress(); };
+const _open101 = openInv;
+openInv = function () { _open101(); satchelTab = satchelTab || 'inventory'; satchelDress(); };
+fitUi101();
+syncGlBtn();
+if (window.game) {
+  window.game.maybePage = maybePage;
+  window.game.resurrect = resurrect;
+  window.game.tomeSeek = tomeSeek;
+  Object.assign(window.game, { necroKnown, spellBar, assignSpell, pressBar, placeTomb, giveUp101, tomeRightMsg, satchelOpenTab, fitUi101 });
+  Object.defineProperties(window.game, {
+    tombs: { get() { return V101.tombs; } },
+    lastDeath: { get() { return V101.lastDeath; } },
+    barSel: { get() { return V101.barSel; } }
   });
 }
 

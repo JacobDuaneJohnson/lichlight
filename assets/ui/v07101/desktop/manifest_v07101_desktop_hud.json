@@ -1,0 +1,867 @@
+{
+ "bar": {
+  "body_h_L": 40,
+  "body_h_S": 30,
+  "hud_h_L": 52,
+  "hud_h_S": 38,
+  "nine_slice": "desk_bar_9slice_64x{h}_s16: L16 R16 T6 B0, repeat centre (period 32)",
+  "top_band_rows": [
+   "K",
+   "B1",
+   "B2",
+   "B0",
+   "K",
+   "S2"
+  ]
+ },
+ "files": {
+  "bar/center_well_9slice_12_s4.png": [
+   12,
+   12
+  ],
+  "bar/center_well_sample_282x24.png": [
+   282,
+   24
+  ],
+  "bar/desk_bar_9slice_64x30_s16.png": [
+   64,
+   30
+  ],
+  "bar/desk_bar_9slice_64x40_s16.png": [
+   64,
+   40
+  ],
+  "bar/desk_bar_sample_320x30.png": [
+   320,
+   30
+  ],
+  "bar/desk_bar_sample_420x40.png": [
+   420,
+   40
+  ],
+  "bar/desk_bar_sample_640x40.png": [
+   640,
+   40
+  ],
+  "bar/meter_fill_torch_9slice_6x3_s1.png": [
+   6,
+   3
+  ],
+  "bar/meter_fill_torch_warn_9slice_6x3_s1.png": [
+   6,
+   3
+  ],
+  "bar/meter_fill_xp_9slice_6x3_s1.png": [
+   6,
+   3
+  ],
+  "bar/meter_track_9slice_12x5_s3.png": [
+   12,
+   5
+  ],
+  "bar/torch_meter_sample_40x5_70pct.png": [
+   40,
+   5
+  ],
+  "bar/xp_track_sample_282x5_60pct.png": [
+   282,
+   5
+  ],
+  "globes/globe_face_mask_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_face_mask_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_face_mask_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_face_mask_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_fill_levels_strip_48.png": [
+   260,
+   104
+  ],
+  "globes/globe_glass_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_glass_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_glass_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_glass_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_hp_empty_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_hp_empty_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_hp_empty_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_hp_empty_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_hp_frame_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_hp_frame_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_hp_frame_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_hp_frame_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_hp_full_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_hp_full_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_hp_full_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_hp_full_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_hp_half_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_hp_half_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_hp_half_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_hp_half_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_hp_rim_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_hp_rim_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_hp_rim_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_hp_rim_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_mp_empty_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_mp_empty_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_mp_empty_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_mp_empty_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_mp_frame_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_mp_frame_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_mp_frame_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_mp_frame_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_mp_full_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_mp_full_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_mp_full_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_mp_full_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_mp_half_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_mp_half_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_mp_half_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_mp_half_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_mp_rim_32.png": [
+   32,
+   32
+  ],
+  "globes/globe_mp_rim_48.png": [
+   48,
+   48
+  ],
+  "globes/globe_mp_rim_64.png": [
+   64,
+   64
+  ],
+  "globes/globe_mp_rim_96.png": [
+   96,
+   96
+  ],
+  "globes/globe_socket_112.png": [
+   112,
+   112
+  ],
+  "globes/globe_socket_40.png": [
+   40,
+   40
+  ],
+  "globes/globe_socket_56.png": [
+   56,
+   56
+  ],
+  "globes/globe_socket_80.png": [
+   80,
+   80
+  ],
+  "mocks/desk_hud_mock_1280x400_x2.png": [
+   1280,
+   400
+  ],
+  "mocks/desk_hud_mock_420x180_1x.png": [
+   420,
+   180
+  ],
+  "mocks/desk_hud_mock_640x200_1x.png": [
+   640,
+   200
+  ],
+  "mocks/desk_hud_mock_840x360_x2.png": [
+   840,
+   360
+  ],
+  "mocks/desk_hud_mock_canvas_1280x720_x4.png": [
+   1280,
+   720
+  ],
+  "mocks/desk_hud_mock_canvas_320x180_1x.png": [
+   320,
+   180
+  ],
+  "mocks/desk_hud_strip_640x52_1x.png": [
+   640,
+   52
+  ],
+  "slots/count_badge_sample_7x9.png": [
+   7,
+   9
+  ],
+  "slots/keycap_1_18x18.png": [
+   18,
+   18
+  ],
+  "slots/keycap_1_9x9.png": [
+   9,
+   9
+  ],
+  "slots/keycap_2_18x18.png": [
+   18,
+   18
+  ],
+  "slots/keycap_2_9x9.png": [
+   9,
+   9
+  ],
+  "slots/keycap_3_18x18.png": [
+   18,
+   18
+  ],
+  "slots/keycap_3_9x9.png": [
+   9,
+   9
+  ],
+  "slots/keycap_4_18x18.png": [
+   18,
+   18
+  ],
+  "slots/keycap_4_9x9.png": [
+   9,
+   9
+  ],
+  "slots/keycap_blank_9slice_9x9_s3.png": [
+   9,
+   9
+  ],
+  "slots/keycap_e_18x18.png": [
+   18,
+   18
+  ],
+  "slots/keycap_e_9x9.png": [
+   9,
+   9
+  ],
+  "slots/keycap_i_18x18.png": [
+   18,
+   18
+  ],
+  "slots/keycap_i_9x9.png": [
+   9,
+   9
+  ],
+  "slots/keycap_lmb_17x9.png": [
+   17,
+   9
+  ],
+  "slots/keycap_lmb_34x18.png": [
+   34,
+   18
+  ],
+  "slots/keycap_m_18x18.png": [
+   18,
+   18
+  ],
+  "slots/keycap_m_9x9.png": [
+   9,
+   9
+  ],
+  "slots/keycap_q_18x18.png": [
+   18,
+   18
+  ],
+  "slots/keycap_q_9x9.png": [
+   9,
+   9
+  ],
+  "slots/keycap_spc_17x9.png": [
+   17,
+   9
+  ],
+  "slots/keycap_spc_34x18.png": [
+   34,
+   18
+  ],
+  "slots/slot_select_ring_30.png": [
+   30,
+   30
+  ],
+  "slots/slot_select_ring_38.png": [
+   38,
+   38
+  ],
+  "slots/slot_select_ring_60.png": [
+   60,
+   60
+  ],
+  "slots/slot_select_ring_76.png": [
+   76,
+   76
+  ],
+  "slots/slot_spell_disabled_24.png": [
+   24,
+   24
+  ],
+  "slots/slot_spell_disabled_32.png": [
+   32,
+   32
+  ],
+  "slots/slot_spell_disabled_48.png": [
+   48,
+   48
+  ],
+  "slots/slot_spell_disabled_64.png": [
+   64,
+   64
+  ],
+  "slots/slot_spell_empty_24.png": [
+   24,
+   24
+  ],
+  "slots/slot_spell_empty_32.png": [
+   32,
+   32
+  ],
+  "slots/slot_spell_empty_48.png": [
+   48,
+   48
+  ],
+  "slots/slot_spell_empty_64.png": [
+   64,
+   64
+  ],
+  "slots/slot_spell_idle_24.png": [
+   24,
+   24
+  ],
+  "slots/slot_spell_idle_32.png": [
+   32,
+   32
+  ],
+  "slots/slot_spell_idle_48.png": [
+   48,
+   48
+  ],
+  "slots/slot_spell_idle_64.png": [
+   64,
+   64
+  ],
+  "slots/slot_spell_selected_24.png": [
+   24,
+   24
+  ],
+  "slots/slot_spell_selected_32.png": [
+   32,
+   32
+  ],
+  "slots/slot_spell_selected_48.png": [
+   48,
+   48
+  ],
+  "slots/slot_spell_selected_64.png": [
+   64,
+   64
+  ],
+  "slots/slot_weapon_down_24.png": [
+   24,
+   24
+  ],
+  "slots/slot_weapon_down_32.png": [
+   32,
+   32
+  ],
+  "slots/slot_weapon_idle_24.png": [
+   24,
+   24
+  ],
+  "slots/slot_weapon_idle_32.png": [
+   32,
+   32
+  ]
+ },
+ "globe_nn_x2": {
+  "64": "from 32",
+  "96": "from 48"
+ },
+ "globes": {
+  "32": {
+   "face_center": [
+    16.0,
+    16.0
+   ],
+   "face_radius": 12.0,
+   "fill_rows": 24,
+   "rim_w": 2,
+   "size": 32
+  },
+  "48": {
+   "face_center": [
+    24.0,
+    24.0
+   ],
+   "face_radius": 19.0,
+   "fill_rows": 38,
+   "rim_w": 3,
+   "size": 48
+  }
+ },
+ "layouts": {
+  "L420": {
+   "attack": [
+    60,
+    24,
+    24,
+    24
+   ],
+   "bar": [
+    0,
+    12,
+    420,
+    40
+   ],
+   "hp_globe": [
+    4,
+    4,
+    48,
+    48
+   ],
+   "hp_socket": [
+    0,
+    0,
+    56,
+    56
+   ],
+   "hud": [
+    0,
+    0,
+    420,
+    52
+   ],
+   "mp_globe": [
+    368,
+    4,
+    48,
+    48
+   ],
+   "mp_socket": [
+    364,
+    0,
+    56,
+    56
+   ],
+   "pot_e": [
+    116,
+    24,
+    24,
+    24
+   ],
+   "pot_q": [
+    90,
+    24,
+    24,
+    24
+   ],
+   "roll": [
+    216,
+    24,
+    24,
+    24
+   ],
+   "spell1": [
+    246,
+    24,
+    24,
+    24
+   ],
+   "spell2": [
+    276,
+    24,
+    24,
+    24
+   ],
+   "spell3": [
+    306,
+    24,
+    24,
+    24
+   ],
+   "spell4": [
+    336,
+    24,
+    24,
+    24
+   ],
+   "well": [
+    146,
+    24,
+    64,
+    24
+   ],
+   "xp": [
+    58,
+    18,
+    304,
+    5
+   ]
+  },
+  "L640": {
+   "attack": [
+    60,
+    24,
+    24,
+    24
+   ],
+   "bar": [
+    0,
+    12,
+    640,
+    40
+   ],
+   "hp_globe": [
+    4,
+    4,
+    48,
+    48
+   ],
+   "hp_socket": [
+    0,
+    0,
+    56,
+    56
+   ],
+   "hud": [
+    0,
+    0,
+    640,
+    52
+   ],
+   "mp_globe": [
+    588,
+    4,
+    48,
+    48
+   ],
+   "mp_socket": [
+    584,
+    0,
+    56,
+    56
+   ],
+   "pot_e": [
+    116,
+    24,
+    24,
+    24
+   ],
+   "pot_q": [
+    90,
+    24,
+    24,
+    24
+   ],
+   "roll": [
+    436,
+    24,
+    24,
+    24
+   ],
+   "spell1": [
+    466,
+    24,
+    24,
+    24
+   ],
+   "spell2": [
+    496,
+    24,
+    24,
+    24
+   ],
+   "spell3": [
+    526,
+    24,
+    24,
+    24
+   ],
+   "spell4": [
+    556,
+    24,
+    24,
+    24
+   ],
+   "well": [
+    146,
+    24,
+    284,
+    24
+   ],
+   "xp": [
+    58,
+    18,
+    524,
+    5
+   ]
+  },
+  "S320": {
+   "attack": [
+    38,
+    14,
+    24,
+    24
+   ],
+   "bar": [
+    0,
+    8,
+    320,
+    30
+   ],
+   "hp_globe": [
+    2,
+    5,
+    32,
+    32
+   ],
+   "hp_socket": [
+    -2,
+    1,
+    40,
+    40
+   ],
+   "hud": [
+    0,
+    0,
+    320,
+    38
+   ],
+   "mp_globe": [
+    286,
+    5,
+    32,
+    32
+   ],
+   "mp_socket": [
+    282,
+    1,
+    40,
+    40
+   ],
+   "pot_e": [
+    88,
+    14,
+    24,
+    24
+   ],
+   "pot_q": [
+    64,
+    14,
+    24,
+    24
+   ],
+   "roll": [
+    152,
+    14,
+    24,
+    24
+   ],
+   "spell1": [
+    180,
+    14,
+    24,
+    24
+   ],
+   "spell2": [
+    206,
+    14,
+    24,
+    24
+   ],
+   "spell3": [
+    232,
+    14,
+    24,
+    24
+   ],
+   "spell4": [
+    258,
+    14,
+    24,
+    24
+   ],
+   "well": [
+    114,
+    14,
+    34,
+    24
+   ],
+   "xp": [
+    40,
+    1,
+    240,
+    5
+   ]
+  }
+ },
+ "pack": "v07101_desktop_hud",
+ "palette": {
+  "B0": "5c4024",
+  "B1": "8a6a48",
+  "B2": "b8925a",
+  "B3": "e2c084",
+  "K": "0c0a0c",
+  "L4": "4a2a18",
+  "L6": "6a4026",
+  "L8": "8a5a34",
+  "M0": "1a2a5a",
+  "M1": "2e5ab8",
+  "M2": "6ca8ff",
+  "M3": "c8e4ff",
+  "PA": "ecdfc4",
+  "PS": "c8b896",
+  "R0": "341a18",
+  "R1": "4a2a24",
+  "R2": "6a3028",
+  "R3": "a03028",
+  "R4": "d04838",
+  "R5": "ff8a7a",
+  "S0": "1a1410",
+  "S1": "2a2220",
+  "S2": "3e3430",
+  "S3": "5a4c44",
+  "S4": "7a6a5c",
+  "S5": "a8968a",
+  "W1": "d4d8e0",
+  "W2": "a8acb4",
+  "W3": "6e7280"
+ },
+ "reuse_pack_a": [
+  "composed/hud_{fireball,spin,frost_nova,spectral_clone,ethereal_shield,ethereal_shift,hellmouth}_24_idle/down (spell glyph on mana plate)",
+  "composed/hud_attack_24_*",
+  "composed/hud_roll_24_*",
+  "composed/hud_heal_24_*",
+  "composed/hud_mana_24_*",
+  "plates/plate_round_24_*"
+ ],
+ "spec": "lichlight_v07101_next.md F5 (+F6 slot assign)",
+ "spell_slots": {
+  "count": 4,
+  "frames": "slot_spell_{idle,selected,empty,disabled}_{24,32}(+x2)",
+  "pitch_L": 30,
+  "pitch_S": 26,
+  "ring": "slot_select_ring_30 / _38 (draw at slot -3,-3 / -3,-3)",
+  "size": 24
+ },
+ "status": "PARKED - READY for wire on Jake GO; live stays v0.7.10"
+}

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v07101</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:960px;height:540px"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 400) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function quiet(g) {
+  const p = g.player;
+  g.enemies.forEach(e => { e.dead = true; e.hp = 0; e.state = 'idle'; });
+  if (g.projs) g.projs.length = 0;
+  p.burn = null; p.slowT = 0; p.isArmorActive = false; p.isInvincible = false; p.isPlayerUndetected = false; p.decoyObject = null;
+}
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  check('boot', !!(g && g.newGame));
+  check('dev hud stays off github.io', g.lichDevOn('gamedevjake.github.io', '?lichDev=1') === false);
+  delete g.settings.glLight;
+  check('b10 gl default off', g.glLightMode() === 'off', g.glLightMode());
+  g.settings.glLight = 'on';
+  check('b10 saved on kept', g.glLightMode() === 'on');
+  g.cycleGlLight();
+  check('b10 cycle still off', g.glLightMode() === 'off');
+  g.cycleGlLight();
+  check('b10 cycle auto', g.glLightMode() === 'auto');
+  g.settings.glLight = 'off';
+
+  check('hud plates', ['hud_attack_72_idle.png','hud_satchel_48_idle.png','hud_pause_32_idle.png','hud_map_32_idle.png','hud_light_48_idle.png','hud_examine_48_idle.png','hud_pull_48_idle.png'].every(n => src.indexOf(n) >= 0));
+  check('b5 layout ids', src.indexOf('bS4:') >= 0 && src.indexOf('bS7:') >= 0);
+  check('toast dwell', src.indexOf('life: 5.7') >= 0 && src.indexOf('MSG_DWELL = 5.7') >= 0);
+
+  g.newGame();
+  quiet(g);
+  const p = g.player;
+  check('f2 no pages before tome', g.maybePage(80, 80, 1, 1) == null && !g.ground.some(q => q.page));
+  w.__forcePage = 'fireball';
+  check('force page still works', g.maybePage(90, 80, 0, 1) === 'fireball');
+  w.__forcePage = null;
+  for (let i = g.ground.length - 1; i >= 0; i--) if (g.ground[i].page) g.ground.splice(i, 1);
+  p.lichTome.isAcquired = true;
+  check('b6 pages after tome', g.maybePage(110, 80, 1, 4) != null && g.ground.some(q => q.page), g.ground.filter(q => q.page).map(q => q.pageType).join(','));
+
+  check('f2 bar empty before unlock', g.spellBar().every(x => !x), JSON.stringify(g.spellBar()));
+  const b1 = w.document.getElementById('bS1');
+  check('f2 slot exists', !!b1);
+  w.pressBar(0);
+  check('b12 empty slot', (g.msg.t || '').indexOf('No spell assigned to that slot') >= 0, g.msg && g.msg.t);
+  check('b11 toast longer', g.msg.life >= 5.5, g.msg && g.msg.life);
+
+  p.lichTome.isAcquired = false;
+  w.pressBar(0);
+  check('b11 no tome', (g.msg.t || '') === 'You have not discovered the Lich Tome', g.msg && g.msg.t);
+  p.lichTome.isAcquired = true;
+  w.tomeDeny(0);
+  check('b11 tome empty', (g.msg.t || '') === 'Discover spells hidden in the world to use the Lich Tome', g.msg && g.msg.t);
+
+  g.unlockSpell('fireball'); g.unlockSpell('spin'); g.unlockSpell('frostNova'); g.unlockSpell('spectralClone'); g.unlockSpell('etherealShield'); g.unlockSpell('hellmouth');
+  const bar = g.spellBar();
+  check('f6 autofill 4', bar.filter(Boolean).length === 4 && bar.indexOf('hellmouth') < 0, JSON.stringify(bar));
+  check('f6 assign', g.assignSpell('hellmouth', 0) === true && g.spellBar()[0] === 'hellmouth', JSON.stringify(g.spellBar()));
+  if (w.updateTouchHUD) w.updateTouchHUD();
+  check('f2 learned class', w.document.getElementById('bS5').classList.contains('learned'));
+
+  w.tlMoveTo('bS7', 120, 140);
+  const pos = g.settings.touchLayout && g.settings.touchLayout.pos && g.settings.touchLayout.pos.bS7;
+  check('b5 drag sticks', !!(pos && pos.cx > 0 && pos.cy > 0), JSON.stringify(pos));
+  w.applyTouchLayout();
+  const b7 = w.document.getElementById('bS7');
+  check('b5 position applied', b7.style.left !== '' && b7.style.top !== '', b7.style.left + ',' + b7.style.top);
+
+  const prof = w.document.getElementById('profRow');
+  w.pauseGame();
+  check('f4 characters on pause', prof && !prof.classList.contains('hidden') && !!w.document.getElementById('profBtn'));
+  g.setState ? null : w.setState && w.setState('play');
+  if (w.setState) w.setState('play');
+
+  check('satchel tabs', !!w.document.getElementById('satTabs') && !!w.document.getElementById('satchel') && !!w.document.getElementById('closeNotesBtn'));
+  w.satchelOpenTab('tome');
+  check('f3 tome pane', (w.document.getElementById('tomePane').textContent || '').indexOf('SPELLS') >= 0, w.document.getElementById('tomePane').textContent.slice(0, 180));
+  w.satchelOpenTab('notes');
+  const prev = w.document.getElementById('satchel').dataset.tab;
+  w.document.getElementById('closeNotesBtn').click();
+  check('f1 close notes', w.document.getElementById('satchel').dataset.tab !== 'notes' && prev === 'notes', w.document.getElementById('satchel').dataset.tab);
+  w.satchelOpenTab('inventory');
+  check('f1 inventory stats', !!w.document.getElementById('invStats'));
+  if (w.closeInv) w.closeInv();
+
+  check('b13 necro hidden fresh', g.necroKnown() === false || p.npPot > 0, 'known ' + g.necroKnown() + ' n ' + p.npPot);
+  p.npPot = 0; p.necroSeen = false;
+  check('b13 flag off', g.necroKnown() === false);
+  p.npPot = 1;
+  check('b13 flag on count', g.necroKnown() === true);
+  p.necroSeen = true; p.npPot = 0;
+  check('b13 stays after spend', g.necroKnown() === true);
+
+  const depth0 = g.depth;
+  const mob = g.spawnEnemy('rat', p.x + 24, p.y, false);
+  mob.dead = false; mob.hp = 20;
+  const mobId = mob.id;
+  p.npPot = 1; p.hp = p.st.maxHp;
+  const dx = p.x, dy = p.y;
+  w.die('a test', 'battle');
+  for (let i = 0; i < 45; i++) g.step(0.1, { x: 0, y: 0 });
+  check('f7 died', g.state === 'dead', g.state);
+  const ok = g.resurrect();
+  check('f7 resurrect same floor', ok === true && g.state === 'play' && g.depth === depth0, g.state + ' d ' + g.depth);
+  check('f7 tomb', g.tombs && g.tombs.length >= 1 && g.lastDeath && g.lastDeath.tx === (dx / 16 | 0), JSON.stringify(g.tombs && g.tombs[0]) + ' last ' + JSON.stringify(g.lastDeath));
+  check('f7 no reset', g.enemies.some(e => e.id === mobId), 'ids ' + g.enemies.map(e => e.id).slice(0, 8).join(','));
+  const nTombs = g.tombs.length;
+  p.npPot = 1; p.hp = 10;
+  w.die('a test', 'battle');
+  for (let i = 0; i < 45; i++) g.step(0.1, { x: 0, y: 0 });
+  g.resurrect();
+  check('f7 stones stack', g.tombs.length >= nTombs, g.tombs.length + ' vs ' + nTombs);
+
+  g.newGame();
+  quiet(g);
+  const q = g.player;
+  q.hunger = 0; q.thirst = 80; q.fatigue = 80; q.hp = 4; q.st.maxHp = 80; q.st.regen = 0;
+  let died = false;
+  for (let i = 0; i < 100 && !died; i++) {
+    g.step(0.25, { x: 0, y: 0 });
+    died = q.hp <= 0 || g.state === 'dead' || g.state === 'dying';
+  }
+  check('b14 starve dies', died && q.hp <= 0, 'hp ' + q.hp + ' st ' + g.state);
+
+  g.newGame();
+  quiet(g);
+  const a = g.player;
+  a.hp = 400; a.st.maxHp = 400; a.mp = 80; a.lichTome.isAcquired = true; a.fx = -1; a.fy = 0;
+  g.unlockSpell('spectralClone');
+  const home = g.rooms && g.rooms[0];
+  if (home) { a.x = (home.cx + 0.5) * 16; a.y = (home.cy + 0.5) * 16; }
+  const tx = a.x / 16 | 0, ty = a.y / 16 | 0;
+  for (let i = -1; i <= 8; i++) g.setTile(tx + i, ty, 1);
+  const foe = g.spawnEnemy('rat', (tx + 1.5) * 16, (ty + 0.5) * 16, true);
+  foe.dead = false; foe.hp = 40; foe.state = 'chase';
+  if (foe.ai) { foe.ai.state = 'CHASE'; foe.ai.spotted = true; foe.ai.nextTick = 0; foe.ai.engagedUntil = 1e9; }
+  w.castSkill(3);
+  check('b15 clone up', !!(a.decoyObject && a.isPlayerUndetected));
+  const decoy = a.decoyObject;
+  a.x = (tx + 7.5) * 16;
+  g.setTile(tx + 3, ty, 0); g.setTile(tx + 3, ty - 1, 0); g.setTile(tx + 3, ty + 1, 0);
+  for (let i = 0; i < 12; i++) g.step(0.1, { x: 0, y: 0 });
+  const de = foe.dead ? 0 : Math.hypot(foe.x - decoy.x, foe.y - decoy.y);
+  const dp = foe.dead ? 999 : Math.hypot(foe.x - a.x, foe.y - a.y);
+  check('b15 chases clone', !foe.dead && de + 8 < dp, 'de ' + de.toFixed(1) + ' dp ' + dp.toFixed(1) + ' st ' + (foe.ai && foe.ai.state));
+
+  g.newGame();
+  quiet(g);
+  const b = g.player;
+  const rh = g.rooms && g.rooms[0];
+  if (rh) { b.x = (rh.cx + 0.5) * 16; b.y = (rh.cy + 0.5) * 16; }
+  const rx = b.x / 16 | 0, ry = b.y / 16 | 0;
+  for (let i = 0; i <= 6; i++) { g.setTile(rx + i, ry, 1); g.setTile(rx + i, ry - 1, 0); g.setTile(rx + i, ry + 1, 0); }
+  const lost = g.spawnEnemy('rat', (rx + 1.5) * 16, (ry + 0.5) * 16, true);
+  lost.dead = false; lost.hp = 50; lost.state = 'chase';
+  if (lost.ai) { lost.ai.state = 'CHASE'; lost.ai.spotted = true; lost.ai.nextTick = 0; }
+  g.setTile(rx + 2, ry, 0);
+  b.x = (rx + 5.5) * 16;
+  let gave = false;
+  for (let i = 0; i < 40; i++) {
+    g.step(0.2, { x: 0, y: 0 });
+    if (lost.showQ > 0 || (lost.ai && lost.ai.state === 'PATROL' && lost.state === 'idle')) { gave = true; break; }
+  }
+  check('b7 gives up', gave, 'showQ ' + lost.showQ + ' ai ' + (lost.ai && lost.ai.state) + ' st ' + lost.state + ' lostT ' + lost.lostT);
+}
+</script>
+</body>
+</html>
