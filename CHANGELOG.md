@@ -4,6 +4,35 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.10.1] - 2026-10-31
+
+_Plates, pages, and the tombstone_
+
+### Added
+- **Satchel tabs.** The bag is one wide panel: Character, Inventory, Consumables, Notes, Lich Tome, and Map. Inventory puts the item's stats beside the grid. Close leaves the bag. Close Notes only leaves the notes.
+- **Lich Tome tabs.** Spells, Recipes, and Enchantments. Recipes and enchantments are empty for now. With the tome and no pages, the book says the pages were torn out.
+- **Four spell slots.** From the tome, put any unlocked spell in a slot. The bar shows those four. Desktop uses brass life and mana globes and the same four slots, and the bar fits the window.
+- **Tombstones.** Necro Potion brings you back on the same floor, leaves a stone where you fell, and marks that spot on the map. Another death adds another stone. The mark moves to the latest one.
+- **Characters on pause.** Switch the active save without quitting to the title.
+
+### Changed
+- **HUD plates.** Attack, dodge, spells, potions, the satchel, light, examine, pull, pause, and the map sit on round plates. Pause and map are square, not squashed. The satchel icon is back.
+- **Menus scale** so the title, pause, bag, and settings fit wide and tall screens.
+- **Spells stay hidden** until you have the Lich Tome and that page. No locked books on the bar.
+- **Spell pages wait** until the tome is in your pack. Cracked walls, pots, chests, and champions do not drop them before that.
+- **Enemies lose interest.** If they cannot see you, or cannot reach you, they stop after about five seconds, show a question mark, and go back to patrol. They do not pace in place.
+- **Spectral Clone** pulls aggro. Monsters chase the copy, not the tile you slipped to.
+- **GL LIGHT** starts OFF until you turn it on.
+- **Messages linger** about two seconds longer.
+- **Starvation can kill.** An empty stomach drains life to 0. Thirst and exhaustion still stop at 1.
+- **The Necro Potion counter** stays hidden until you find the first one.
+
+### Fixed
+- Right-click before the tome says "You have not discovered the Lich Tome". After the tome, with nothing to cast, it says "Discover spells hidden in the world to use the Lich Tome".
+- An empty spell slot says "No spell assigned to that slot".
+- The new spell buttons can be dragged in touch controls, and the spot sticks.
+- Holding a charged attack no longer blocks dodge or a spell. A swipe across attack, dodge, and spells fires each one. Map, potions, mana, and the bag do not.
+
 ## [0.7.10] - 2026-10-30
 
 _Lich Tome and the torn pages_
@@ -682,6 +711,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 - Hosted on GitHub Pages.
 
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
+[0.7.10.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.1
 [0.7.10]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10
 [0.7.9]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.9
 [0.7.8.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.8.1
