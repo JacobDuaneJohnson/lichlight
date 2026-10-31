@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v0712</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:1100px;height:700px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 300) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.12' && ver.indexOf('"0.7.12"') >= 0, (g && g.version) + ' ' + ver);
+  check('no dev hud on github', src.indexOf("h === 'github.io' || h.endsWith('.github.io')") >= 0 && src.indexOf('return false') >= 0);
+  check('no css zoom', src.indexOf('zoom:var(--ui)') < 0);
+  check('pack b shell', src.indexOf('inv_stats_header_unique_9slice') >= 0 && src.indexOf('btn_equip_idle_52x20') >= 0);
+  check('scroll helper', typeof g.drawScrollContainer === 'function' && g.LINE_HEIGHT >= 14, g.LINE_HEIGHT);
+  check('short bow drops', src.indexOf("name: 'Short Bow'") >= 0 && src.indexOf("name: 'Short Bow', min: 3, max: 7, lvl: 2, spd: 1.05, bow: 1, noDrop") < 0);
+  check('tome bows eligible', src.indexOf('!u.tomeBow') < 0);
+
+  g.newGame();
+  g.player.inv0 = 0;
+  g.player.hp = 80;
+  const n0 = g.texts.length;
+  g.hurtPlayer(8, { x: g.player.x + 30, y: g.player.y, label: 'rat', T: { label: 'rat' } });
+  const selfNums = g.texts.slice(n0).map(t => t.t).filter(t => /^-?\d+!?$/.test(t));
+  check('no player damage float', selfNums.length === 0, selfNums.join(','));
+  const foe = g.enemies.find(e => e && e.hp > 0 && !e.dead);
+  if (foe) {
+    const n1 = g.texts.length;
+    g.damageEnemy(foe, 6, 0, 0, '#fff', false);
+    const got = g.texts.slice(n1).some(t => /\d/.test(t.t));
+    check('enemy damage float', got, g.texts.slice(n1).map(t => t.t).join(','));
+  } else check('enemy damage float', false, 'no enemy');
+
+  const pool = g.eligibleUniques(8);
+  check('banshee bow', pool.some(u => u.name === 'Scream of the Banshee'));
+  check('spine bow', pool.some(u => u.name === 'Spine of the First Lich'));
+  check('hellmouth bow', pool.some(u => u.name === 'Hellmouth Strider'));
+  let bows = 0;
+  for (let i = 0; i < 600; i++) {
+    const it = g.makeItem(4, 0);
+    if (it && (it.base === 'Short Bow' || it.name === 'Short Bow')) bows++;
+  }
+  check('short bow can roll', bows > 0, bows);
+
+  const worn = g.makeItem(2, 0, 'Short Sword');
+  g.player.equip.weapon = worn;
+  const next = g.makeItem(6, 1, 'Broad Sword');
+  next.lore = 'Worn by the gate captain who held the stair until the dark came up the steps and took the torch from his hand.';
+  const card = g.itemCard712(next);
+  const flat = g.flattenCard712(card, 90);
+  const ys = flat.map(r => r.y);
+  check('card line spacing', ys.every((y, i) => i === 0 || y >= ys[i - 1] + g.LINE_HEIGHT) && new Set(ys).size === ys.length, ys.join(','));
+  check('red delta', flat.some(r => r.delta && r.delta.indexOf('(') >= 0), flat.filter(r => r.delta).map(r => r.text + r.delta).join(' | '));
+  const loreAt = flat.findIndex(r => r.text && r.text.charAt(0) === "'");
+  const lore = loreAt >= 0 ? flat.slice(loreAt) : [];
+  check('lore wraps', lore.length >= 2 && lore.every(r => r.text.length * 4 <= 100), lore.map(r => r.text).join(' / '));
+
+  g.player.keys = 2;
+  const locked = { open: false, free: false, x: g.player.x, y: g.player.y, msgT: 99, tx: 1, ty: 1 };
+  g.chests.push(locked);
+  g.openChestAttack(locked);
+  check('attack skips locked chest', !locked.open && g.player.keys === 2, g.player.keys + ' open ' + locked.open);
+  g.openChest(locked);
+  check('action opens locked chest', locked.open && g.player.keys === 1, g.player.keys);
+  const free = { open: false, free: true, x: g.player.x, y: g.player.y, msgT: 0, tx: 2, ty: 2 };
+  g.chests.push(free);
+  g.openChestAttack(free);
+  check('attack still opens free chest', free.open === true, free.open);
+
+  g.touchMode = false;
+  const p = g.player;
+  const tx = Math.floor(p.x / 16), ty = Math.floor(p.y / 16);
+  for (let y = ty - 2; y <= ty + 2; y++) for (let x = tx - 1; x <= tx + 5; x++) { g.setTile(x, y, 1); g.seeTile(x, y); }
+  g.setTile(tx + 1, ty, 3); g.setTile(tx + 1, ty - 1, 3); g.setTile(tx + 1, ty + 1, 3);
+  const x0 = p.x, y0 = p.y;
+  const walked = g.groundWalk((tx + 3 + 0.5) * 16, (ty + 0.5) * 16, true);
+  for (let i = 0; i < 45; i++) g.step(0.05);
+  const dx = p.x - x0, dy = p.y - y0;
+  check('click across pit starts', walked === true, walked);
+  check('click across pit not inverted', dx > -8 && Math.hypot(dx, dy) > 4, dx.toFixed(1) + ',' + dy.toFixed(1));
+  g.setTile(tx + 1, ty, 1);
+  const x1 = p.x;
+  g.groundWalk(p.x + 40, p.y, true);
+  for (let i = 0; i < 20; i++) g.step(0.05);
+  check('open floor click still moves', p.x > x1 + 4, (p.x - x1).toFixed(1));
+
+  g.notePick712('consumables', { pick: 'hp' });
+  w.openInv();
+  check('pickup opens consumables', w.document.getElementById('satchel').dataset.tab === 'consumables', w.document.getElementById('satchel').dataset.tab);
+  w.closeInv();
+  g.notePick712('inventory', { idx: 0 });
+  const gear = g.makeItem(2, 0);
+  gear.isNew = true;
+  g.player.inv[0] = gear;
+  w.openInv();
+  check('later pickup opens inventory', w.document.getElementById('satchel').dataset.tab === 'inventory');
+  const tag = w.document.querySelector('#grid .slot .ntag');
+  const tagShow = tag ? w.getComputedStyle(tag).display : 'missing';
+  check('new badge visible', tag && tag.textContent === 'NEW' && tagShow !== 'none', tagShow + ' ' + (tag && tag.textContent));
+  w.closeInv();
+  g.notePick712('map', { at: performance.now() - 6000 });
+  w.openInv();
+  check('stale pickup does not jump', w.document.getElementById('satchel').dataset.tab !== 'map', w.document.getElementById('satchel').dataset.tab);
+
+  w.satchelOpenTab('character');
+  check('hero scale', g.heroScale >= 2, g.heroScale);
+  const hero = w.document.getElementById('charHero');
+  check('hero canvas', hero && hero.width >= 24 && hero.height >= 24, hero && (hero.width + 'x' + hero.height));
+  const pairs = g.charPairs(g.player);
+  check('two stat columns', pairs.length >= 12 && pairs[0][0] && pairs[0][1] && pairs[0][0] !== pairs[0][1], pairs[0].join(' | '));
+
+  if (w.ensureTome) { const tome = w.ensureTome(g.player); if (tome) tome.isAcquired = true; }
+  if (w.unlockSpell) { w.unlockSpell('fireball'); w.unlockSpell('spin'); w.unlockSpell('frostNova'); w.unlockSpell('hellmouth'); }
+  w.satchelOpenTab('tome');
+  check('tome grid', !!w.document.getElementById('tomeGridCv'));
+
+  g.startFloor(5, true);
+  if (g.shop && w.openShop) {
+    w.openShop();
+    const foot = ['shSell', 'shSellAll', 'shLeave', 'shRepair'].map(id => w.document.getElementById(id));
+    check('shop footer', foot.every(Boolean), foot.map(b => b && b.id).join(','));
+    const grid = w.document.getElementById('shGrid');
+    const cols = grid ? w.getComputedStyle(grid).gridTemplateColumns : '';
+    check('sell grid cells', cols.indexOf('24px') >= 0, cols);
+    g.shopView = 'sealed';
+    g.renderShop();
+    const stock = w.document.getElementById('shStock');
+    const sealed = w.document.getElementById('shSealedPane');
+    check('sealed recenters', stock.classList.contains('hidden') && !sealed.classList.contains('hidden'));
+    g.shopView = 'repair';
+    g.renderShop();
+    check('repair recenters', w.document.getElementById('shRepairPane') && !w.document.getElementById('shRepairPane').classList.contains('hidden') && w.document.getElementById('shStock').classList.contains('hidden'));
+  } else check('shop footer', false, 'no shop');
+
+  const detail = w.document.getElementById('invStatsCv');
+  w.satchelOpenTab('inventory');
+  check('detail canvas', detail && detail.height === 108, detail && detail.height);
+  check('detail scrolls', g.scrolls.invDetail && g.scrolls.invDetail.maxScrollY >= 0);
+}
+</script>
+</body>
+</html>
