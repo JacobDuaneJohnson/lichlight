@@ -4,6 +4,28 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.12] - 2026-10-31
+
+_Readable cards, a wider pedlar, bows in the loot_
+
+### Added
+- **Scroll fades.** Shop lists, the character sheet, the Lich Tome, notes, and long item cards fade at the top and bottom when there is more to read. Drag inside the panel to move them.
+- **Bows drop.** A Short Bow can show up anywhere other weapons drop, including the trader. The three unique bows can roll with the other uniques.
+
+### Changed
+- **Damage numbers** show on enemies and bosses. Your own hits, burns, spikes, and pit falls no longer print a number on you. Healing and other words are unchanged.
+- **Item cards** in the satchel and on press-and-hold use one line height, wrap the lore, and keep every stat. Compared with what you have worn, the difference is in red, like `DMG 8-14 (+3)`.
+- **Lich Tome** lists learned spells in a grid of inventory-sized tiles with icons and names. Press and hold still opens the spell card.
+- **Character** stats sit in two columns. The idle portrait is drawn at least twice as large and centered beside them.
+- **The Hollow Pedlar** uses a wide bench: a buy list, a sell grid with the same square cells as the satchel, and a footer of SELL, SELL ALL, LEAVE, and REPAIR ALL. Sealed Uniques and Repair use the full width.
+- **NEW** on a satchel cell is drawn on top of the frame.
+- Opening the satchel within 5 seconds of a pickup lands on that pickup's tab. The newest pickup wins if you grabbed more than one kind. After 5 seconds the bag opens where you left it.
+
+### Fixed
+- Item stats and lore no longer draw on top of each other or cut off at the edge of the card.
+- A locked chest no longer opens when you attack it, so a swing cannot spend a key. The action button still opens it. Unlocked chests still open the way they did.
+- Clicking the far side of a bottomless pit no longer walks you the wrong way. The route goes around, or you stop if there is no way through.
+
 ## [0.7.11] - 2026-10-31
 
 _The gate, the chest, and the card_

@@ -355,7 +355,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satchel .slot.r3{background-image:url(assets/ui/v07101/satchel/content/slot_unique_24.png)}
 #satchel .slot.new{background-image:url(assets/ui/v07101/satchel/content/slot_new_24.png)}
 #satchel .slot.sel,#satchel .slot.sel:hover{background-image:url(assets/ui/v07101/satchel/content/slot_sel_24.png);outline:none}
-#satchel .slot .ntag,#satchel .slot .rtag,#satchel .slot .btag{display:none}
+#satchel .slot .rtag,#satchel .slot .btag{display:none}
 #satchel #consPane{position:absolute;left:0;top:0;right:0;height:63px;min-width:0;overflow:hidden;display:grid;grid-template-columns:repeat(var(--ccols,5),60px);grid-auto-rows:28px;gap:7px;align-content:start}
 .cons-chip{width:60px;height:28px;box-sizing:border-box;margin:0;padding:0 4px 0 6px;display:flex;align-items:center;gap:4px;border:0;cursor:pointer;color:#e8dcc0;font:bold 5px/8px "Courier New",monospace;background:url(assets/ui/v07101/satchel/content/cons_chip_idle_60x28.png) center/100% 100% no-repeat;image-rendering:pixelated}
 .cons-chip.sel{background-image:url(assets/ui/v07101/satchel/content/cons_chip_sel_60x28.png)}
@@ -404,7 +404,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #satchel #stats{overflow:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 #satchel #notesPane{overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 #invStatsScroll,#holdBody,#tomeHold{scrollbar-width:thin;scrollbar-color:#a08050 #1a120c}
-#invStatsCv{clip-path:inset(0 0 86px 0)}
+#invStatsCv{clip-path:none}
 #invStatsScroll{position:absolute;left:4px;right:3px;top:20px;bottom:3px;overflow:auto;touch-action:pan-y;z-index:2}
 #holdStats{position:fixed;z-index:40;width:min(280px,78vw);max-height:min(240px,70vh);display:flex;flex-direction:column;image-rendering:pixelated;border-style:solid;border-width:8px;border-image:url(assets/ui/v07101/satchel/content/inv_stats_panel_9slice_12_s4.png) 4 fill / 8px / 0 stretch;background:#1a120e}
 #holdStats.hidden{display:none!important}
@@ -414,6 +414,32 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #holdStats[data-rar="unique"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_unique_9slice_24x17_s6.png)}
 #holdBody,#tomeHold{overflow:auto;touch-action:pan-y;flex:1;min-height:0;max-height:200px}
 #charHero{position:absolute;left:2px;top:2px;width:36px;height:58px;image-rendering:pixelated;pointer-events:none}
+/* v0.7.12: detail/character/tome/shop scroll, NEW badge above the slot frame, shop footer */
+#invStatsCv{clip-path:none!important;pointer-events:auto!important}
+#satchel #stats{overflow:hidden!important}
+#charHero{width:52px!important;height:60px!important;z-index:3;left:2px;top:2px}
+#satchel .slot{overflow:visible}
+#satchel .slot .ntag,#shop .slot .ntag{display:block;position:absolute;top:1px;right:1px;z-index:5;margin:0;padding:0 1px;font:bold 5px/6px "Courier New",monospace;letter-spacing:0;color:#062a24;background:#40f0d0;border-radius:0;pointer-events:none;animation:none;box-shadow:none}
+#holdStats{width:auto;max-width:min(520px,92vw);max-height:min(78vh,640px);background:#221A15}
+#holdStats canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+#shop .shopbox{max-width:min(96vw,860px);width:min(96vw,860px);text-align:left}
+#shTabs{display:flex;gap:6px;justify-content:center;margin:6px 0}
+#shTabs .shb.on{outline:1px solid #e8c840}
+#shStock{display:flex;gap:18px;align-items:flex-start}
+#shStock.hidden,.sh-single.hidden{display:none!important}
+.sh-single{min-height:110px;text-align:center}
+#shSellClip,#shBuyClip{position:relative;overflow:hidden;touch-action:none}
+#shSellClip{height:96px}
+#shBuyClip{height:108px}
+#shop #shGrid{display:grid;grid-template-columns:repeat(7,24px);grid-auto-rows:24px;gap:6px;--slot:24px;max-height:none;overflow:visible;width:max-content;position:relative;margin:0;justify-content:start}
+#shop .slot{width:24px;height:24px;border:0;border-image:none;box-shadow:none;background:transparent url(assets/ui/v07101/satchel/content/slot_idle_24.png) center/100% 100% no-repeat}
+#shop .slot.sel{background-image:url(assets/ui/v07101/satchel/content/slot_sel_24.png)}
+#shop .slot img{width:16px;height:16px;image-rendering:pixelated}
+#shFoot{display:flex;gap:6px;justify-content:stretch;margin-top:8px}
+#shFoot>button{flex:1 1 0;min-width:0;margin:0}
+#tomeGridCv{display:block;image-rendering:pixelated;touch-action:none}
+#satchel #notesPane{overflow:hidden!important}
+#notesPane canvas.notes712{position:absolute;left:0;top:0}
 </style>
 </head>
 <body>
@@ -514,11 +540,25 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 </div></div>
 <div id="shop" class="overlay hidden"><div class="v4box shopbox">
   <h2>THE HOLLOW PEDLAR <span id="shGold" class="c3"></span></h2><div class="v4sub" id="shNote"></div>
-  <div class="shcols">
-    <div class="shcol"><h3>BUY</h3><div id="shBuy"></div><h3>SEALED UNIQUES</h3><div id="shUni"></div><div class="v4sub">No stats until the coin is spent. A higher price is a better roll. Depth makes the trader's stock stronger.</div><button class="shb" id="shRepair">REPAIR ALL</button></div>
-    <div class="shcol"><h3>SELL (BACKPACK)</h3><div id="shGrid"></div><div id="shSelTxt" class="v4sub"></div><button class="shb" id="shSell">SELL</button><button class="shb" id="shSellAll">SELL ALL</button></div>
+  <div id="shTabs" class="sh-tabs">
+    <button type="button" class="shb on" id="shTabStock" data-view="stock">STOCK</button>
+    <button type="button" class="shb" id="shTabSealed" data-view="sealed">SEALED UNIQUES</button>
+    <button type="button" class="shb" id="shTabRepair" data-view="repair">REPAIR</button>
   </div>
-  <button class="mbtn small" id="shLeave">LEAVE</button>
+  <div id="shStage">
+    <div id="shStock" class="shcols">
+      <div class="shcol"><h3>BUY</h3><div id="shBuyClip"><canvas id="shBuyCv" width="240" height="108"></canvas><div id="shBuy" hidden></div></div></div>
+      <div class="shcol"><h3>SELL</h3><div id="shSellClip"><div id="shGrid"></div></div><div id="shSelTxt" class="v4sub"></div></div>
+    </div>
+    <div id="shSealedPane" class="sh-single hidden"><canvas id="shUniCv" width="420" height="120"></canvas><div id="shUni" hidden></div><div class="v4sub">No stats until the coin is spent. A higher price is a better roll. Depth makes the trader's stock stronger.</div></div>
+    <div id="shRepairPane" class="sh-single hidden"><canvas id="shRepairCv" width="420" height="80"></canvas></div>
+  </div>
+  <div id="shFoot">
+    <button class="shb" id="shSell" type="button">SELL</button>
+    <button class="shb" id="shSellAll" type="button">SELL ALL</button>
+    <button class="mbtn small" id="shLeave" type="button">LEAVE</button>
+    <button class="shb" id="shRepair" type="button">REPAIR ALL</button>
+  </div>
 </div></div>
 <div id="rest" class="overlay hidden"><div class="v4box">
   <h2>REST</h2><div class="v4sub">The room is quiet. How long will you sleep?</div>
@@ -545,7 +585,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.11'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.12'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -3407,7 +3447,7 @@ function updateClickWalk(dt, mv, sp) { // returns true while the click-walk owns
   const arrive = w.kind === 'item' ? near < PICK_REACH : w.kind === 'chest' ? near < 12 : w.kind === 'secret' ? near < 5 : false;
   if (arrive || stepAlong(w, dt, sp)) {
     if (w.kind === 'item') pickupItem(w.ref);
-    else if (w.kind === 'chest') openChest(w.ref);
+    else if (w.kind === 'chest') { if (w.ref.free) openChest(w.ref); } // v0.7.12 B9: locked chests open from USE / action only
     else if (w.kind === 'secret') { faceTo((w.ref.tx + .5) * TS, (w.ref.ty + .5) * TS); p.atkCd = 0; doAttack(true); }
     if (!(w.kind === 'ground' && dm.left)) p.walk = null;
     return w.kind !== 'ground';
@@ -3599,7 +3639,7 @@ document.querySelectorAll('#touch .btn').forEach(b => {
 });
 // suppress zoom / scroll / selection / long-press menus
 ['gesturestart', 'gesturechange', 'gestureend', 'dblclick', 'contextmenu', 'selectstart'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
-document.addEventListener('touchmove', e => { if (!e.target.closest('#dtext,input[type=range],.v4box,#grid,#stats,#notesPane,#invStatsScroll,#holdStats,#holdBody,#tomeBody,#tomeHold,#consPane')) e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove', e => { if (!e.target.closest('#dtext,input[type=range],.v4box,#grid,#stats,#notesPane,#invStats,#invStatsScroll,#holdStats,#holdBody,#tomeBody,#tomeGridCv,#tomeHold,#consPane,#shSellClip,#shBuyClip')) e.preventDefault(); }, { passive: false });
 document.addEventListener('touchstart', e => {
   if (!touchMode) { touchMode = true; updateTouchUI(); }
   if (e.touches.length > 1 && !e.target.closest('.btn,#joyzone')) e.preventDefault();
@@ -4093,7 +4133,7 @@ function doAttack(fixed) {
   meleeSfx = false; sfx(landed ? 'meat' : 'whiff');
   if (landed) wearWeapon();
   breakSecretsAt(p.x + p.fx * 13, p.y + p.fy * 13, 9, true); meleeWorld(p.x + p.fx * 13, p.y + p.fy * 13);
-  for (const c of chests) if (!c.open && Math.hypot(c.x - p.x, c.y - p.y) < 20) openChest(c);
+  for (const c of chests) if (!c.open && c.free && Math.hypot(c.x - p.x, c.y - p.y) < 20) openChest(c); // v0.7.12 B9: locked chests ignore attacks (no key spend)
 }
 // desktop mouse aiming (logical canvas coords)
 const mouse = { x: 0, y: 0, active: false };
@@ -8072,14 +8112,14 @@ function tombLabel(i) { return lockName(i); }
 function lockName(i) { return TOME_NAMES[i] || 'Spell'; }
 
 ICONS.bow = makeSprite(['........kkkk', '.......kwwk.', '......kw.wk.', '.....kw..wk.', '....kw...wk.', '...kw....wk.', '..kw.....wk.', '.kw......wk.', 'kw.......wk.', '.kkkkkkkkk..', '............', '............']);
-BASES.push({ slot: 'weapon', icon: 'bow', name: 'Short Bow', min: 3, max: 7, lvl: 2, spd: 1.05, bow: 1, noDrop: true });
+BASES.push({ slot: 'weapon', icon: 'bow', name: 'Short Bow', min: 3, max: 7, lvl: 2, spd: 1.05, bow: 1 }); // v0.7.12 F2: bows enter normal weapon rolls (chests, elites, shop)
 UNIQUES.push(
   { base: 'Short Bow', name: 'Scream of the Banshee', uniqueId: 'Scream of the Banshee', tomeBow: 1, lore: 'A cry strung into a bow. The arrow is the scream that left her, and it still looks for an ear.', mods: { dmg: 5, crit: 10 } },
   { base: 'Short Bow', name: 'Spine of the First Lich', uniqueId: 'Spine of the First Lich', tomeBow: 1, lore: 'A vertebra from the lich who taught the Choir to hunger. It flies as a shard of bone.', mods: { dmg: 6, crit: 6 } },
   { base: 'Short Bow', name: 'Hellmouth Strider', uniqueId: 'Hellmouth Strider', tomeBow: 1, lore: 'Strung with a tendon from the maw under Vaelmoor. Every shot leaves a coal behind it.', mods: { dmg: 4, fire: 8 } }
 );
 const _eligible710 = eligibleUniques;
-eligibleUniques = function (L) { return _eligible710(L).filter(u => !u.tomeBow); };
+eligibleUniques = function (L) { return _eligible710(L); }; // v0.7.12 F2: unique bows (tomeBow) roll with other uniques
 const _makeItem710 = makeItem;
 makeItem = function (L, rar, baseName) {
   const it = _makeItem710(L, rar, baseName);
@@ -9740,6 +9780,835 @@ if (window.game) {
     vic: { get() { return vic711; } },
     held: { get() { return held; } }
   });
+}
+
+
+// ===== v0.7.12: B1–B10, F1–F2 =====
+// Shared pixel leading. Two stat lines never share a y.
+const LINE_HEIGHT = 14;
+const PANEL_BG_712 = '#221A15';
+const DELTA_RED = '#ff4040';
+const scrolls712 = {};
+let shopView712 = 'stock';
+let hidePlayerDmg712 = false;
+let chestHow712 = 'interact';
+let lastHeroScale712 = 2;
+const pickLog712 = [];
+const PLAYER_DMG_COL_712 = { '#ff5050': 1, '#ffe060': 1, '#a0e040': 1, '#ff3030': 1, '#ff7040': 1, '#ffa040': 1, '#ff7030': 1, '#80b0ff': 1, '#e07060': 1 };
+
+function cssAlpha712(hex, a) {
+  const n = parseInt(String(hex || '#221A15').replace('#', ''), 16);
+  return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+}
+function scrollBox(id) {
+  if (!scrolls712[id]) scrolls712[id] = { scrollY: 0, maxScrollY: 0, dragging: false, startY: 0, pointer: null, key: '' };
+  return scrolls712[id];
+}
+function clampScroll712(s) {
+  if (!(s.maxScrollY > 0)) s.maxScrollY = 0;
+  if (s.scrollY < 0) s.scrollY = 0;
+  if (s.scrollY > s.maxScrollY) s.scrollY = s.maxScrollY;
+}
+// Clip, translate by -scrollY, then top/bottom fades in the panel color.
+function drawScrollContainer(ctx, config, renderContent) {
+  const x = config.x | 0, y = config.y | 0, w = config.w | 0, h = config.h | 0;
+  if (!(w > 0 && h > 0)) return;
+  const fade = config.fadeSize == null ? 16 : config.fadeSize;
+  const bg = config.bg || PANEL_BG_712;
+  const sy = config.scrollY || 0;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.translate(0, -sy);
+  if (renderContent) renderContent();
+  ctx.restore();
+  if (sy > 0 && fade > 0) {
+    const g = ctx.createLinearGradient(0, y, 0, y + fade);
+    g.addColorStop(0, cssAlpha712(bg, 1));
+    g.addColorStop(1, cssAlpha712(bg, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, w, fade);
+  }
+  if (sy < (config.maxScrollY || 0) - 0.5 && fade > 0) {
+    const g2 = ctx.createLinearGradient(0, y + h - fade, 0, y + h);
+    g2.addColorStop(0, cssAlpha712(bg, 0));
+    g2.addColorStop(1, cssAlpha712(bg, 1));
+    ctx.fillStyle = g2;
+    ctx.fillRect(x, y + h - fade, w, fade);
+  }
+}
+function bindScrollEl(el, id, scaleOf, repaint) {
+  if (!el || el.dataset.scroll712 === id) return;
+  el.dataset.scroll712 = id;
+  const s = scrollBox(id);
+  const scale = () => { const n = scaleOf ? scaleOf() : 1; return n > 0 ? n : 1; };
+  el.addEventListener('pointerdown', e => {
+    if (e.target && e.target.closest && e.target.closest('button,a')) return;
+    s.dragging = true; s.moved = false; s.pointer = e.pointerId; s.startY = e.clientY;
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  el.addEventListener('pointermove', e => {
+    if (!s.dragging || e.pointerId !== s.pointer) return;
+    // Finger down moves the content with the finger (scrollY shrinks). Clamped to the row range.
+    const deltaY = (s.startY - e.clientY) / scale();
+    if (Math.abs(e.clientY - s.startY) > 4) s.moved = true;
+    s.scrollY += deltaY;
+    s.startY = e.clientY;
+    clampScroll712(s);
+    if (repaint) repaint();
+  });
+  const end = e => { if (e.pointerId === s.pointer) { s.dragging = false; s.pointer = null; } };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('wheel', e => {
+    if (!(s.maxScrollY > 0)) return;
+    s.scrollY += e.deltaY / scale();
+    clampScroll712(s);
+    e.preventDefault();
+    if (repaint) repaint();
+  }, { passive: false });
+}
+
+function pxWidth712(str) { str = String(str || ''); return str.length ? str.length * 4 - 1 : 0; }
+function wrapPx712(text, maxW) {
+  const words = String(text || '').toUpperCase().split(/\s+/).filter(Boolean);
+  const out = [];
+  let line = '';
+  const takeLong = (w) => {
+    while (w && pxWidth712(w) > maxW && w.length > 1) {
+      const n = Math.max(1, Math.floor((maxW + 1) / 4));
+      out.push(w.slice(0, n));
+      w = w.slice(n);
+    }
+    return w;
+  };
+  words.forEach(word => {
+    word = takeLong(word);
+    if (!word) return;
+    const trial = line ? line + ' ' + word : word;
+    if (line && pxWidth712(trial) > maxW) { out.push(line); line = word; }
+    else line = trial;
+  });
+  if (line) out.push(line);
+  return out.length ? out : [''];
+}
+function deltaTxt712(d, pct) {
+  if (!d) return '';
+  const n = Math.round(Math.abs(d) * 100) / 100;
+  return ' (' + (d > 0 ? '+' : '-') + n + (pct ? '%' : '') + ')';
+}
+function equippedCmp712(it) {
+  if (!it || !player || !player.equip) return null;
+  const cur = player.equip[it.slot];
+  if (!cur || cur === it) return null;
+  return cur;
+}
+function itemCard712(it) {
+  const lines = [];
+  const push = (text, col, delta, extra) => lines.push(Object.assign({ text: String(text || ''), col: col || SAT_TAN, delta: delta || '' }, extra || {}));
+  if (!it) {
+    push('TAP A SLOT.', SAT_DIM, '');
+    push('HOLD FOR THE FULL CARD.', SAT_DIM, '');
+    return { title: 'SELECT AN ITEM', rar: 'common', lines: lines };
+  }
+  const cur = equippedCmp712(it);
+  const rarCol = it.rarity === 3 ? SAT_GOLD : it.rarity === 2 ? '#f0f060' : it.rarity === 1 ? '#7aa0ff' : '#f0e6c8';
+  push(kindLabel(it), rarCol, '');
+  if (it.min || it.max || (cur && (cur.min || cur.max))) {
+    const mine = Math.round(((+it.min || 0) + (+it.max || 0)) / 2);
+    const theirs = cur ? Math.round(((+cur.min || 0) + (+cur.max || 0)) / 2) : 0;
+    push('DMG ' + (it.min || 0) + '-' + (it.max || 0), SAT_TAN, cur ? deltaTxt712(mine - theirs, false) : '');
+  }
+  if (it.spd || (cur && cur.min && cur.spd)) {
+    const mine = Math.round((+it.spd || 0) * 100) / 100;
+    const theirs = cur ? Math.round((+cur.spd || 0) * 100) / 100 : 0;
+    push('SPD ' + mine, SAT_TAN, cur ? deltaTxt712(Math.round((mine - theirs) * 100) / 100, false) : '');
+  }
+  if (it.def || (cur && cur.def)) push('DEF ' + (it.def || 0), SAT_TAN, cur ? deltaTxt712((+it.def || 0) - (+cur.def || 0), false) : '');
+  if (it.block || (cur && cur.block)) push('BLOCK ' + (it.block || 0) + '%', SAT_TAN, cur ? deltaTxt712((+it.block || 0) - (+cur.block || 0), true) : '');
+  const critA = (it.mods && +it.mods.crit) || 0, critB = (cur && cur.mods && +cur.mods.crit) || 0;
+  push('CRIT ' + (critA ? '+' + critA + '%' : '0'), SAT_TAN, cur ? deltaTxt712(critA - critB, true) : '');
+  const rq = reqOf(it);
+  push('REQ LV ' + rq, player && player.lvl < rq ? SAT_BAD : SAT_TAN, '');
+  if (hasDur(it) && it.maxDur) push('DUR ' + it.dur + '/' + it.maxDur, durFrac(it) < DUR_RED ? SAT_BAD : SAT_TAN, '');
+  const A = it.mods || {}, B = (cur && cur.mods) || {};
+  Object.keys(A).concat(Object.keys(B)).forEach(k => {
+    if (k === 'crit') return;
+    if (lines.some(q => q._k === k)) return;
+    const na = +A[k] || 0, nb = +B[k] || 0;
+    if (!na && !nb) return;
+    const af = AFFIX.find(q => q.k === k);
+    const label = af ? af.txt(na) : (na + ' ' + k);
+    push(label, '#c8d8ff', cur ? deltaTxt712(na - nb, /%/.test(label)) : '', { _k: k });
+  });
+  const pa = new Map(), pb = new Map();
+  for (const q of it.powers || []) if (q && POWERS[q.t]) pa.set(powerKey075(q), q);
+  for (const q of (cur && cur.powers) || []) if (q && POWERS[q.t]) pb.set(powerKey075(q), q);
+  new Set([...pa.keys(), ...pb.keys()]).forEach(k => {
+    const qa = pa.get(k), qb = pb.get(k), line = powerLine(qa || qb);
+    if (!line) return;
+    push(line, '#e0c0ff', cur ? deltaTxt712(powerNum075(qa) - powerNum075(qb), /%/.test(line)) : '');
+  });
+  if (it.lore) push("'" + it.lore + "'", SAT_LORE, '', { lore: true });
+  return { title: it.name || 'ITEM', rar: SAT_KEY[it.rarity | 0] || 'common', lines: lines };
+}
+function flattenCard712(card, maxW) {
+  const out = [];
+  let y = 0;
+  (card.lines || []).forEach(ln => {
+    if (ln.lore) {
+      wrapPx712(ln.text, maxW).forEach(t => { out.push({ text: t, col: ln.col, delta: '', y: y }); y += LINE_HEIGHT; });
+      return;
+    }
+    const text = ln.text || '', delta = ln.delta || '';
+    if (delta && pxWidth712(text + delta) > maxW) {
+      out.push({ text: text, col: ln.col, delta: '', y: y }); y += LINE_HEIGHT;
+      wrapPx712(delta.trim(), maxW).forEach(t => { out.push({ text: t, col: DELTA_RED, delta: '', y: y, red: true }); y += LINE_HEIGHT; });
+    } else {
+      out.push({ text: text, col: ln.col, delta: delta, y: y }); y += LINE_HEIGHT;
+    }
+  });
+  return out;
+}
+function drawCardLines712(ctx, rows, x, maxX) {
+  rows.forEach(r => {
+    if (!r.text && !r.delta) return;
+    pxText(ctx, r.text, x, r.y, r.red ? DELTA_RED : r.col, true, maxX);
+    if (r.delta) pxText(ctx, r.delta, x + String(r.text || '').length * 4, r.y, DELTA_RED, true, maxX + 12);
+  });
+}
+function cardKey712() {
+  if (dropAllAsk) return 'drop';
+  if (repairMode) return 'repair';
+  const it = selectedItem();
+  return it ? (it.name + ':' + (it.dur || 0) + ':' + (sel && sel.where)) : 'none';
+}
+
+fillInvStats = function () {
+  const box = $('invStats'), cv = $('invStatsCv'), p = player;
+  if (!box || !cv || !p) return;
+  const w = Math.max(96, satM.statW | 0), h = 108;
+  cv.width = w; cv.height = h; cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
+  const stale = $('invStatsScroll'); if (stale) stale.remove();
+  let card, title, rar;
+  if (dropAllAsk) {
+    title = 'DROP ALL ITEMS?'; rar = 'unique';
+    const n = p.inv.filter(Boolean).length;
+    card = { lines: [{ text: 'BACKPACK', col: SAT_GOLD, delta: '' }, { text: 'DROP ' + n + ' ITEM' + (n === 1 ? '' : 'S'), col: SAT_TAN, delta: '' }, { text: 'EQUIPPED GEAR STAYS ON.', col: SAT_TAN, delta: '' }] };
+  } else if (repairMode) {
+    title = 'REPAIR POTION'; rar = 'rare';
+    card = { lines: [{ text: (p.rpPot || 0) + ' LEFT', col: SAT_TAN, delta: '' }, { text: 'TAP A WORN PIECE', col: SAT_TAN, delta: '' }] };
+  } else {
+    card = itemCard712(selectedItem());
+    title = card.title; rar = card.rar;
+  }
+  box.dataset.rar = rar;
+  const headCol = rar === 'unique' ? SAT_GOLD : rar === 'rare' ? '#f0f060' : rar === 'magic' ? '#7aa0ff' : '#f4ecd4';
+  pxCenter(ctx, title, 4, headCol, w);
+  const view = { x: 6, y: 18, w: w - 12, h: h - 22 };
+  const rows = flattenCard712(card, view.w - 4);
+  const contentH = rows.length ? rows[rows.length - 1].y + LINE_HEIGHT : 0;
+  const sc = scrollBox('invDetail');
+  if (sc.key !== cardKey712()) { sc.key = cardKey712(); sc.scrollY = 0; }
+  sc.maxScrollY = Math.max(0, contentH - view.h);
+  clampScroll712(sc);
+  drawScrollContainer(ctx, { x: view.x, y: view.y, w: view.w, h: view.h, scrollY: sc.scrollY, maxScrollY: sc.maxScrollY, fadeSize: 10, bg: PANEL_BG_712 }, function () {
+    drawCardLines712(ctx, rows.map(r => ({ text: r.text, col: r.col, delta: r.delta, red: r.red, y: r.y + view.y })), view.x, view.x + view.w - 2);
+  });
+  bindScrollEl(box, 'invDetail', function () { return satM.scale || 1; }, fillInvStats);
+  const count = $('invCount');
+  if (count) {
+    count.width = 210; count.height = 8;
+    const cx = count.getContext('2d'); cx.imageSmoothingEnabled = false; cx.clearRect(0, 0, 210, 8);
+    const n = p.inv.filter(Boolean).length, cap = invSize(), more = p.inv.length > satM.cols * 3;
+    pxText(cx, n + '/' + cap + (more ? '  SCROLL FOR MORE' : ''), 2, 1, SAT_DIM, true, 208);
+  }
+};
+
+function paintHold712(card, cx, cy) {
+  const el = ensureHold711();
+  const scale = Math.max(1, (satM && satM.scale) || 2);
+  const maxW = 176;
+  const rows = flattenCard712(card, maxW - 8);
+  const contentH = rows.length ? rows[rows.length - 1].y + LINE_HEIGHT : LINE_HEIGHT;
+  const maxH = Math.max(LINE_HEIGHT * 5, Math.floor((window.innerHeight * 0.72) / scale) - 28);
+  const viewH = Math.max(LINE_HEIGHT * 3, Math.min(contentH, maxH));
+  const sc = scrollBox('hold');
+  if (sc.key !== (card.title || '')) { sc.key = card.title || ''; sc.scrollY = 0; }
+  sc.maxScrollY = Math.max(0, contentH - viewH);
+  clampScroll712(sc);
+  el.dataset.rar = card.rar || 'common';
+  el.classList.remove('hidden');
+  const head = el.querySelector('.ist-head'); head.innerHTML = '';
+  const nc = pxCanvas(maxW, 14);
+  pxCenter(nc.x, card.title || 'ITEM', 4, '#f4ecd4', maxW);
+  nc.c.style.width = (maxW * scale) + 'px'; nc.c.style.height = (14 * scale) + 'px';
+  head.appendChild(nc.c);
+  const body = $('holdBody'); body.innerHTML = ''; body.style.overflow = 'hidden'; body.style.maxHeight = 'none';
+  const cv = pxCanvas(maxW, viewH);
+  cv.c.style.width = (maxW * scale) + 'px'; cv.c.style.height = (viewH * scale) + 'px';
+  drawScrollContainer(cv.x, { x: 0, y: 0, w: maxW, h: viewH, scrollY: sc.scrollY, maxScrollY: sc.maxScrollY, fadeSize: 10, bg: '#221A15' }, function () {
+    drawCardLines712(cv.x, rows, 4, maxW - 4);
+  });
+  body.appendChild(cv.c);
+  bindScrollEl(el, 'hold', function () { return scale; }, function () { paintHold712(card, cx, cy); });
+  const wcss = maxW * scale + 20, hcss = (viewH + 22) * scale;
+  let left = (cx || 24) + 12, top = (cy || 24) - 8;
+  if (left + wcss > window.innerWidth - 8) left = Math.max(8, (cx || 24) - wcss - 8);
+  if (top + hcss > window.innerHeight - 8) top = Math.max(8, window.innerHeight - hcss - 8);
+  el.style.left = left + 'px'; el.style.top = top + 'px';
+  holdOn = true;
+}
+showHold711 = function (title, lines, rar, x, y) {
+  const card = { title: title || 'ITEM', rar: rar || 'common', lines: (lines || []).map(t => ({ text: String(t), col: String(t).charAt(0) === "'" ? SAT_LORE : SAT_TAN, delta: '', lore: String(t).length > 28 })) };
+  paintHold712(card, x, y);
+};
+showItemHold711 = function (it, x, y) {
+  if (!it) return;
+  hideTip();
+  paintHold712(itemCard712(it), x, y);
+};
+
+function charPairs712(p) {
+  const st = p.st || {}, toll = p.tolls || { foe: 0, champ: 0, boss: 0 };
+  const favS = typeof favLabel711 === 'function' ? favLabel711(p.favCast) : 'NONE';
+  const favW = typeof favLabel711 === 'function' ? favLabel711(p.favWep) : 'NONE';
+  const rows = [
+    ['LV ' + p.lvl, 'DEPTH ' + depth],
+    ['LIFE ' + Math.ceil(p.hp) + '/' + (st.maxHp || 0), 'MANA ' + Math.floor(p.mp) + '/' + (st.maxMp || 0)],
+    ['DMG ' + (st.min || 0) + '-' + (st.max || 0), 'DEF ' + (st.def || 0)],
+    ['BLK ' + (st.block || 0) + '%', 'CRIT ' + (st.crit || 0) + '%'],
+    ['ATK ' + Math.round((st.aspd || 1) * 100) + '%', 'LEECH ' + (st.ls || 0) + '%'],
+    ['FOOD ' + Math.round(p.hunger), 'WATER ' + Math.round(p.thirst)],
+    ['REST ' + Math.round(p.fatigue), 'GOLD ' + p.gold],
+    ['KEYS ' + (p.keys || 0), 'GATE ' + (p.gateKeys || 0)],
+    ['NECRO ' + (p.npPot || 0), 'REPAIR ' + (p.rpPot || 0)],
+    ['RATIONS ' + (p.rations || 0), 'TORCH ' + (p.torches || 0)],
+    ['FRAG ' + (p.mapFrags || 0) + '/' + FRAG_NEED, 'FOES ' + (toll.foe || 0)],
+    ['CHAMPS ' + (toll.champ || 0), 'BOSSES ' + (toll.boss || 0)],
+    ['FAV SPELL', favS],
+    ['FAV WEAPON', favW]
+  ];
+  if (p.xpBuffT > 0 && typeof buffText === 'function') rows.push([buffText(), '']);
+  return rows;
+}
+paintHero711 = function (slotW, slotH, scale) {
+  const box = $('stats'); if (!box || !player) return null;
+  let cv = $('charHero');
+  if (!cv) { cv = document.createElement('canvas'); cv.id = 'charHero'; box.appendChild(cv); }
+  const sc = Math.max(2, scale || 2);
+  lastHeroScale712 = sc;
+  const dw = 12 * sc, dh = 12 * sc;
+  cv.width = Math.max(dw + 4, slotW || dw + 4);
+  cv.height = Math.max(dh + 4, slotH || dh + 4);
+  cv.style.width = cv.width + 'px'; cv.style.height = cv.height + 'px';
+  const x = cv.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, cv.width, cv.height);
+  const WS = wardSprites(player);
+  const step = Math.floor(time * 3) % 2;
+  const fr = (step ? WS.b : WS.a) || WS.a;
+  const img = fr && (fr.r || fr.l);
+  const bob = Math.round(Math.sin(time * 2.2));
+  if (img) x.drawImage(img, Math.round((cv.width - dw) / 2), Math.round((cv.height - dh) / 2) + bob, dw, dh);
+  else { x.fillStyle = '#e8dcc0'; x.fillRect((cv.width - dw) / 2, (cv.height - dh) / 2, dw, dh); }
+  return cv;
+};
+paintChar = function () {
+  const p = player, box = $('stats'), strip = $('charStrip');
+  if (!p || !p.st || !box) return;
+  const w = Math.max(40, box.clientWidth || 200), h = Math.max(40, box.clientHeight || 66);
+  box.textContent = '';
+  const sc = Math.max(2, Math.min(4, Math.floor((h - 8) / 12)));
+  const slot = 12 * sc + 6;
+  paintHero711(slot, h, sc);
+  const view = pxCanvas(w, h);
+  view.c.style.cssText = 'position:absolute;inset:0;width:' + w + 'px;height:' + h + 'px;pointer-events:none';
+  const ctx = view.x;
+  const colW = Math.max(16, Math.floor((w - slot - 8) / 2));
+  const col1 = slot, col2 = slot + colW + 4;
+  const pairs = charPairs712(p);
+  const s = scrollBox('char');
+  s.maxScrollY = Math.max(0, pairs.length * LINE_HEIGHT - (h - 4));
+  clampScroll712(s);
+  drawScrollContainer(ctx, { x: slot - 2, y: 1, w: w - slot, h: h - 2, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 8, bg: PANEL_BG_712 }, function () {
+    pairs.forEach((pair, i) => {
+      const y = 2 + i * LINE_HEIGHT;
+      if (pair[0]) pxText(ctx, pxFit(pair[0], colW - 2), col1, y, SAT_TAN, true, col1 + colW - 1);
+      if (pair[1]) pxText(ctx, pxFit(pair[1], colW - 2), col2, y, SAT_TAN, true, col2 + colW - 1);
+    });
+  });
+  box.appendChild(view.c);
+  bindScrollEl(box, 'char', function () { return satM.scale || 1; }, paintChar);
+  if (strip) {
+    const sw = Math.max(40, strip.clientWidth || (satM.cw || 394)), sh = Math.max(10, strip.clientHeight || 14);
+    strip.textContent = '';
+    const scv = pxCanvas(sw, sh); scv.c.style.width = sw + 'px'; scv.c.style.height = sh + 'px';
+    pxText(scv.x, 'DMG ' + p.st.min + '-' + p.st.max + '   DEF ' + p.st.def + '   CRIT ' + p.st.crit + '%   GOLD ' + p.gold, 6, Math.max(2, ((sh - 5) / 2) | 0), SAT_GOLD, true, sw - 4);
+    strip.appendChild(scv.c);
+  }
+  if (!heroRAF && state === 'inv' && satchelTab === 'character') heroRAF = requestAnimationFrame(function loop() {
+    if (state === 'inv' && satchelTab === 'character') { paintHero711(slot, h, sc); heroRAF = requestAnimationFrame(loop); }
+    else heroRAF = 0;
+  });
+};
+
+const TOME_ART_712 = { fireball: 'skill_fireball_16', spin: 'skill_whirlwind_16', frostNova: 'skill_frost_nova_16', spectralClone: 'skill_spectral_clone_16', etherealShield: 'skill_ethereal_shield_16', etherealShift: 'skill_ethereal_shift_16', hellmouth: 'skill_hellmouth_16' };
+fillTomePane = function () {
+  const box = $('tomePane'); if (!box || !player) return;
+  const t = ensureTome(player);
+  if (!t.isAcquired) { box.innerHTML = '<div class="tome-empty"><b>THE LICH TOME<br>YOU HAVE NOT FOUND IT.</b></div>'; return; }
+  const any = TOME_IDS.some(id => t.spells[id].isUnlocked);
+  if (!any) { box.innerHTML = '<div class="tome-empty"><b>THE LICH TOME<br>ITS PAGES HAVE BEEN TORN OUT.</b></div>'; return; }
+  const TW = { spells: 35, recipes: 39, enchantments: 59 };
+  box.innerHTML = '';
+  const sub = document.createElement('div'); sub.className = 'tome-sub';
+  ['spells', 'recipes', 'enchantments'].forEach(id => {
+    const on = tomeSub === id, hgt = on ? 16 : 11;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tome-tab' + (on ? ' on' : '');
+    b.style.width = TW[id] + 'px';
+    b.style.backgroundImage = 'url(assets/ui/v07101/satchel/tome_tabs/tome_tab_' + id + '_' + (on ? 'selected' : 'idle') + '_' + TW[id] + 'x' + hgt + '.png)';
+    b.textContent = id.toUpperCase();
+    b.addEventListener('click', () => { tomeSub = id; fillTomePane(); });
+    sub.appendChild(b);
+  });
+  box.appendChild(sub);
+  const body = document.createElement('div'); body.id = 'tomeBody';
+  if (tomeSub !== 'spells') {
+    body.className = tomeSub;
+    body.appendChild(paintLines711([tomeSub === 'recipes' ? 'NO RECIPES YET.' : 'NO ENCHANTMENTS YET.'], 180));
+    box.appendChild(body);
+    return;
+  }
+  if (!tomePageId || !t.spells[tomePageId] || !t.spells[tomePageId].isUnlocked) tomePageId = TOME_IDS.find(id => t.spells[id].isUnlocked) || 'fireball';
+  const bar = spellBar();
+  const bw = Math.max(120, box.clientWidth || (satM.cw || 320));
+  const bh = 74;
+  const tile = 24, gap = 6, nameW = 56, cellW = tile + 4 + nameW, cellH = tile;
+  const cols = Math.max(2, Math.min(4, Math.floor((bw - 8) / (cellW + gap)) || 2));
+  const learned = TOME_IDS.filter(id => t.spells[id].isUnlocked);
+  const contentH = Math.ceil(learned.length / cols) * (cellH + gap);
+  const s = scrollBox('tome');
+  s.maxScrollY = Math.max(0, contentH - bh);
+  clampScroll712(s);
+  const cv = document.createElement('canvas'); cv.id = 'tomeGridCv';
+  cv.width = bw; cv.height = bh; cv.style.width = bw + 'px'; cv.style.height = bh + 'px';
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, bw, bh);
+  drawScrollContainer(ctx, { x: 0, y: 0, w: bw, h: bh, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 8, bg: PANEL_BG_712 }, function () {
+    learned.forEach((id, n) => {
+      const col = n % cols, row = (n / cols) | 0;
+      const spellX = 6 + col * (cellW + gap);
+      const spellY = 4 + row * (cellH + gap);
+      ctx.fillStyle = id === tomePageId ? '#e8c840' : '#6a5344';
+      ctx.fillRect(spellX - 1, spellY - 1, tile + 2, tile + 2);
+      ctx.fillStyle = '#140e0c';
+      ctx.fillRect(spellX, spellY, tile, tile);
+      const art = ART[TOME_ART_712[id]];
+      if (art) ctx.drawImage(art, spellX + 4, spellY + 4, 16, 16);
+      pxText(ctx, pxFit(TOME_NAMES[TOME_IDS.indexOf(id)] || id, nameW), spellX + tile + 4, spellY + 9, id === tomePageId ? SAT_GOLD : SAT_TAN, true, spellX + cellW);
+    });
+  });
+  body.appendChild(cv);
+  const asg = document.createElement('div');
+  [0, 1, 2, 3].forEach(slot => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tome-asg';
+    b.textContent = (slot + 1) + (bar[slot] === tomePageId ? '*' : '');
+    b.addEventListener('click', () => { assignSpell(tomePageId, slot); fillTomePane(); syncSpellHud(); syncDesk(); });
+    asg.appendChild(b);
+  });
+  body.appendChild(asg);
+  box.appendChild(body);
+  let timer = 0, suppress = false, hitId = '';
+  const hitOf = e => {
+    const rect = cv.getBoundingClientRect();
+    const k = (satM && satM.scale) || 1;
+    const lx = (e.clientX - rect.left) / k, ly = (e.clientY - rect.top) / k + scrollBox('tome').scrollY;
+    for (let n = 0; n < learned.length; n++) {
+      const col = n % cols, row = (n / cols) | 0;
+      const spellX = 6 + col * (cellW + gap), spellY = 4 + row * (cellH + gap);
+      if (lx >= spellX && lx <= spellX + cellW && ly >= spellY && ly <= spellY + cellH) return learned[n];
+    }
+    return '';
+  };
+  cv.addEventListener('pointerdown', e => {
+    hitId = hitOf(e);
+    if (!hitId) return;
+    const x = e.clientX, y = e.clientY, id = hitId;
+    timer = setTimeout(() => { suppress = true; showHold711(TOME_NAMES[TOME_IDS.indexOf(id)], spellLines711(id), 'magic', x, y); }, 380);
+  });
+  cv.addEventListener('pointerup', () => {
+    clearTimeout(timer);
+    if (suppress) { suppress = false; return; }
+    if (!hitId || holdOn) { hideHold711(); return; }
+    tomePageId = hitId; fillTomePane();
+  });
+  cv.addEventListener('pointercancel', () => clearTimeout(timer));
+  bindScrollEl(cv, 'tome', function () { return satM.scale || 1; }, fillTomePane);
+};
+
+fillNotesPane = function () {
+  const box = $('notesPane'), p = player; if (!box || !p) return;
+  const notes = p.notes || [];
+  const w = Math.max(40, box.clientWidth || (satM.cw || 394) - 12);
+  const h = Math.max(40, box.clientHeight || 102);
+  const lines = [];
+  if (!notes.length) ['NO NOTES YET.', 'WORN SCRAPS COPY THEMSELVES IN', 'WHEN YOU WALK OVER THEM.'].forEach(t => lines.push(t));
+  else notes.forEach(n => { lines.push(String(n.title || 'NOTE').toUpperCase()); wrapPx712(n.body || '', w - 16).forEach(t => lines.push(t)); lines.push(''); });
+  const contentH = 8 + lines.length * LINE_HEIGHT;
+  const s = scrollBox('notes');
+  s.maxScrollY = Math.max(0, contentH - h);
+  clampScroll712(s);
+  box.textContent = '';
+  const c = pxCanvas(w, h); c.c.className = 'notes712'; c.c.style.width = w + 'px'; c.c.style.height = h + 'px';
+  drawScrollContainer(c.x, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 12, bg: '#e4d2b0' }, function () {
+    lines.forEach((t, i) => { if (t) pxText(c.x, t, 8, 8 + i * LINE_HEIGHT, SAT_INK, false, w - 8); });
+  });
+  box.appendChild(c.c);
+  bindScrollEl(box, 'notes', function () { return satM.scale || 1; }, fillNotesPane);
+};
+
+function shopBuyRows712() {
+  const p = player;
+  return [
+    ['hp', 'LIFE POTION  x' + p.hpPot, shopPrice('hp')],
+    ['mp', 'MANA POTION  x' + p.mpPot, shopPrice('mp')],
+    ['rp', 'REPAIR POTION  x' + (p.rpPot || 0), shopPrice('rp')],
+    ['ration', 'RATION  x' + (p.rations || 0) + '  (' + (shop.stock.ration) + ' LEFT)', shopPrice('ration')],
+    ['gkey', 'GATE KEY  x' + (p.gateKeys || 0) + '  (' + (shop.stock.gkey) + ' LEFT)', shopPrice('gkey')]
+  ];
+}
+function paintShopBuy712() {
+  const cv = $('shBuyCv'); if (!cv || !player || !shop) return;
+  const rows = shopBuyRows712();
+  const w = Math.max(160, cv.parentElement.clientWidth || 220), h = 108;
+  cv.width = w; cv.height = h; cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const contentH = rows.length * LINE_HEIGHT + 4;
+  const s = scrollBox('shopBuy');
+  s.maxScrollY = Math.max(0, contentH - h);
+  clampScroll712(s);
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
+  drawScrollContainer(ctx, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 12, bg: '#221A15' }, function () {
+    rows.forEach((r, i) => {
+      const y = 4 + i * LINE_HEIGHT;
+      const afford = player.gold >= r[2];
+      pxText(ctx, r[1], 4, y, afford ? SAT_TAN : '#6a6058', true, w - 48);
+      pxText(ctx, r[2] + 'G', w - 40, y, afford ? SAT_GOLD : '#6a6058', true, w - 4);
+    });
+  });
+  bindScrollEl(cv, 'shopBuy', function () { return uiScale712(cv); }, paintShopBuy712);
+  if (!cv.dataset.hit712) {
+    cv.dataset.hit712 = '1';
+    cv.addEventListener('pointerup', e => {
+      if (scrollBox('shopBuy').moved) return;
+      const rect = cv.getBoundingClientRect();
+      const k = uiScale712(cv);
+      const ly = (e.clientY - rect.top) / k + scrollBox('shopBuy').scrollY;
+      const i = Math.floor((ly - 4) / LINE_HEIGHT);
+      const row = shopBuyRows712()[i];
+      if (row) buy(row[0]);
+    });
+  }
+}
+function paintShopSealed712() {
+  const cv = $('shUniCv'); if (!cv || !player) return;
+  if (shop && !Array.isArray(shop.offers)) shop.offers = rollShopOffers();
+  const offers = (shop && shop.offers) || [];
+  const host = cv.parentElement;
+  const w = Math.max(220, (host && host.clientWidth) || 420), h = 120;
+  cv.width = w; cv.height = h; cv.style.width = '100%'; cv.style.height = h + 'px';
+  const contentH = Math.max(LINE_HEIGHT, offers.length * (LINE_HEIGHT + 4) + 8);
+  const s = scrollBox('shopSealed');
+  s.maxScrollY = Math.max(0, contentH - h);
+  clampScroll712(s);
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
+  const blockW = Math.min(280, w - 16), x0 = Math.max(8, Math.round((w - blockW) / 2));
+  drawScrollContainer(ctx, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 12, bg: '#221A15' }, function () {
+    offers.forEach((o, i) => {
+      const y = 8 + i * (LINE_HEIGHT + 4);
+      const label = (o.sold ? 'SOLD  ' : '') + o.label;
+      pxText(ctx, pxFit(label, blockW - 52), x0, y, o.sold ? '#6a6058' : SAT_GOLD, true, x0 + blockW - 48);
+      if (!o.sold) pxText(ctx, o.price + 'G', x0 + blockW - 44, y, player.gold >= o.price ? SAT_TAN : '#6a6058', true, x0 + blockW);
+    });
+    if (!offers.length) pxCenter(ctx, 'NO SEALED STOCK', 24, SAT_DIM, w);
+  });
+  bindScrollEl(cv, 'shopSealed', function () { return uiScale712(cv); }, paintShopSealed712);
+  if (!cv.dataset.hit712) {
+    cv.dataset.hit712 = '1';
+    cv.addEventListener('pointerup', e => {
+      if (scrollBox('shopSealed').moved) return;
+      const rect = cv.getBoundingClientRect();
+      const k = uiScale712(cv);
+      const ly = (e.clientY - rect.top) / k + scrollBox('shopSealed').scrollY;
+      const i = Math.floor((ly - 8) / (LINE_HEIGHT + 4));
+      const o = shop && shop.offers && shop.offers[i];
+      if (o && !o.sold) buyUnique(i);
+    });
+  }
+}
+function paintShopRepair712() {
+  const cv = $('shRepairCv'); if (!cv || !player) return;
+  const w = Math.max(220, (cv.parentElement && cv.parentElement.clientWidth) || 420), h = 80;
+  cv.width = w; cv.height = h; cv.style.width = '100%'; cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, w, h);
+  const cost = repairAllCost();
+  const lines = cost ? ['REPAIR EVERY WORN AND PACKED PIECE', 'COST ' + cost + 'G', player.gold >= cost ? 'THE FOOTER BUTTON MENDS THEM ALL' : 'NOT ENOUGH GOLD'] : ['NOTHING NEEDS MENDING'];
+  lines.forEach((t, i) => pxCenter(ctx, t, 10 + i * LINE_HEIGHT, i === 1 ? SAT_GOLD : SAT_TAN, w));
+}
+function uiScale712(el) {
+  const shopEl = $('shop');
+  if (shopEl && el && shopEl.contains(el)) {
+    const t = getComputedStyle(shopEl).transform;
+    if (t && t.indexOf('matrix(') === 0) { const a = parseFloat(t.slice(7)); if (a > 0) return a; }
+  }
+  return (satM && satM.scale) || 1;
+}
+function syncShopView712() {
+  const v = shopView712;
+  const stock = $('shStock'), sealed = $('shSealedPane'), repair = $('shRepairPane');
+  if (stock) stock.classList.toggle('hidden', v !== 'stock');
+  if (sealed) sealed.classList.toggle('hidden', v !== 'sealed');
+  if (repair) repair.classList.toggle('hidden', v !== 'repair');
+  document.querySelectorAll('#shTabs [data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+}
+function applySellScroll712() {
+  const grid = $('shGrid'), clip = $('shSellClip'); if (!grid || !clip) return;
+  const rows = Math.ceil((player ? player.inv.length : 0) / 7);
+  const contentH = Math.max(24, rows * 30);
+  const s = scrollBox('shopSell');
+  s.maxScrollY = Math.max(0, contentH - clip.clientHeight);
+  clampScroll712(s);
+  grid.style.transform = 'translateY(' + (-s.scrollY) + 'px)';
+  let fade = $('shSellFade');
+  if (!fade) {
+    fade = document.createElement('canvas'); fade.id = 'shSellFade';
+    fade.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:4';
+    clip.appendChild(fade);
+  }
+  const w = Math.max(20, clip.clientWidth | 0), h = Math.max(20, clip.clientHeight | 0);
+  fade.width = w; fade.height = h;
+  const ctx = fade.getContext('2d'); ctx.clearRect(0, 0, w, h);
+  drawScrollContainer(ctx, { x: 0, y: 0, w: w, h: h, scrollY: s.scrollY, maxScrollY: s.maxScrollY, fadeSize: 14, bg: '#221A15' }, function () {});
+}
+renderShop = function () {
+  const p = player; if (!p) return;
+  $('shGold').textContent = p.gold + 'g';
+  $('shNote').textContent = shopNote || '';
+  syncShopView712();
+  paintShopBuy712();
+  paintShopSealed712();
+  paintShopRepair712();
+  const G = $('shGrid'); G.innerHTML = ''; G.style.transform = '';
+  if (!(shopSel instanceof Set)) shopSel = new Set();
+  p.inv.forEach((it, i) => {
+    const el = slotEl(it, '', shopSel.has(i));
+    el.addEventListener('pointerdown', e => { e.preventDefault(); if (!it) return; sellAllAsk = false; if (shopSel.has(i)) shopSel.delete(i); else shopSel.add(i); renderShop(); });
+    G.appendChild(el);
+  });
+  applySellScroll712();
+  bindScrollEl($('shSellClip'), 'shopSell', function () { return uiScale712($('shSellClip')); }, applySellScroll712);
+  let selG = 0, selN = 0, selName = '';
+  shopSel.forEach(i => { const it = p.inv[i]; if (!it) return; selG += sellPrice(it); selN++; selName = it.name; });
+  const sb = $('shSell');
+  sb.classList.toggle('dis', !selN);
+  sb.textContent = selN ? ('SELL ' + selN) : 'SELL';
+  const all = sellAllPreview(), ab = $('shSellAll');
+  if (ab) { ab.classList.toggle('dis', !all.n); ab.textContent = sellAllAsk ? 'YES, SELL ALL' : 'SELL ALL'; }
+  const rc = repairAllCost(), rb = $('shRepair');
+  rb.textContent = rc ? ('REPAIR ALL ' + rc + 'G') : 'REPAIR ALL';
+  rb.classList.toggle('dis', !rc || p.gold < rc);
+  const note = $('shSelTxt');
+  if (note) {
+    note.textContent = sellAllAsk ? shopNote : selN > 1 ? selN + ' ITEMS  ' + selG + 'G' : selN === 1 ? selName + '  ' + selG + 'G' : 'TAP PACK ITEMS TO SELL';
+    note.style.color = selN ? '#e8dcc0' : '#888';
+  }
+};
+document.querySelectorAll('#shTabs [data-view]').forEach(b => b.addEventListener('click', () => { shopView712 = b.dataset.view; if (state === 'shop') renderShop(); }));
+
+// B1 — hide numeric damage floats on the player. Healing and other words stay.
+const _addText712 = addText;
+addText = function (x, y, t, col, big) {
+  if (hidePlayerDmg712) {
+    const s = String(t), c = String(col || '').toLowerCase();
+    if (PLAYER_DMG_COL_712[c] && /^-?\d+!?$/.test(s)) return;
+  }
+  return _addText712(x, y, t, col, big);
+};
+function noPlayerDmg712(fn) {
+  return function () {
+    const prev = hidePlayerDmg712;
+    hidePlayerDmg712 = true;
+    try { return fn.apply(this, arguments); }
+    finally { hidePlayerDmg712 = prev; }
+  };
+}
+hurtPlayer = noPlayerDmg712(hurtPlayer);
+envHurt = noPlayerDmg712(envHurt);
+endFall = noPlayerDmg712(endFall);
+spikeDotBody = noPlayerDmg712(spikeDotBody);
+tickSpikeWalk = noPlayerDmg712(tickSpikeWalk);
+useDoor = noPlayerDmg712(useDoor);
+
+// B9 — attack / click-walk cannot spend a key. USE still calls openChest as interact.
+const _openChest712 = openChest;
+openChest = function (c) {
+  if (c && !c.open && !c.free && chestHow712 !== 'interact') return false;
+  return _openChest712(c);
+};
+const _doAttack712 = doAttack;
+doAttack = function (fixed) {
+  chestHow712 = 'attack';
+  try { return _doAttack712(fixed); }
+  finally { chestHow712 = 'interact'; }
+};
+function openChestAttack712(c) {
+  chestHow712 = 'attack';
+  try { return openChest(c); }
+  finally { chestHow712 = 'interact'; }
+}
+
+// B10 — never string-pull or slide across a bottomless pit, and never walk opposite the waypoint.
+function pitBlocks712(a, b) {
+  if (!a || !b || typeof pitHitAt !== 'function') return false;
+  const rad = player && player.r ? Math.max(1, player.r - 1) : 4;
+  const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy);
+  const n = Math.max(1, Math.ceil(dist / 2));
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    if (pitHitAt(a.x + dx * t, a.y + dy * t, rad)) return true;
+  }
+  return false;
+}
+stepAlong = function (w, dt, sp) {
+  const p = player, path = w.path;
+  if (!path || !path.length) return true;
+  while (path.length > 1 && !pitBlocks712(p, path[1]) && walkWide074(p, path[1], (p.r || 5) + 1) && Math.hypot(path[1].x - p.x, path[1].y - p.y) < 90) path.shift();
+  if (pitBlocks712(p, path[0])) {
+    const again = planWalk(w.x, w.y, w.kind === 'ground');
+    if (again && again.length && !pitBlocks712(p, again[0])) { w.path = again; return false; }
+    w.path = [];
+    return true;
+  }
+  const tgt = path[0], dx = tgt.x - p.x, dy = tgt.y - p.y, d = Math.hypot(dx, dy);
+  if (d < 3) { path.shift(); return !path.length; }
+  const st = Math.min(d, sp * dt), ux = dx / d, uy = dy / d, x0 = p.x, y0 = p.y;
+  let blocked = false;
+  for (let i = 0; i < 4; i++) {
+    const nx = p.x + ux * st / 4, ny = p.y + uy * st / 4;
+    if (pitBlocks712(p, { x: nx, y: ny })) { blocked = true; break; }
+    const bx = p.x, by = p.y;
+    moveEnt(p, ux * st / 4, uy * st / 4);
+    const mx = p.x - bx, my = p.y - by;
+    if (mx * ux + my * uy < -0.05) { p.x = bx; p.y = by; blocked = true; break; }
+  }
+  faceTo(tgt.x, tgt.y);
+  p.walkT += dt;
+  if (Math.hypot(p.x - x0, p.y - y0) < st * 0.25 || blocked) {
+    w.stuck += dt;
+    if (w.stuck > 0.35) {
+      w.stuck = 0; w.fails = (w.fails || 0) + 1;
+      const again = planWalk(w.x, w.y, w.kind === 'ground');
+      if (!again || !again.length || pitBlocks712(p, again[0])) { w.path = []; return true; }
+      w.path = again;
+      if (w.fails > 4) return true;
+    }
+  } else w.stuck = 0;
+  return false;
+};
+startWalk = function (kind, ref, x, y) {
+  const p = player;
+  p.pickT = null;
+  let path = planWalk(x, y, kind === 'ground');
+  if (!path) path = (p && pitBlocks712(p, { x: x, y: y })) ? [] : [{ x: x, y: y }];
+  p.walk = { kind: kind, ref: ref, x: x, y: y, path: path, rep: 0.2, stuck: 0, done: false };
+};
+
+// F1 — most recent pickup inside 5s picks the satchel tab. Older pickups do not.
+function notePick712(tab, extra) {
+  const now = (extra && extra.at) || (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  pickLog712.push({ t: now, tab: tab, extra: extra || null });
+  while (pickLog712.length && now - pickLog712[0].t > 8000) pickLog712.shift();
+}
+function recentPick712(now) {
+  now = now == null ? performance.now() : now;
+  const live = pickLog712.filter(p => now - p.t <= 5000);
+  return live.length ? live[live.length - 1] : null;
+}
+const _pickupItem712 = pickupItem;
+pickupItem = function (g) {
+  const it = g && g.item;
+  const ok = _pickupItem712(g);
+  if (ok && it && player) notePick712('inventory', { idx: player.inv.indexOf(it) });
+  return ok;
+};
+const _pickupExtra712 = pickupExtra;
+pickupExtra = function (g) {
+  const ok = _pickupExtra712(g);
+  if (ok && g) {
+    if (g.tome || g.page) notePick712('tome', { page: g.pageType || '' });
+    else if (g.note) notePick712('notes');
+    else if (g.ration) notePick712('consumables', { pick: 'food' });
+    else if (g.frag) notePick712('map');
+    else if (g.gkey) notePick712('consumables', { pick: 'gate' });
+    else if (g.bag) notePick712('inventory');
+  }
+  return ok;
+};
+const _update712 = update;
+update = function (dt) {
+  const p = player;
+  const before = p ? { hp: p.hpPot, mp: p.mpPot, rp: p.rpPot || 0, np: p.npPot || 0 } : null;
+  const r = _update712(dt);
+  if (p && before) {
+    if ((p.npPot || 0) > before.np) notePick712('consumables', { pick: 'np' });
+    else if ((p.rpPot || 0) > before.rp) notePick712('consumables', { pick: 'rp' });
+    else if (p.hpPot > before.hp) notePick712('consumables', { pick: 'hp' });
+    else if (p.mpPot > before.mp) notePick712('consumables', { pick: 'mp' });
+  }
+  return r;
+};
+const _openInv712 = openInv;
+openInv = function () {
+  const recent = recentPick712();
+  const r = _openInv712();
+  if (recent) {
+    if (recent.tab === 'inventory' && recent.extra && recent.extra.idx != null && player && player.inv[recent.extra.idx]) sel = { where: 'inv', idx: recent.extra.idx, t: Date.now() };
+    if (recent.tab === 'consumables' && recent.extra && recent.extra.pick) consPick = recent.extra.pick;
+    if (recent.tab === 'tome' && recent.extra && recent.extra.page) tomePageId = recent.extra.page;
+    satchelOpenTab(recent.tab);
+  }
+  return r;
+};
+
+// F2 — unique bows use the same unique table as every other unique. Short Bow no longer has noDrop.
+eligibleUniques = function (L) {
+  return UNIQUES.filter(u => { const b = BASES.find(q => q.name === u.base); return !!(b && b.lvl <= L + 1); });
+};
+
+if (window.game) {
+  window.game.eligibleUniques = eligibleUniques;
+  window.game.hurtPlayer = hurtPlayer;
+  window.game.openChest = openChest;
+  window.game.openInv = openInv;
+  window.game.makeItem = makeItem;
+  window.game.doAttack = doAttack;
+  window.game.groundWalk = groundWalk;
+  window.game.planWalk = planWalk;
+  window.game.renderShop = renderShop;
+  window.game.pickupItem = pickupItem;
+  window.game.drawScrollContainer = drawScrollContainer;
+  window.game.itemCard712 = itemCard712;
+  window.game.flattenCard712 = flattenCard712;
+  window.game.notePick712 = notePick712;
+  window.game.recentPick712 = recentPick712;
+  window.game.openChestAttack = openChestAttack712;
+  window.game.pitBlocks = pitBlocks712;
+  window.game.charPairs = charPairs712;
+  window.game.LINE_HEIGHT = LINE_HEIGHT;
+  Object.defineProperty(window.game, 'texts', { configurable: true, get() { return texts; } });
+  Object.defineProperty(window.game, 'touchMode', { configurable: true, get() { return touchMode; }, set(v) { touchMode = !!v; if (typeof updateTouchUI === 'function') updateTouchUI(); } });
+  Object.defineProperty(window.game, 'shopView', { configurable: true, get() { return shopView712; }, set(v) { shopView712 = v; } });
+  Object.defineProperty(window.game, 'heroScale', { configurable: true, get() { return lastHeroScale712; } });
+  Object.defineProperty(window.game, 'scrolls', { configurable: true, get() { return scrolls712; } });
 }
 
 </script>
