@@ -33,7 +33,7 @@ function run(w) {
   const g = w.game;
   const src = fetchText('../index.html');
   const ver = fetchText('../version.json');
-  check('version', g && g.version === '0.7.10.2' && ver.indexOf('"0.7.10.2"') >= 0, (g && g.version) + ' ' + ver);
+  check('version', g && g.version === '0.7.10.3' && ver.indexOf('"0.7.10.3"') >= 0, (g && g.version) + ' ' + ver);
   check('boot', !!(g && g.newGame));
   check('dev hud stays off github.io', g.lichDevOn('gamedevjake.github.io', '?lichDev=1') === false);
   delete g.settings.glLight;

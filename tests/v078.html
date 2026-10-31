@@ -33,7 +33,7 @@ function run(w) {
   const g = w.game;
   if (g && g.glLookReset) g.glLookReset();
   const src = fetchText('../index.html');
-  check('version 0.7.10.2', g && g.version === '0.7.10.2' && src.indexOf("const VERSION = '0.7.10.2'") >= 0, g && g.version);
+  check('version 0.7.10.3', g && g.version === '0.7.10.3' && src.indexOf("const VERSION = '0.7.10.3'") >= 0, g && g.version);
   check('shader source', src.indexOf('#version 300 es') >= 0 && src.indexOf('uScene') >= 0 && src.indexOf('bayer8') >= 0 && src.indexOf('sampler2DArray') >= 0);
   check('api', !!(g && g.lightPath && g.glStatus && g.packGlLights && g.cycleGlLight && g.glLightMode));
   const notes = fetchText('../notes/0.7.8-webgl-lighting.md');

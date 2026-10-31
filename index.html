@@ -275,30 +275,111 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #tMap{background-image:url(assets/ui/v07101/hud/composed/hud_map_32_idle.png)}
 .btn.hud-off{display:none!important}
 #touch.editing .btn.learned{display:flex!important}
-#inv{background:transparent;align-items:center;justify-content:center;padding:8px;overflow:hidden}
-#satchel{position:relative;display:flex;flex-direction:column;width:min(calc(100% - 16px), 1260px);max-height:calc(100% - 8px);image-rendering:pixelated;border-style:solid;border-width:16px;border-image:url(assets/ui/v07101/satchel/frame/satchel_panel_9slice_24_s8.png) 8 fill / 16px / 0 stretch;background:transparent}
-.sat-tabs{display:flex;gap:2px;align-items:flex-end;min-height:28px;margin:-8px 4px 0}
-.sat-tab{flex:1 1 0;min-width:0;height:22px;border:0;padding:0 4px;color:#c8b8a0;font:bold 10px/22px "Courier New",monospace;background:url(assets/ui/v07101/satchel/tabs/tab_blank_idle_9slice_12x16_s4.png) center/100% 100% no-repeat;image-rendering:pixelated;cursor:pointer}
-.sat-tab.on{height:28px;color:#e8c840;background-image:url(assets/ui/v07101/satchel/tabs/tab_blank_selected_9slice_12x23_s4.png)}
-.sat-tab:disabled{opacity:.45}
-#satBody{flex:1;min-height:0;display:flex;padding:6px 4px 0}
-.sat-pane{display:none;flex:1;min-width:0;min-height:0}
-.sat-pane.on{display:flex;flex-direction:column}
-.char-row,.inv-row{display:flex;gap:8px;min-height:0;flex:1}
-#equip{grid-template-columns:repeat(4,var(--slot));align-content:start}
-#grid{grid-template-columns:repeat(7,var(--slot));max-height:calc(var(--slot) * 3 + 18px);align-content:start}
-#stats,#invStats,#notesPane,#consPane,#tomePane{flex:1;min-width:140px;overflow:auto;color:#e0d4bc;font-size:12px;line-height:1.35;text-align:left}
-#invStats{background:url(assets/ui/v07101/satchel/content/inv_stats_panel_9slice_12_s4.png) center/100% 100% no-repeat;padding:8px 10px;image-rendering:pixelated}
-#satMap{width:100%;height:100%;image-rendering:pixelated;background:#120c10}
-#satFoot{display:flex;justify-content:space-between;gap:8px;align-items:flex-end;padding-top:6px}
-.foot-l,.foot-r{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+/* v0.7.10.3 Pack B satchel. Art pixels live inside #satArt and scale with transform (integer ×2 / ×3). Not CSS zoom. */
+#inv{background:rgba(6,4,6,.78);align-items:center;justify-content:center;padding:0;overflow:hidden}
+#satchel{position:relative;flex:0 0 auto;max-width:100%;max-height:100%;overflow:hidden;image-rendering:pixelated;background:transparent}
+#satArt{position:absolute;left:0;top:0;width:420px;height:178px;transform-origin:0 0;image-rendering:pixelated}
+.sat-tabs{position:absolute;left:6px;top:0;right:6px;height:27px;display:flex;gap:1px;align-items:flex-start;z-index:4;pointer-events:none}
+.sat-tab{pointer-events:auto;position:relative;top:2px;height:16px;flex:var(--tw,48) 1 0;min-width:0;margin:0;border:0;padding:0;cursor:pointer;color:transparent;font-size:0;line-height:0;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
+.sat-tab.on{top:0;height:23px;z-index:5}
+#satchel[data-tabs="text"] .sat-tab{color:#c8b8a0;font:bold 6px/16px "Courier New",monospace}
+#satchel[data-tabs="text"] .sat-tab.on{color:#e8c840;line-height:23px}
+#satchel[data-tabs="icon"] .sat-tab{flex:0 0 26px;width:26px;height:20px;top:2px}
+#satchel[data-tabs="icon"] .sat-tab.on{top:0;height:27px}
+#satFrame{position:absolute;left:0;top:18px;width:100%;height:160px;box-sizing:border-box;z-index:1;border-style:solid;border-width:8px;border-image:url(assets/ui/v07101/satchel/frame/satchel_panel_9slice_24_s8.png) 8 fill / 8px / 0 stretch;padding:5px;background:transparent}
+#satBody{position:relative;height:108px}
+.sat-pane{display:none;position:absolute;left:0;top:0;right:0;height:108px}
+.sat-pane.on{display:block}
+#satFoot{margin-top:6px;height:20px;display:flex;justify-content:space-between;align-items:center;gap:4px;overflow:hidden}
+.foot-l,.foot-r{display:flex;flex-wrap:nowrap;gap:4px;align-items:center;min-width:0}
+.foot-r{flex:0 0 auto}
+#satchel .invb{flex-wrap:nowrap;gap:4px;margin:0}
 .foot-for{display:none}
 #satchel[data-tab="inventory"] .foot-inventory,#satchel[data-tab="character"] .foot-character,#satchel[data-tab="consumables"] .foot-consumables,#satchel[data-tab="notes"] .foot-notes{display:flex}
-#detail{display:flex;align-items:center;gap:4px}
-#dtext{display:none}
-#dbtns{display:flex;gap:4px}
-#dbtns button.close{display:none}
-#satClose{background:#402020;border-color:#a04040}
+#satchel .sat-btn,#satchel #gkN{margin:0;min-height:0;height:20px;padding:0;border:0;border-radius:0;box-shadow:none;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated;color:transparent;font-size:0;line-height:20px;cursor:pointer;flex:0 0 auto;text-shadow:none;filter:none}
+#satchel .sat-btn.text,#satchel .sat-btn.text:hover,#satchel .sat-btn.text:active,#satchel #gkN,#satchel #rpBtn,#satchel #ratBtn,#satchel #fragBtn{color:#e8dcc0;font:bold 5px/12px "Courier New",monospace;border-style:solid;border-width:4px;box-sizing:border-box;background-image:none;padding:0 3px;white-space:nowrap;width:auto;min-width:52px;display:inline-flex;align-items:center;justify-content:center;gap:2px}
+#satchel .sat-btn.text.stone,#satchel #gkN,#satchel #rpBtn,#satchel #ratBtn,#satchel #fragBtn{border-image:url(assets/ui/v07101/satchel/buttons/btn20_stone_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
+#satchel .sat-btn.text.danger{border-image:url(assets/ui/v07101/satchel/buttons/btn20_danger_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
+#satchel .sat-btn.text.brass,#satchel #rpBtn.on{border-image:url(assets/ui/v07101/satchel/buttons/btn20_brass_idle_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
+#satchel .sat-btn:disabled{cursor:default;opacity:.55}
+#satchel #rpBtn img{width:12px;height:12px;image-rendering:pixelated;pointer-events:none}
+#sortBtn{width:52px;background-image:url(assets/ui/v07101/satchel/buttons/btn_sort_idle_52x20.png)}
+#sortBtn:hover{background-image:url(assets/ui/v07101/satchel/buttons/btn_sort_hover_52x20.png)}
+#sortBtn:active{background-image:url(assets/ui/v07101/satchel/buttons/btn_sort_down_52x20.png)}
+#seenBtn{width:80px;background-image:url(assets/ui/v07101/satchel/buttons/btn_mark_seen_idle_80x20.png)}
+#seenBtn:hover{background-image:url(assets/ui/v07101/satchel/buttons/btn_mark_seen_hover_80x20.png)}
+#seenBtn:active{background-image:url(assets/ui/v07101/satchel/buttons/btn_mark_seen_down_80x20.png)}
+#seenBtn:disabled{background-image:url(assets/ui/v07101/satchel/buttons/btn_mark_seen_disabled_80x20.png);opacity:1}
+#dropAllBtn{width:60px;background-image:url(assets/ui/v07101/satchel/buttons/btn_drop_all_idle_60x20.png)}
+#dropAllBtn:hover{background-image:url(assets/ui/v07101/satchel/buttons/btn_drop_all_hover_60x20.png)}
+#dropAllBtn:active{background-image:url(assets/ui/v07101/satchel/buttons/btn_drop_all_down_60x20.png)}
+#dropAllBtn:disabled{background-image:url(assets/ui/v07101/satchel/buttons/btn_drop_all_disabled_60x20.png)}
+#restBtn{width:52px;background-image:url(assets/ui/v07101/satchel/buttons/btn_rest_idle_52x20.png)}
+#restBtn:hover{background-image:url(assets/ui/v07101/satchel/buttons/btn_rest_hover_52x20.png)}
+#restBtn:active{background-image:url(assets/ui/v07101/satchel/buttons/btn_rest_down_52x20.png)}
+#equipBtn{width:52px;background-image:url(assets/ui/v07101/satchel/buttons/btn_equip_idle_52x20.png)}
+#equipBtn:hover{background-image:url(assets/ui/v07101/satchel/buttons/btn_equip_hover_52x20.png)}
+#equipBtn:active{background-image:url(assets/ui/v07101/satchel/buttons/btn_equip_down_52x20.png)}
+#equipBtn:disabled{background-image:url(assets/ui/v07101/satchel/buttons/btn_equip_disabled_52x20.png)}
+#dropBtn{width:52px;background-image:url(assets/ui/v07101/satchel/buttons/btn_drop_idle_52x20.png)}
+#dropBtn:hover{background-image:url(assets/ui/v07101/satchel/buttons/btn_drop_hover_52x20.png)}
+#dropBtn:active{background-image:url(assets/ui/v07101/satchel/buttons/btn_drop_down_52x20.png)}
+#dropBtn:disabled{background-image:url(assets/ui/v07101/satchel/buttons/btn_drop_disabled_52x20.png)}
+#useBtn{width:52px;background-image:url(assets/ui/v07101/satchel/buttons/btn_use_idle_52x20.png)}
+#useBtn:hover{background-image:url(assets/ui/v07101/satchel/buttons/btn_use_hover_52x20.png)}
+#useBtn:active{background-image:url(assets/ui/v07101/satchel/buttons/btn_use_down_52x20.png)}
+#satClose{width:56px;background-image:url(assets/ui/v07101/satchel/buttons/btn_close_idle_56x20.png);background-color:transparent}
+#satClose:hover{background-image:url(assets/ui/v07101/satchel/buttons/btn_close_hover_56x20.png)}
+#satClose:active{background-image:url(assets/ui/v07101/satchel/buttons/btn_close_down_56x20.png)}
+#closeNotesBtn{width:80px;background-image:url(assets/ui/v07101/satchel/buttons/btn_close_notes_idle_80x20.png)}
+#closeNotesBtn:hover{background-image:url(assets/ui/v07101/satchel/buttons/btn_close_notes_hover_80x20.png)}
+#closeNotesBtn:active{background-image:url(assets/ui/v07101/satchel/buttons/btn_close_notes_down_80x20.png)}
+#satchel #equip{position:absolute;left:0;top:0;width:126px;height:66px;display:grid;grid-template-columns:repeat(4,24px);grid-auto-rows:24px;gap:6px;padding:6px;box-sizing:border-box;justify-content:start;align-content:start;background:url(assets/ui/v07101/satchel/content/char_equip_frame_126x66.png) center/100% 100% no-repeat}
+#satchel #stats{position:absolute;left:132px;top:0;right:0;height:66px;margin:0;overflow:hidden;white-space:pre;font-size:0;line-height:0;color:#e8dcc0;padding:0;min-width:0;flex:none;border-style:solid;border-width:4px;border-image:url(assets/ui/v07101/satchel/content/inset_9slice_12_s4.png) 4 fill / 4px / 0 stretch;box-sizing:border-box}
+#charStrip{position:absolute;left:0;right:0;top:74px;height:22px;overflow:hidden;box-sizing:border-box;border-style:solid;border-width:4px 8px;border-image:url(assets/ui/v07101/satchel/content/char_stats_strip_9slice_24x22_s8.png) 8 fill / 4px 8px / 0 stretch}
+#satchel #grid{position:absolute;left:0;top:0;width:var(--gridw,216px);height:96px;max-height:none;display:grid;grid-template-columns:repeat(var(--cols,7),24px);grid-auto-rows:24px;gap:6px;padding:6px;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;align-content:start;justify-content:start;background:transparent;border:0;touch-action:none;scrollbar-width:none}
+#satchel #grid::-webkit-scrollbar{width:0;height:0}
+#invCount{position:absolute;left:2px;top:98px;width:210px;height:8px;image-rendering:pixelated;pointer-events:none}
+#invStats{position:absolute;top:0;left:var(--statx,222px);width:var(--statw,172px);height:108px;min-width:0;overflow:hidden;padding:0;margin:0;background:none;flex:none;text-align:left}
+#invStats::before{content:'';position:absolute;inset:0;border-style:solid;border-width:4px;border-image:url(assets/ui/v07101/satchel/content/inv_stats_panel_9slice_12_s4.png) 4 fill / 4px / 0 stretch;pointer-events:none}
+#invStats .ist-head{position:absolute;left:4px;right:4px;top:3px;height:17px;background:url(assets/ui/v07101/satchel/content/inv_stats_header_common_9slice_24x17_s6.png) center/100% 100% no-repeat;pointer-events:none}
+#invStats[data-rar="magic"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_magic_9slice_24x17_s6.png)}
+#invStats[data-rar="rare"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_rare_9slice_24x17_s6.png)}
+#invStats[data-rar="unique"] .ist-head{background-image:url(assets/ui/v07101/satchel/content/inv_stats_header_unique_9slice_24x17_s6.png)}
+#invStats canvas,#charStrip canvas,#consDetail canvas{position:absolute;left:0;top:0;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none}
+#notesPane canvas{position:relative;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none}
+#satchel .slot{width:24px;height:24px;border:0;border-image:none;outline:none;box-shadow:none;border-radius:0;padding:0;animation:none;background-color:transparent;background-image:url(assets/ui/v07101/satchel/content/slot_idle_24.png);background-size:100% 100%;background-repeat:no-repeat}
+#satchel .slot img{width:16px;height:16px}
+#satchel .slot .lbl{font-size:4px;line-height:5px;color:#8a7a6a;bottom:0}
+#satchel .slot:hover{background-image:url(assets/ui/v07101/satchel/content/slot_hover_24.png)}
+#satchel .slot.r3{background-image:url(assets/ui/v07101/satchel/content/slot_unique_24.png)}
+#satchel .slot.new{background-image:url(assets/ui/v07101/satchel/content/slot_new_24.png)}
+#satchel .slot.sel,#satchel .slot.sel:hover{background-image:url(assets/ui/v07101/satchel/content/slot_sel_24.png);outline:none}
+#satchel .slot .ntag,#satchel .slot .rtag,#satchel .slot .btag{display:none}
+#satchel #consPane{position:absolute;left:0;top:0;right:0;height:63px;min-width:0;overflow:hidden;display:grid;grid-template-columns:repeat(var(--ccols,5),60px);grid-auto-rows:28px;gap:7px;align-content:start}
+.cons-chip{width:60px;height:28px;box-sizing:border-box;margin:0;padding:0 4px 0 6px;display:flex;align-items:center;gap:4px;border:0;cursor:pointer;color:#e8dcc0;font:bold 5px/8px "Courier New",monospace;background:url(assets/ui/v07101/satchel/content/cons_chip_idle_60x28.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.cons-chip.sel{background-image:url(assets/ui/v07101/satchel/content/cons_chip_sel_60x28.png)}
+.cons-chip:hover{background-image:url(assets/ui/v07101/satchel/content/cons_chip_hover_60x28.png)}
+.cons-chip img{width:16px;height:16px;image-rendering:pixelated;pointer-events:none}
+#consDetail{position:absolute;left:0;right:0;top:72px;height:28px;overflow:hidden;box-sizing:border-box;border-style:solid;border-width:4px;border-image:url(assets/ui/v07101/satchel/content/inset_9slice_12_s4.png) 4 fill / 4px / 0 stretch}
+#satchel #notesPane{position:absolute;left:0;right:0;top:0;height:102px;min-width:0;overflow:auto;box-sizing:border-box;padding:0;color:#4a2a18;font-size:0;border-style:solid;border-width:6px;border-image:url(assets/ui/v07101/satchel/content/notes_parchment_9slice_18_s6.png) 6 fill / 6px / 0 stretch}
+#satchel #tomePane{position:absolute;inset:0;overflow:hidden;color:#ff80ff;font:5px/8px "Courier New",monospace;min-width:0}
+.tome-empty{position:absolute;left:0;right:0;top:0;height:108px;background:url(assets/ui/v07101/satchel/tome_tabs/tome_empty_state_394x108.png) center/100% 100% no-repeat;image-rendering:pixelated}
+.tome-empty b{position:absolute;left:8px;right:8px;top:58px;text-align:center;color:#4a2a18;font:bold 6px/8px "Courier New",monospace}
+.tome-sub{position:absolute;left:4px;top:0;height:16px;display:flex;gap:1px;z-index:2}
+.tome-tab{position:relative;top:1px;height:11px;border:0;padding:0;margin:0;cursor:pointer;color:transparent;font-size:0;background:center/100% 100% no-repeat;image-rendering:pixelated}
+.tome-tab.on{top:0;height:16px;z-index:2}
+#tomeBody{position:absolute;left:0;right:0;top:12px;height:96px;box-sizing:border-box;overflow:auto;color:#e8dcc0;font:5px/8px "Courier New",monospace;padding:6px 8px;border-style:solid;border-width:6px;border-image:url(assets/ui/v07101/satchel/tome_tabs/tome_sub_inset_spells_9slice_18_s6.png) 6 fill / 6px / 0 stretch}
+#tomeBody.recipes{border-image-source:url(assets/ui/v07101/satchel/tome_tabs/tome_sub_inset_recipes_9slice_18_s6.png)}
+#tomeBody.enchantments{border-image-source:url(assets/ui/v07101/satchel/tome_tabs/tome_sub_inset_enchantments_9slice_18_s6.png)}
+.tome-page{width:28px;height:28px;border:0;padding:0;margin:0 4px 0 0;background:url(assets/ui/v07101/satchel/content/tome_page_slot_idle_28.png) center/100% 100% no-repeat;image-rendering:pixelated;cursor:pointer}
+.tome-page.on{background-image:url(assets/ui/v07101/satchel/content/tome_page_slot_sel_28.png)}
+.tome-page.lock{background-image:url(assets/ui/v07101/satchel/content/tome_page_slot_locked_28.png);cursor:default}
+.tome-page img{width:16px;height:16px;image-rendering:pixelated;pointer-events:none}
+.tome-asg{height:16px;min-width:16px;margin:0 2px;border:0;padding:0 3px;color:#ff80ff;font:bold 5px/16px "Courier New",monospace;background:url(assets/ui/v07101/satchel/buttons/btn20_brass_idle_9slice_12_s4.png) center/100% 100% no-repeat;image-rendering:pixelated;cursor:pointer}
+#satchel .sat-pane[data-pane="map"]{height:102px;box-sizing:border-box;border-style:solid;border-width:6px;border-image:url(assets/ui/v07101/satchel/content/map_viewport_9slice_18_s6.png) 6 fill / 6px / 0 stretch;background:#120c10}
+#satMap{width:100%;height:100%;display:block;image-rendering:pixelated;background:#120c10}
+#satchel #detail,#satchel #notesBtn,#satchel #dtext,#satchel #dbtns,#satchel #gold{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);border:0}
 #deskHud{position:absolute;z-index:7;pointer-events:auto;display:flex;align-items:flex-end;justify-content:space-between;image-rendering:pixelated;font:bold 11px "Courier New",monospace;color:#e8dcc0}
 #deskHud.hidden{display:none!important}
 .dh-globe{position:relative;flex:0 0 auto;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
@@ -346,24 +427,34 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 <div id="deskHud" class="hidden" aria-hidden="true"></div>
 <div id="gtip" class="hidden"></div>
 <div id="inv" class="hidden">
-  <div id="satchel">
-    <div id="satTabs" class="sat-tabs"></div>
-    <div id="satBody">
-      <div class="sat-pane on" data-pane="character"><div class="char-row"><div id="equip"></div><div id="stats"></div></div></div>
-      <div class="sat-pane" data-pane="inventory"><div class="inv-row"><div id="grid"></div><div id="invStats"></div></div></div>
-      <div class="sat-pane" data-pane="consumables"><div id="consPane"></div></div>
-      <div class="sat-pane" data-pane="notes"><div id="notesPane"></div></div>
-      <div class="sat-pane" data-pane="tome"><div id="tomePane"></div></div>
-      <div class="sat-pane" data-pane="map"><canvas id="satMap" width="394" height="102"></canvas></div>
-    </div>
-    <div id="satFoot">
-      <div class="foot-l">
-        <div class="invb foot-for foot-inventory"><button class="sortb" id="sortBtn">⇅ SORT</button><button class="sortb seenb" id="seenBtn">✓ MARK ALL SEEN</button><button class="sortb" id="dropAllBtn" title="Drop every backpack item (Shift+click skips the confirm)">DROP ALL</button></div>
-        <div class="invb foot-for foot-character"><button class="sortb" id="restBtn" title="Rest in a safe room">REST</button><span class="sortb" id="gkN" title="Gate Keys (iron gates)">GATE 0</span></div>
-        <div class="invb foot-for foot-consumables"><button class="sortb" id="rpBtn" title="Repair Potion: select, then pick an item to repair"><img id="rpImg" alt=""><span id="rpN">0</span></button><button class="sortb" id="ratBtn" title="Eat a ration">🍖<span id="ratN">0</span></button><button class="sortb" id="fragBtn" title="Map Fragments: 4 reveal this floor">📜<span id="fragN">0/4</span></button></div>
-        <div class="invb foot-for foot-notes"><button class="sortb" id="closeNotesBtn" type="button">CLOSE NOTES</button></div>
+  <div id="satchel" data-tab="inventory">
+    <div id="satArt">
+      <div id="satTabs" class="sat-tabs"></div>
+      <div id="satFrame">
+        <div id="satBody">
+          <div class="sat-pane on" data-pane="character"><div id="equip"></div><div id="stats"></div><div id="charStrip"></div></div>
+          <div class="sat-pane" data-pane="inventory"><div id="grid"></div><canvas id="invCount" width="210" height="8"></canvas><div id="invStats" data-rar="common"><div class="ist-head"></div><canvas id="invStatsCv" width="172" height="108"></canvas></div></div>
+          <div class="sat-pane" data-pane="consumables"><div id="consPane"></div><div id="consDetail"></div></div>
+          <div class="sat-pane" data-pane="notes"><div id="notesPane"></div></div>
+          <div class="sat-pane" data-pane="tome"><div id="tomePane"></div></div>
+          <div class="sat-pane" data-pane="map"><canvas id="satMap" width="386" height="90"></canvas></div>
+        </div>
+        <div id="satFoot">
+          <div class="foot-l">
+            <div class="invb foot-for foot-inventory"><button class="sat-btn" id="sortBtn" type="button">SORT</button><button class="sat-btn" id="seenBtn" type="button">MARK ALL SEEN</button><button class="sat-btn" id="dropAllBtn" type="button" title="Drop every backpack item (Shift+click skips the confirm)">DROP ALL</button></div>
+            <div class="invb foot-for foot-character"><button class="sat-btn" id="restBtn" type="button" title="Rest in a safe room">REST</button><span id="gkN" title="Gate Keys (iron gates)">GATE 0</span></div>
+            <div class="invb foot-for foot-consumables"><button class="sat-btn text stone" id="rpBtn" type="button" title="Repair Potion: select, then pick an item to repair"><img id="rpImg" alt=""><span id="rpN">0</span></button><button class="sat-btn text stone" id="ratBtn" type="button" title="Eat a ration">FOOD <span id="ratN">0</span></button><button class="sat-btn text stone" id="fragBtn" type="button" title="Map Fragments: 4 reveal this floor">MAP <span id="fragN">0/4</span></button><button class="sat-btn" id="useBtn" type="button">USE</button></div>
+            <div class="invb foot-for foot-notes"><button class="sat-btn" id="closeNotesBtn" type="button">CLOSE NOTES</button></div>
+          </div>
+          <div class="foot-r">
+            <div class="invb foot-for foot-inventory"><button class="sat-btn" id="equipBtn" type="button">EQUIP</button><button class="sat-btn" id="dropBtn" type="button">DROP</button></div>
+            <span id="gold" class="c3"></span>
+            <div id="detail"><div id="dtext"><span class="cg">Tap an item to see its stats.</span></div><div id="dbtns"></div></div>
+            <button id="notesBtn" type="button" title="Stash notes and glyph clues">NOTES</button>
+            <button class="sat-btn" id="satClose" type="button">CLOSE</button>
+          </div>
+        </div>
       </div>
-      <div class="foot-r"><span id="gold" class="c3"></span><div id="detail"><div id="dtext"><span class="cg">Tap an item to see its stats.</span></div><div id="dbtns"></div></div><button class="sortb" id="notesBtn" title="Stash notes and glyph clues">NOTES</button><button class="sortb" id="satClose" type="button">CLOSE</button></div>
     </div>
   </div>
 </div>
@@ -435,7 +526,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <button class="mbtn" id="rAnyway" style="min-width:0;font-size:14px">Play in portrait anyway</button>
 </div>
 <script>
-const VERSION = '0.7.10.2'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
+const VERSION = '0.7.10.3'; // bump with release.sh (also writes version.json, tags + publishes the GitHub release)
 const UPD = { pending: null, shown: false, checking: false, lastCheck: 0, minGap: 4000 }; // update-check state (see checkUpdate)
 "use strict";
 const $ = id => document.getElementById(id);
@@ -3557,6 +3648,7 @@ function toggleRepairMode() {
   if (!(p.rpPot > 0)) { invNote = 'You have no Repair Potions. They turn up on the floor, in chests, and on champions and bosses.'; sfx('fail'); renderInv(); return; }
   if (!repairables().length) { invNote = 'Nothing needs repair.'; sfx('fail'); renderInv(); return; }
   repairMode = true; sfx('pick', { cue: 'ui_click_01' }); renderInv();
+  if (typeof satchelOpenTab === 'function') satchelOpenTab('inventory');
 }
 function repairPick(it) { // in repair mode: tap/click an item
   if (!it || !needsRepair(it)) { invNote = it ? 'That item is not damaged - pick a highlighted one.' : ''; sfx('fail'); renderInv(); return; }
@@ -3639,7 +3731,8 @@ function slotEl(it, label, selected) {
 function renderInv() {
   const p = player; computeStats(); if (!slotLP) hideTip(); updateNewBadge();
   const eq = $('equip'); eq.innerHTML = '';
-  SLOTS.forEach(s => { const it = p.equip[s]; const el = slotEl(it, it ? '' : s.toUpperCase(), sel && sel.where === 'eq' && sel.slot === s);
+  const slotLbl = { weapon: 'WPN', shield: 'SHD', helm: 'HLM', armor: 'ARM', boots: 'BTS', ring: 'RNG', amulet: 'AMU' };
+  SLOTS.forEach(s => { const it = p.equip[s]; const el = slotEl(it, it ? '' : (slotLbl[s] || s.toUpperCase()), sel && sel.where === 'eq' && sel.slot === s);
     el.addEventListener('pointerdown', e => { e.preventDefault(); if (repairMode) { repairPick(it); return; } sel = it ? { where: 'eq', slot: s } : null; if (it) it.isNew = false; renderInv(); }); slotTipHandlers(el, it, false); eq.appendChild(el); });
   const g = $('grid'); g.innerHTML = '';
   p.inv.forEach((it, i) => { const el = slotEl(it, '', sel && sel.where === 'inv' && sel.idx === i);
@@ -8663,31 +8756,80 @@ window.addEventListener('keydown', e => {
   if (e.key === '1' || e.key === '2' || e.key === '3') { e.stopImmediatePropagation(); pressBar(+e.key - 1); }
 }, true);
 window.addEventListener('keyup', e => { if (e.key === '1' || e.key === '2' || e.key === '3') releaseBar(); }, true);
+let satM = { scale: 2, panelW: 420, cw: 394, cols: 7, gridW: 216, statW: 172, statX: 222, ccols: 5, tabs: 'baked' };
+let consPick = 'hp', tomePageId = '';
+const SAT_RAR = ['COMMON', 'MAGIC', 'RARE', 'UNIQUE'];
+const SAT_KEY = ['common', 'magic', 'rare', 'unique'];
+const SAT_TAN = '#e8dcc0', SAT_GOLD = '#e8c840', SAT_DIM = '#a89880', SAT_CMP = '#7ec8ff', SAT_GOOD = '#60e060', SAT_BAD = '#e06060', SAT_LORE = '#d8b060', SAT_INK = '#4a2a18';
+function satchelMetrics() {
+  const w = appW || window.innerWidth || 800, h = appH || window.innerHeight || 450;
+  const probe = $('safeProbe');
+  let sl = 0, sr = 0, st = 0, sb = 0;
+  if (probe) { const cs = getComputedStyle(probe); sl = parseFloat(cs.paddingLeft) || 0; sr = parseFloat(cs.paddingRight) || 0; st = parseFloat(cs.paddingTop) || 0; sb = parseFloat(cs.paddingBottom) || 0; }
+  const aw = Math.max(120, w - sl - sr), ah = Math.max(120, h - st - sb);
+  let scale = (!touchMode && w >= 1100 && h >= 640) ? 3 : 2;
+  while (scale > 1 && (178 * scale > ah || 200 * scale > aw)) scale--;
+  let panelW = Math.floor(aw / scale);
+  if (panelW < 160) panelW = Math.max(120, panelW);
+  const cw = Math.max(80, panelW - 26);
+  let cols = Math.floor((cw - 162) / 30);
+  if (cols < 4) cols = Math.max(3, Math.floor((cw - 96) / 30));
+  cols = Math.max(3, Math.min(12, cols));
+  let gridW = cols * 30 + 6, statW = cw - gridW - 6;
+  while (statW < 96 && cols > 3) { cols--; gridW = cols * 30 + 6; statW = cw - gridW - 6; }
+  const ccols = Math.max(2, Math.min(8, Math.floor((cw + 7) / 67)));
+  const tabs = panelW < 280 ? 'icon' : (panelW > 520 ? 'text' : 'baked');
+  return { scale, panelW, cw, cols, gridW, statW, statX: gridW + 6, ccols, tabs };
+}
 function sizeSatchel() {
-  const host = $('satchel'); if (!host) return;
-  const w = appW || window.innerWidth, h = appH || window.innerHeight;
-  const scale = (!touchMode && w >= 1100 && h >= 640) ? 3 : 2;
-  const margin = Math.max(8, Math.round(w * 0.03));
-  const panelCss = Math.max(280, Math.min(w - margin * 2, scale === 3 ? 1260 : 1100));
-  const panelArt = Math.max(200, Math.floor(panelCss / scale));
-  const cw = panelArt - 26;
-  const cols = Math.max(4, Math.min(10, Math.floor((cw - 150 - 6) / 30)));
-  host.style.width = panelCss + 'px';
-  host.style.setProperty('--slot', Math.max(28, Math.floor((panelCss - 36) / (cols + 4))) + 'px');
+  const host = $('satchel'), art = $('satArt'); if (!host || !art) return;
+  const m = satM = satchelMetrics();
+  host.style.width = (m.panelW * m.scale) + 'px';
+  host.style.height = (178 * m.scale) + 'px';
+  art.style.width = m.panelW + 'px';
+  art.style.height = '178px';
+  art.style.transform = 'scale(' + m.scale + ')';
+  ['cols', 'ccols'].forEach(k => art.style.setProperty('--' + k, m[k]));
+  art.style.setProperty('--gridw', m.gridW + 'px');
+  art.style.setProperty('--statw', m.statW + 'px');
+  art.style.setProperty('--statx', m.statX + 'px');
+  host.dataset.cols = String(m.cols);
+  host.dataset.statw = String(m.statW);
+  host.dataset.gridw = String(m.gridW);
+  host.dataset.panelw = String(m.panelW);
+  host.dataset.scale = String(m.scale);
+  host.dataset.tabs = m.tabs;
   const grid = $('grid');
-  if (grid) grid.style.gridTemplateColumns = 'repeat(' + cols + ', var(--slot))';
-  host.dataset.cols = String(cols);
-  host.dataset.scale = String(scale);
+  if (grid) grid.style.gridTemplateColumns = 'repeat(' + m.cols + ', 24px)';
+  if (state === 'inv' && !sizeSatchel.lock) { sizeSatchel.lock = 1; try { satchelPaint(); } finally { sizeSatchel.lock = 0; } }
+}
+function tabSrc(file, state, mode) {
+  if (mode === 'icon') return 'assets/ui/v07101/satchel/tabs/tab_icon_' + file + '_' + state + '_26x' + (state === 'selected' ? 27 : 20) + '.png';
+  if (mode === 'text') return 'assets/ui/v07101/satchel/tabs/tab_blank_' + (state === 'selected' ? 'selected_9slice_12x23_s4' : state + '_9slice_12x16_s4') + '.png';
+  const w = { character: 73, inventory: 73, consumables: 81, notes: 56, lich_tome: 72, map: 48 }[file] || 48;
+  return 'assets/ui/v07101/satchel/tabs/tab_' + file + '_' + state + '_' + w + 'x' + (state === 'selected' ? 23 : 16) + '.png';
+}
+function paintTabs() {
+  const mode = ($('satchel') && $('satchel').dataset.tabs) || 'baked';
+  document.querySelectorAll('#satTabs .sat-tab').forEach(b => {
+    b.style.backgroundImage = 'url(' + tabSrc(b.dataset.file, b.classList.contains('on') ? 'selected' : 'idle', mode) + ')';
+  });
 }
 function satchelBoot() {
   const host = $('satTabs'); if (!host || host.dataset.ready) return;
   host.dataset.ready = '1';
-  [['character', 'Character'], ['inventory', 'Inventory'], ['consumables', 'Consumables'], ['notes', 'Notes'], ['tome', 'Lich Tome'], ['map', 'Map']].forEach(([id, label]) => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'sat-tab'; b.dataset.tab = id; b.textContent = label;
-    b.addEventListener('click', () => satchelOpenTab(id)); host.appendChild(b);
+  [['character', 'Character', 'character', 73], ['inventory', 'Inventory', 'inventory', 73], ['consumables', 'Consumables', 'consumables', 81], ['notes', 'Notes', 'notes', 56], ['tome', 'Lich Tome', 'lich_tome', 72], ['map', 'Map', 'map', 48]].forEach(([id, label, file, tw]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'sat-tab'; b.dataset.tab = id; b.dataset.file = file; b.textContent = label; b.style.setProperty('--tw', tw); b.setAttribute('aria-label', label);
+    b.addEventListener('click', () => satchelOpenTab(id));
+    b.addEventListener('pointerenter', () => { if (!b.classList.contains('on')) b.style.backgroundImage = 'url(' + tabSrc(file, 'hover', ($('satchel') && $('satchel').dataset.tabs) || 'baked') + ')'; });
+    b.addEventListener('pointerleave', () => paintTabs());
+    host.appendChild(b);
   });
   $('satClose').addEventListener('click', e => { e.preventDefault(); closeInv(); });
   $('closeNotesBtn').addEventListener('click', e => { e.preventDefault(); satchelOpenTab(satchelPrev && satchelPrev !== 'notes' ? satchelPrev : 'inventory'); });
+  $('equipBtn').addEventListener('click', e => { e.preventDefault(); onEquipClick(); });
+  $('dropBtn').addEventListener('click', e => { e.preventDefault(); onDropClick(); });
+  $('useBtn').addEventListener('click', e => { e.preventDefault(); onUseClick(); });
 }
 function satchelOpenTab(id) {
   if (satchelTab !== 'notes') satchelPrev = satchelTab;
@@ -8695,50 +8837,271 @@ function satchelOpenTab(id) {
   notesMode = id === 'notes';
   if (typeof renderInv === 'function') renderInv();
 }
+function pxCanvas(w, h) {
+  const c = document.createElement('canvas'); c.width = Math.max(1, w | 0); c.height = Math.max(1, h | 0);
+  c.style.imageRendering = 'pixelated'; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; return { c, x };
+}
+function pxText(ctx, s, x, y, col, shadow, maxX) {
+  s = String(s == null ? '' : s).toUpperCase();
+  const limit = maxX == null ? 9999 : maxX;
+  if (shadow) pxText(ctx, s, x + 1, y + 1, '#000', false, limit);
+  ctx.fillStyle = col || SAT_TAN;
+  for (let i = 0; i < s.length; i++) {
+    const gx = x + i * 4; if (gx + 3 > limit) break;
+    const g = FONT[s[i]] || FONT['?'];
+    for (let r = 0; r < 5; r++) { const bits = g[r];
+      if (bits & 4) ctx.fillRect(gx, y + r, 1, 1);
+      if (bits & 2) ctx.fillRect(gx + 1, y + r, 1, 1);
+      if (bits & 1) ctx.fillRect(gx + 2, y + r, 1, 1); }
+  }
+}
+function pxCenter(ctx, s, y, col, width) {
+  s = String(s == null ? '' : s).toUpperCase();
+  const tw = Math.max(0, s.length * 4 - 1);
+  pxText(ctx, s, Math.max(4, Math.round((width - tw) / 2)), y, col, true, width - 4);
+}
+function pxFit(s, maxPx) {
+  s = String(s == null ? '' : s).toUpperCase();
+  const max = Math.max(1, Math.floor((maxPx + 1) / 4));
+  return s.length <= max ? s : s.slice(0, Math.max(1, max - 1));
+}
+function pxWrap(ctx, s, x, y, maxW, col, maxLines) {
+  const words = String(s || '').toUpperCase().split(/\s+/).filter(Boolean);
+  let line = '', row = 0;
+  const flush = t => { if (row < maxLines && t) { pxText(ctx, t, x, y + row * 9, col, true, x + maxW); row++; } };
+  words.forEach(w => { const trial = line ? line + ' ' + w : w; if (trial.length * 4 - 1 > maxW && line) { flush(line); line = w; } else line = trial; });
+  flush(line); return row;
+}
+function selectedItem() {
+  const p = player; if (!p || !sel) return null;
+  return sel.where === 'inv' ? p.inv[sel.idx] : p.equip[sel.slot];
+}
+function kindLabel(it) {
+  if (!it) return '';
+  const slot = it.bow || it.icon === 'bow' ? 'BOW' : String(it.slot || 'ITEM').toUpperCase();
+  return (SAT_RAR[it.rarity | 0] || 'COMMON') + ' ' + slot;
+}
+function setArtBtn(el, word) {
+  if (!el) return;
+  el.classList.remove('text', 'danger', 'brass', 'stone');
+  el.style.width = '';
+  el.textContent = word;
+}
+function setTextBtn(el, label, face) {
+  if (!el) return;
+  el.classList.add('text', face || 'stone');
+  el.textContent = label;
+  el.style.width = 'auto';
+}
+function onEquipClick() {
+  const p = player; if (!p) return;
+  if (dropAllAsk) { const k = dropAllItems(); dropAllAsk = false; invNote = 'Dropped ' + k + ' item' + (k === 1 ? '' : 's') + ' at your feet.'; renderInv(); return; }
+  if (repairMode) { repairMode = false; renderInv(); return; }
+  const it = selectedItem(); if (!it) return;
+  if (sel.where === 'inv') equipFrom(sel.idx); else unequipSlot(sel.slot);
+}
+function onDropClick() {
+  const p = player; if (!p) return;
+  if (dropAllAsk) { dropAllAsk = false; renderInv(); return; }
+  const it = selectedItem(); if (!it) return;
+  if (sel.where === 'inv') { dropItem(p.inv[sel.idx]); p.inv[sel.idx] = null; }
+  else { dropItem(p.equip[sel.slot]); p.equip[sel.slot] = null; }
+  sel = null; renderInv();
+}
+function onUseClick() {
+  const p = player; if (!p) return;
+  if (consPick === 'hp') drink('hp');
+  else if (consPick === 'mp') drink('mp');
+  else if (consPick === 'food') { $('ratBtn') && $('ratBtn').click(); return; }
+  else if (consPick === 'rp') { $('rpBtn') && $('rpBtn').click(); return; }
+  else if (consPick === 'map') { $('fragBtn') && $('fragBtn').click(); return; }
+  renderInv();
+}
+function syncFoot() {
+  const eq = $('equipBtn'), dr = $('dropBtn'); if (!eq || !dr) return;
+  if (satchelTab !== 'inventory') { setArtBtn(eq, 'EQUIP'); setArtBtn(dr, 'DROP'); eq.disabled = true; dr.disabled = true; return; }
+  if (dropAllAsk) { setTextBtn(eq, 'YES', 'brass'); setTextBtn(dr, 'NO', 'danger'); eq.disabled = false; dr.disabled = false; return; }
+  if (repairMode) { setTextBtn(eq, 'CANCEL', 'stone'); setArtBtn(dr, 'DROP'); eq.disabled = false; dr.disabled = true; return; }
+  const it = selectedItem();
+  if (!it) { setArtBtn(eq, 'EQUIP'); setArtBtn(dr, 'DROP'); eq.disabled = true; dr.disabled = true; return; }
+  if (sel.where === 'eq') { setTextBtn(eq, 'UNEQUIP', 'brass'); setArtBtn(dr, 'DROP'); eq.disabled = false; dr.disabled = false; return; }
+  setArtBtn(eq, 'EQUIP'); setArtBtn(dr, 'DROP'); eq.disabled = !canWear(it); dr.disabled = false;
+}
 function fillInvStats() {
-  const box = $('invStats'); if (!box || !player) return;
-  const p = player;
-  const it = sel ? (sel.where === 'inv' ? p.inv[sel.idx] : p.equip[sel.slot]) : null;
-  if (dropAllAsk || repairMode || notesMode) { box.innerHTML = $('dtext') ? $('dtext').innerHTML : ''; return; }
-  if (!it) { box.innerHTML = '<div class="cg">Select an item. DMG, speed, crit and the unique line show here.</div>'; return; }
-  const rar = ['COMMON', 'MAGIC', 'RARE', 'UNIQUE'][it.rarity | 0] || 'COMMON';
-  const dmg = (it.min || it.max) ? ((it.min || 0) + '-' + (it.max || 0)) : '—';
-  const crit = (it.mods && it.mods.crit) || 0;
-  const lines = (typeof itemLines === 'function' ? itemLines(it) : []).map(l => '<div class="' + (l.c || '') + '">' + l.t + '</div>').join('');
-  const cur = sel.where === 'inv' ? p.equip[it.slot] : null;
-  const cmp = cur && sel.where === 'inv' ? '<div class="cg">vs equipped: ' + compareHTML(it, cur) + '</div>' : '';
-  box.innerHTML = '<div style="color:#e8c840;letter-spacing:1px">' + rar + '</div><div class="nm">' + it.name + '</div><div>' + String(it.slot || '').toUpperCase() + ' · LV ' + (it.lvl || 1) + '</div><div>DMG ' + dmg + ' · SPD ' + (it.spd || '—') + '</div><div>CRIT ' + crit + ' · ' + (it.bow ? 'BOW' : 'MELEE') + '</div>' + cmp + lines;
+  const box = $('invStats'), cv = $('invStatsCv'), p = player; if (!box || !cv || !p) return;
+  const w = Math.max(96, satM.statW | 0), h = 108;
+  cv.width = w; cv.height = h; cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const x = cv.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, w, h);
+  const mid = (w / 2) | 0, right = w - 6, left = 8;
+  const dash = '-';
+  let rar = 'common', name = 'SELECT AN ITEM', kind = '', lv = '', dmg = dash, spd = dash, crit = dash, range = dash, pierce = dash, req = dash;
+  let cmp = '', cmpCol = SAT_CMP, fx = 'TAP A SLOT. DOUBLE-TAP EQUIPS.', lore = '';
+  const noteEl = $('dtext') && $('dtext').querySelector('.invnote');
+  if (dropAllAsk) {
+    rar = 'unique'; name = 'DROP ALL ITEMS?'; kind = 'BACKPACK';
+    const n = p.inv.filter(Boolean).length;
+    fx = 'DROP ' + n + ' BACKPACK ITEM' + (n === 1 ? '' : 'S') + '. EQUIPPED GEAR STAYS ON.';
+    cmp = 'YES OR NO';
+  } else if (repairMode) {
+    rar = 'rare'; name = 'REPAIR POTION'; kind = 'CHOOSE A WORN ITEM';
+    fx = (p.rpPot || 0) + ' POTION' + (p.rpPot === 1 ? '' : 'S') + ' LEFT. TAP A WORN ITEM TO RESTORE IT.';
+    cmp = 'CANCEL TO STOP';
+  } else {
+    const it = selectedItem();
+    if (it) {
+      rar = SAT_KEY[it.rarity | 0] || 'common';
+      name = it.name || 'ITEM';
+      kind = kindLabel(it);
+      lv = 'LV ' + (it.lvl || 1);
+      dmg = (it.min || it.max) ? ((it.min || 0) + '-' + (it.max || 0)) : dash;
+      spd = it.spd ? (Math.round(it.spd * 10) / 10) + '/S' : dash;
+      crit = (it.mods && it.mods.crit) ? ('+' + it.mods.crit + '%') : '0';
+      range = it.range ? String(it.range) : dash;
+      pierce = (it.pierce || (it.mods && it.mods.pierce)) ? String(it.pierce || it.mods.pierce) : dash;
+      req = 'LV ' + reqOf(it);
+      const cur = sel.where === 'inv' ? p.equip[it.slot] : null;
+      if (sel.where === 'eq') { cmp = 'EQUIPPED'; cmpCol = SAT_GOLD; }
+      else if (!cur) { cmp = 'SLOT IS EMPTY'; cmpCol = SAT_GOOD; }
+      else if (it.min || cur.min) {
+        const d = Math.round(((+it.min || 0) + (+it.max || 0)) / 2) - Math.round(((+cur.min || 0) + (+cur.max || 0)) / 2);
+        cmp = (d > 0 ? '+' : '') + d + ' DMG VS EQUIPPED'; cmpCol = d > 0 ? SAT_CMP : d < 0 ? SAT_BAD : SAT_DIM;
+      } else if ((it.def || 0) !== (cur.def || 0)) {
+        const d = (it.def || 0) - (cur.def || 0);
+        cmp = (d > 0 ? '+' : '') + d + ' DEF VS EQUIPPED'; cmpCol = d > 0 ? SAT_GOOD : SAT_BAD;
+      } else { cmp = 'VS EQUIPPED'; cmpCol = SAT_DIM; }
+      const extra = [];
+      if (it.def) extra.push('DEF ' + it.def);
+      if (it.block) extra.push('BLOCK ' + it.block + '%');
+      for (const k in (it.mods || {})) { if (k === 'crit' || k === 'dmg') continue; const a = AFFIX.find(q => q.k === k); if (a) extra.push(a.txt(it.mods[k])); }
+      for (const q of it.powers || []) { const t = powerLine(q); if (t) extra.push(t); }
+      if (hasDur(it) && it.maxDur) extra.push('DUR ' + it.dur + '/' + it.maxDur);
+      fx = extra.join('  ') || (it.rarity === 3 ? it.name : '');
+      lore = it.lore ? ("'" + it.lore + "'") : '';
+      if (noteEl) fx = noteEl.textContent;
+    } else if (noteEl) fx = noteEl.textContent;
+  }
+  box.dataset.rar = rar;
+  box.dataset.name = String(name).toUpperCase();
+  box.dataset.ys = '7,20,34,43,52,62,76,85,96';
+  box.setAttribute('aria-label', [name, kind, lv, 'DMG ' + dmg, 'SPD ' + spd, 'CRIT ' + crit, 'RANGE ' + range, 'PIERCE ' + pierce, 'REQ ' + req, cmp, fx, lore].filter(Boolean).join('. '));
+  const col = rar === 'unique' ? SAT_GOLD : rar === 'rare' ? '#f0f060' : rar === 'magic' ? '#7aa0ff' : '#f0e6c8';
+  pxCenter(x, name, 7, '#f4ecd4', w);
+  pxText(x, pxFit(kind, mid - left - 4), left, 20, col, true, mid - 2);
+  if (lv) pxText(x, lv, right - (lv.length * 4 - 1), 20, SAT_TAN, true, right);
+  x.fillStyle = '#6a5344'; x.fillRect(left, 28, w - left * 2, 1);
+  pxText(x, 'DMG ' + dmg, left, 34, SAT_TAN, true, mid - 2);
+  pxText(x, 'SPD ' + spd, mid + 4, 34, SAT_TAN, true, right);
+  pxText(x, 'CRIT ' + crit, left, 43, SAT_TAN, true, mid - 2);
+  pxText(x, 'RANGE ' + range, mid + 4, 43, SAT_TAN, true, right);
+  pxText(x, 'PIERCE ' + pierce, left, 52, SAT_TAN, true, mid - 2);
+  pxText(x, 'REQ ' + req, mid + 4, 52, req && player && player.lvl < reqOf(selectedItem() || { reqLvl: 1 }) ? SAT_BAD : SAT_TAN, true, right);
+  if (cmp) pxText(x, pxFit(cmp, w - 16), left, 62, cmpCol, true, right);
+  x.fillStyle = '#6a5344'; x.fillRect(left, 70, w - left * 2, 1);
+  pxWrap(x, fx, left, 76, w - 16, SAT_TAN, 2);
+  if (lore) pxText(x, pxFit(lore, w - 16), left, 96, SAT_LORE, true, right);
+  const count = $('invCount');
+  if (count) {
+    count.width = 210; count.height = 8; const cx = count.getContext('2d'); cx.imageSmoothingEnabled = false; cx.clearRect(0, 0, 210, 8);
+    const n = p.inv.filter(Boolean).length, cap = invSize(), more = p.inv.length > satM.cols * 3;
+    pxText(cx, n + '/' + cap + (more ? '  SCROLL FOR MORE' : ''), 2, 1, SAT_DIM, true, 208);
+  }
+}
+function paintChar() {
+  const p = player, box = $('stats'), strip = $('charStrip'); if (!p || !p.st || !box) return;
+  const st = p.st;
+  const w = Math.max(40, box.clientWidth || ((satM.cw || 394) - 140)), h = Math.max(20, box.clientHeight || 58);
+  box.textContent = '';
+  const view = pxCanvas(w, h); view.c.style.width = w + 'px'; view.c.style.height = h + 'px';
+  const lines = [
+    'LEVEL ' + p.lvl + '   DEPTH ' + depth,
+    'LIFE ' + Math.ceil(p.hp) + '/' + st.maxHp,
+    'MANA ' + Math.floor(p.mp) + '/' + st.maxMp,
+    'DMG ' + st.min + '-' + st.max + '   DEF ' + st.def,
+    'CRIT ' + st.crit + '%   ATK ' + Math.round(st.aspd * 100) + '%',
+    'FOOD ' + Math.round(p.hunger) + '  WATER ' + Math.round(p.thirst) + '  REST ' + Math.round(p.fatigue)
+  ];
+  lines.forEach((t, i) => pxText(view.x, t, 6, 4 + i * 8, SAT_TAN, true, w - 4));
+  box.appendChild(view.c);
+  if (strip) {
+    const sw = Math.max(40, strip.clientWidth || (satM.cw || 394)), sh = Math.max(10, strip.clientHeight || 14);
+    strip.textContent = '';
+    const sc = pxCanvas(sw, sh); sc.c.style.width = sw + 'px'; sc.c.style.height = sh + 'px';
+    pxText(sc.x, 'DMG ' + st.min + '-' + st.max + '   DEF ' + st.def + '   CRIT ' + st.crit + '%   GOLD ' + p.gold, 6, Math.max(2, ((sh - 5) / 2) | 0), SAT_GOLD, true, sw - 4);
+    strip.appendChild(sc.c);
+  }
 }
 function fillCons() {
-  const box = $('consPane'), p = player; if (!box || !p) return;
-  const chip = (n, label) => '<div class="cons-chip"><b>' + label + '</b> ' + n + '</div>';
-  box.innerHTML = chip(p.hpPot, 'LIFE') + chip(p.mpPot, 'MANA') + chip(p.rations || 0, 'FOOD') + chip(p.rpPot || 0, 'REPAIR') + chip((p.mapFrags || 0) + '/' + FRAG_NEED, 'MAP') + chip(p.gateKeys || 0, 'GATE') + (necroKnown() ? chip(p.npPot || 0, 'NECRO') : '');
+  const box = $('consPane'), det = $('consDetail'), p = player; if (!box || !p) return;
+  const rows = [
+    ['hp', 'LIFE', p.hpPot, 'LIFE FLASK'],
+    ['mp', 'MANA', p.mpPot, 'MANA FLASK'],
+    ['food', 'FOOD', p.rations || 0, 'RATION. RESTORES HUNGER'],
+    ['rp', 'REPAIR', p.rpPot || 0, 'REPAIR POTION. THEN TAP A WORN ITEM'],
+    ['map', 'MAP', (p.mapFrags || 0) + '/' + FRAG_NEED, 'MAP FRAGMENTS. FOUR REVEAL THIS FLOOR'],
+    ['gate', 'GATE', p.gateKeys || 0, 'GATE KEYS. IRON GATES']
+  ];
+  if (necroKnown()) rows.push(['np', 'NECRO', p.npPot || 0, 'NECRO POTION. WAKE AT HALF LIFE']);
+  if (!rows.some(r => r[0] === consPick)) consPick = rows[0][0];
+  box.innerHTML = '';
+  rows.forEach(r => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'cons-chip' + (consPick === r[0] ? ' sel' : '');
+    const icon = ICONS[r[0]];
+    if (icon && icon.toDataURL) { const im = document.createElement('img'); im.src = icon.toDataURL(); im.alt = ''; b.appendChild(im); }
+    const t = document.createElement('b'); t.textContent = r[2] + ''; b.appendChild(t);
+    b.addEventListener('click', () => { consPick = r[0]; fillCons(); });
+    box.appendChild(b);
+  });
+  if (det) {
+    const hit = rows.find(r => r[0] === consPick) || rows[0];
+    const dw = Math.max(40, det.clientWidth || (satM.cw || 394) - 8), dh = Math.max(12, det.clientHeight || 20);
+    det.textContent = '';
+    const c = pxCanvas(dw, dh); c.c.style.width = dw + 'px'; c.c.style.height = dh + 'px';
+    pxText(c.x, hit[3], 8, Math.max(2, ((dh - 5) / 2) | 0), SAT_TAN, true, dw - 6);
+    det.appendChild(c.c);
+  }
 }
 function fillNotesPane() {
-  const box = $('notesPane'); if (!box) return;
-  box.innerHTML = $('dtext') ? $('dtext').innerHTML : '';
+  const box = $('notesPane'), p = player; if (!box || !p) return;
+  const notes = p.notes || [];
+  const lines = [];
+  if (!notes.length) { lines.push('NO NOTES YET.', 'WORN SCRAPS COPY THEMSELVES IN', 'WHEN YOU WALK OVER THEM.'); }
+  else notes.forEach(n => { lines.push((n.title || 'NOTE').toUpperCase()); String(n.body || '').toUpperCase().split(/\n/).forEach(s => lines.push(s)); lines.push(''); });
+  const w = Math.max(40, box.clientWidth || (satM.cw || 394) - 12);
+  const h = Math.max(86, 8 + lines.length * 9);
+  box.textContent = '';
+  const c = pxCanvas(w, h); c.c.style.width = w + 'px'; c.c.style.height = h + 'px';
+  lines.forEach((t, i) => pxText(c.x, t, 8, 8 + i * 9, SAT_INK, false, w - 8));
+  box.appendChild(c.c);
 }
 function fillTomePane() {
   const box = $('tomePane'); if (!box || !player) return;
   const t = ensureTome(player);
-  if (!t.isAcquired) { box.innerHTML = '<div class="nm">THE LICH TOME</div><div>You have not discovered the Lich Tome.</div>'; return; }
+  if (!t.isAcquired) { box.innerHTML = '<div class="tome-empty"><b>THE LICH TOME<br>YOU HAVE NOT FOUND IT.</b></div>'; return; }
   const any = TOME_IDS.some(id => t.spells[id].isUnlocked);
-  if (!any) { box.innerHTML = '<div class="nm">THE LICH TOME</div><div>ITS PAGES HAVE BEEN TORN OUT.</div><div class="cg">Discover spells hidden in the world to use the Lich Tome.</div>'; return; }
-  const tabs = ['spells', 'recipes', 'enchantments'].map(id => '<button type="button" class="sat-tab' + (tomeSub === id ? ' on' : '') + '" data-sub="' + id + '">' + id.toUpperCase() + '</button>').join('');
+  if (!any) { box.innerHTML = '<div class="tome-empty"><b>THE LICH TOME<br>ITS PAGES HAVE BEEN TORN OUT.</b></div>'; return; }
+  const TW = { spells: 35, recipes: 39, enchantments: 59 };
+  const tabs = ['spells', 'recipes', 'enchantments'].map(id => {
+    const on = tomeSub === id, hgt = on ? 16 : 11;
+    const src = 'assets/ui/v07101/satchel/tome_tabs/tome_tab_' + id + '_' + (on ? 'selected' : 'idle') + '_' + TW[id] + 'x' + hgt + '.png';
+    return '<button type="button" class="tome-tab' + (on ? ' on' : '') + '" data-sub="' + id + '" style="width:' + TW[id] + 'px;background-image:url(' + src + ')">' + id.toUpperCase() + '</button>';
+  }).join('');
   let body = '';
-  if (tomeSub === 'recipes') body = '<div class="cg">No recipes yet.</div>';
-  else if (tomeSub === 'enchantments') body = '<div class="cg">No enchantments yet.</div>';
+  if (tomeSub === 'recipes') body = '<div id="tomeBody" class="recipes">NO RECIPES YET.</div>';
+  else if (tomeSub === 'enchantments') body = '<div id="tomeBody" class="enchantments">NO ENCHANTMENTS YET.</div>';
   else {
+    if (!tomePageId || !t.spells[tomePageId] || !t.spells[tomePageId].isUnlocked) tomePageId = TOME_IDS.find(id => t.spells[id].isUnlocked) || 'fireball';
     const bar = spellBar();
-    body = TOME_IDS.map((id, n) => {
+    const pages = TOME_IDS.map((id, n) => {
       const on = t.spells[id].isUnlocked;
-      if (!on) return '<div class="cg">' + TOME_NAMES[n] + ' — page missing</div>';
-      const slots = [0, 1, 2, 3].map(s => '<button type="button" data-assign="' + id + '" data-slot="' + s + '">' + (s + 1) + (bar[s] === id ? '*' : '') + '</button>').join(' ');
-      return '<div class="tome-row"><b>' + TOME_NAMES[n] + '</b> ' + slots + '</div>';
+      return '<button type="button" class="tome-page' + (!on ? ' lock' : tomePageId === id ? ' on' : '') + '" data-page="' + id + '"' + (on ? '' : ' disabled') + ' title="' + TOME_NAMES[n] + '"></button>';
     }).join('');
+    const idx = TOME_IDS.indexOf(tomePageId);
+    const asg = [0, 1, 2, 3].map(s => '<button type="button" class="tome-asg" data-assign="' + tomePageId + '" data-slot="' + s + '">' + (s + 1) + (bar[s] === tomePageId ? '*' : '') + '</button>').join('');
+    body = '<div id="tomeBody"><div>' + pages + '</div><div style="margin-top:6px;color:#ff80ff">' + (TOME_NAMES[idx] || '').toUpperCase() + '</div><div>ASSIGN ' + asg + '</div></div>';
   }
   box.innerHTML = '<div class="tome-sub">' + tabs + '</div>' + body;
   box.querySelectorAll('[data-sub]').forEach(b => b.addEventListener('click', () => { tomeSub = b.dataset.sub; fillTomePane(); }));
+  box.querySelectorAll('[data-page]').forEach(b => b.addEventListener('click', () => { if (b.disabled) return; tomePageId = b.dataset.page; fillTomePane(); }));
   box.querySelectorAll('[data-assign]').forEach(b => b.addEventListener('click', () => { assignSpell(b.dataset.assign, +b.dataset.slot); fillTomePane(); syncSpellHud(); syncDesk(); }));
 }
 function fillSatMap() {
@@ -8756,17 +9119,22 @@ function fillSatMap() {
   const dth = V101.lastDeath;
   if (dth && dth.depth === depth && ART.map_icon_death) x.drawImage(ART.map_icon_death, ox + dth.tx * sc, oy + dth.ty * sc, Math.max(8, sc), Math.max(8, sc));
 }
+function satchelPaint() {
+  paintTabs();
+  if (satchelTab === 'inventory') fillInvStats();
+  else if (satchelTab === 'character') paintChar();
+  else if (satchelTab === 'consumables') fillCons();
+  else if (satchelTab === 'notes') fillNotesPane();
+  else if (satchelTab === 'tome') fillTomePane();
+  else if (satchelTab === 'map') fillSatMap();
+  syncFoot();
+}
 function satchelDress() {
   satchelBoot();
   const host = $('satchel'); if (!host) return;
   host.dataset.tab = satchelTab;
   document.querySelectorAll('#satTabs .sat-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === satchelTab));
   document.querySelectorAll('.sat-pane').forEach(p => p.classList.toggle('on', p.dataset.pane === satchelTab));
-  if (satchelTab === 'inventory') fillInvStats();
-  if (satchelTab === 'consumables') fillCons();
-  if (satchelTab === 'notes') fillNotesPane();
-  if (satchelTab === 'tome') fillTomePane();
-  if (satchelTab === 'map') fillSatMap();
   sizeSatchel();
 }
 const _render101 = renderInv;
