@@ -4,6 +4,15 @@ All notable changes to Lichlight, newest first. Each version is also published o
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.7.10.3] - 2026-10-31
+
+_The satchel matches the mock_
+
+### Fixed
+- The bag was still the old inventory with six tabs stuck on top. Inventory is the wide satchel from the mock: seven columns, three rows, and the item's stats in their own panel.
+- An item's name, damage, and the line under it no longer draw on top of each other.
+- Sort, Mark All Seen, and Drop All sit on the left. Equip, Drop, and Close sit on the right. Close leaves the bag. Close Notes only leaves the notes.
+
 ## [0.7.10.2] - 2026-10-31
 
 _The screen sits in the middle_
@@ -720,6 +729,7 @@ First public release, playable in your browser at https://gamedevjake.github.io/
 
 [0.7.3.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.3.1
 [0.7.10.1]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.1
+[0.7.10.3]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.3
 [0.7.10.2]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10.2
 [0.7.10]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.10
 [0.7.9]: https://github.com/gamedevjake/lichlight/releases/tag/v0.7.9

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v07103</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:840px;height:420px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 400) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function rect(el) { return el.getBoundingClientRect(); }
+function inside(b, w, h, slack) {
+  return b.left >= -slack && b.top >= -slack && b.right <= w + slack && b.bottom <= h + slack && b.width > 8 && b.height > 8;
+}
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('version', g && g.version === '0.7.10.3' && ver.indexOf('"0.7.10.3"') >= 0, (g && g.version) + ' ' + ver);
+  check('no css zoom', src.indexOf('zoom:var(--ui)') < 0 && src.indexOf('zoom:var(--hud)') < 0);
+  check('pack b art', src.indexOf('inv_stats_header_unique_9slice') >= 0 && src.indexOf('btn_mark_seen_idle_80x20') >= 0 && src.indexOf('slot_sel_24.png') >= 0);
+  const frame = document.getElementById('g');
+  frame.style.width = '840px';
+  frame.style.height = '420px';
+  w.resize();
+  g.newGame();
+  w.resize();
+  const it = g.makeItem(11, 3);
+  g.player.inv[0] = it;
+  w.openInv();
+  w.satchelOpenTab('inventory');
+  const slot = w.document.querySelector('#grid .slot');
+  if (slot) slot.dispatchEvent(new w.PointerEvent('pointerdown', { bubbles: true, cancelable: true, pointerType: 'mouse', clientX: 8, clientY: 8 }));
+  const host = w.document.getElementById('satchel');
+  check('panel 420', host.dataset.panelw === '420' && host.dataset.scale === '2', host.dataset.panelw + ' x' + host.dataset.scale);
+  check('grid 7x3', host.dataset.cols === '7' && host.dataset.gridw === '216', host.dataset.cols + ' ' + host.dataset.gridw);
+  check('stats 172', host.dataset.statw === '172', host.dataset.statw);
+  const stats = w.document.getElementById('invStats');
+  const cv = w.document.getElementById('invStatsCv');
+  check('stats canvas', cv && +cv.width === 172 && +cv.height === 108 && stats.dataset.ys === '7,20,34,43,52,62,76,85,96', (cv && cv.width) + 'x' + (cv && cv.height));
+  const aria = (stats.getAttribute('aria-label') || '').toUpperCase();
+  check('name in panel', (stats.dataset.name || '').length > 1 && aria.indexOf(stats.dataset.name) >= 0, stats.dataset.name);
+  const ids = ['sortBtn', 'seenBtn', 'dropAllBtn', 'equipBtn', 'dropBtn', 'satClose'];
+  const tops = ids.map(id => rect(w.document.getElementById(id)).top);
+  const span = Math.max.apply(null, tops) - Math.min.apply(null, tops);
+  check('footer one row', span < 12, span.toFixed(1));
+  const sr = rect(stats), gr = rect(w.document.getElementById('grid'));
+  check('stats beside grid', gr.right <= sr.left + 4 && sr.width > gr.width * 0.5, Math.round(gr.right) + ' ' + Math.round(sr.left) + ' ' + Math.round(sr.width));
+  const notes = w.document.getElementById('notesBtn');
+  check('notes tab not stacked', rect(notes).width < 4, Math.round(rect(notes).width));
+  const vw = w.innerWidth, vh = w.innerHeight, de = w.document.documentElement, slack = 2;
+  const sat = rect(host);
+  check('satchel inside', inside(sat, vw, vh, 8), [Math.round(sat.left), Math.round(sat.top), Math.round(sat.right), Math.round(sat.bottom), vw, vh].join(','));
+  check('no page growth', de.scrollWidth <= vw + slack && de.scrollHeight <= vh + slack, de.scrollWidth + 'x' + de.scrollHeight + ' vs ' + vw + 'x' + vh);
+  w.satchelOpenTab('character');
+  check('character tab', host.dataset.tab === 'character' && !!w.document.getElementById('charStrip'));
+  w.satchelOpenTab('notes');
+  const prev = host.dataset.tab;
+  w.document.getElementById('closeNotesBtn').click();
+  check('close notes', host.dataset.tab !== 'notes' && prev === 'notes', host.dataset.tab);
+  w.satchelOpenTab('tome');
+  const tome0 = (w.document.getElementById('tomePane').textContent || '').toUpperCase();
+  check('tome missing', tome0.indexOf('LICH TOME') >= 0, tome0.slice(0, 80));
+  g.player.lichTome.isAcquired = true;
+  w.satchelOpenTab('tome');
+  const tome1 = (w.document.getElementById('tomePane').textContent || '').toUpperCase();
+  check('tome empty', tome1.indexOf('TORN') >= 0, tome1.slice(0, 80));
+  g.unlockSpell('fireball');
+  w.satchelOpenTab('tome');
+  const tome2 = (w.document.getElementById('tomePane').textContent || '').toUpperCase();
+  check('tome spells', tome2.indexOf('SPELLS') >= 0, tome2.slice(0, 120));
+  w.document.getElementById('satClose').click();
+  check('close dismisses', w.document.getElementById('inv').classList.contains('hidden') && g.state === 'play');
+
+  [[780, 360], [891, 411], [1280, 720], [960, 540]].forEach(([W, H]) => {
+    frame.style.width = W + 'px';
+    frame.style.height = H + 'px';
+    w.resize();
+    w.openInv();
+    w.satchelOpenTab('inventory');
+    const b = rect(w.document.getElementById('satchel'));
+    const dw = w.innerWidth, dh = w.innerHeight, doc = w.document.documentElement;
+    check(W + 'x' + H + ' inside', inside(b, dw, dh, 8), [Math.round(b.left), Math.round(b.top), Math.round(b.right), Math.round(b.bottom), dw, dh].join(','));
+    check(W + 'x' + H + ' no growth', doc.scrollWidth <= dw + slack && doc.scrollHeight <= dh + slack, doc.scrollWidth + 'x' + doc.scrollHeight);
+    w.closeInv();
+  });
+}
+</script>
+</body>
+</html>
