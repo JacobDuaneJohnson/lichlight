@@ -1,0 +1,404 @@
+{
+ "buttons": {
+  "close": {
+   "behaviour": "dismiss the whole satchel (all tabs)",
+   "face": "danger",
+   "label": "CLOSE",
+   "size": [
+    56,
+    20
+   ]
+  },
+  "close_notes": {
+   "behaviour": "Notes tab only: leave Notes, return to previous tab (satchel stays open)",
+   "face": "danger",
+   "label": "CLOSE NOTES",
+   "size": [
+    80,
+    20
+   ]
+  },
+  "drop": {
+   "behaviour": "Inventory detail: drop selected",
+   "face": "danger",
+   "label": "DROP",
+   "size": [
+    52,
+    20
+   ]
+  },
+  "drop_all": {
+   "behaviour": "Inventory: drop all (keep live confirm)",
+   "face": "danger",
+   "label": "DROP ALL",
+   "size": [
+    60,
+    20
+   ]
+  },
+  "equip": {
+   "behaviour": "Inventory detail: equip selected",
+   "face": "brass",
+   "label": "EQUIP",
+   "size": [
+    52,
+    20
+   ]
+  },
+  "gate": {
+   "behaviour": "Character: gate key counter (stamp count via CSS or use blank 9-slice)",
+   "face": "stone",
+   "label": "GATE",
+   "size": [
+    52,
+    20
+   ]
+  },
+  "mark_seen": {
+   "behaviour": "Inventory: clear new pips (_disabled when none new)",
+   "face": "stone",
+   "label": "MARK ALL SEEN",
+   "size": [
+    80,
+    20
+   ]
+  },
+  "rest": {
+   "behaviour": "Character: open REST dialog",
+   "face": "stone",
+   "label": "REST",
+   "size": [
+    52,
+    20
+   ]
+  },
+  "sort": {
+   "behaviour": "Inventory: sort by kind > rarity > level",
+   "face": "stone",
+   "label": "SORT",
+   "size": [
+    52,
+    20
+   ]
+  },
+  "use": {
+   "behaviour": "Consumables: use selected",
+   "face": "brass",
+   "label": "USE",
+   "size": [
+    52,
+    20
+   ]
+  }
+ },
+ "files": [
+  "buttons/btn20_brass_disabled_9slice_12_s4.png",
+  "buttons/btn20_brass_down_9slice_12_s4.png",
+  "buttons/btn20_brass_hover_9slice_12_s4.png",
+  "buttons/btn20_brass_idle_9slice_12_s4.png",
+  "buttons/btn20_danger_disabled_9slice_12_s4.png",
+  "buttons/btn20_danger_down_9slice_12_s4.png",
+  "buttons/btn20_danger_hover_9slice_12_s4.png",
+  "buttons/btn20_danger_idle_9slice_12_s4.png",
+  "buttons/btn20_stone_disabled_9slice_12_s4.png",
+  "buttons/btn20_stone_down_9slice_12_s4.png",
+  "buttons/btn20_stone_hover_9slice_12_s4.png",
+  "buttons/btn20_stone_idle_9slice_12_s4.png",
+  "buttons/btn_close_disabled_56x20.png",
+  "buttons/btn_close_down_56x20.png",
+  "buttons/btn_close_hover_56x20.png",
+  "buttons/btn_close_idle_56x20.png",
+  "buttons/btn_close_notes_disabled_80x20.png",
+  "buttons/btn_close_notes_down_80x20.png",
+  "buttons/btn_close_notes_hover_80x20.png",
+  "buttons/btn_close_notes_idle_80x20.png",
+  "buttons/btn_close_x_disabled_20x20.png",
+  "buttons/btn_close_x_down_20x20.png",
+  "buttons/btn_close_x_hover_20x20.png",
+  "buttons/btn_close_x_idle_20x20.png",
+  "buttons/btn_drop_all_disabled_60x20.png",
+  "buttons/btn_drop_all_down_60x20.png",
+  "buttons/btn_drop_all_hover_60x20.png",
+  "buttons/btn_drop_all_idle_60x20.png",
+  "buttons/btn_drop_disabled_52x20.png",
+  "buttons/btn_drop_down_52x20.png",
+  "buttons/btn_drop_hover_52x20.png",
+  "buttons/btn_drop_idle_52x20.png",
+  "buttons/btn_equip_disabled_52x20.png",
+  "buttons/btn_equip_down_52x20.png",
+  "buttons/btn_equip_hover_52x20.png",
+  "buttons/btn_equip_idle_52x20.png",
+  "buttons/btn_gate_disabled_52x20.png",
+  "buttons/btn_gate_down_52x20.png",
+  "buttons/btn_gate_hover_52x20.png",
+  "buttons/btn_gate_idle_52x20.png",
+  "buttons/btn_mark_seen_disabled_80x20.png",
+  "buttons/btn_mark_seen_down_80x20.png",
+  "buttons/btn_mark_seen_hover_80x20.png",
+  "buttons/btn_mark_seen_idle_80x20.png",
+  "buttons/btn_rest_disabled_52x20.png",
+  "buttons/btn_rest_down_52x20.png",
+  "buttons/btn_rest_hover_52x20.png",
+  "buttons/btn_rest_idle_52x20.png",
+  "buttons/btn_sort_disabled_52x20.png",
+  "buttons/btn_sort_down_52x20.png",
+  "buttons/btn_sort_hover_52x20.png",
+  "buttons/btn_sort_idle_52x20.png",
+  "buttons/btn_use_disabled_52x20.png",
+  "buttons/btn_use_down_52x20.png",
+  "buttons/btn_use_hover_52x20.png",
+  "buttons/btn_use_idle_52x20.png",
+  "content/char_equip_frame_126x66.png",
+  "content/char_stats_inset_262x66.png",
+  "content/char_stats_strip_9slice_24x22_s8.png",
+  "content/char_stats_strip_sample_394x22.png",
+  "content/cons_chip_empty_60x28.png",
+  "content/cons_chip_empty_9slice_12_s4.png",
+  "content/cons_chip_hover_60x28.png",
+  "content/cons_chip_hover_9slice_12_s4.png",
+  "content/cons_chip_idle_60x28.png",
+  "content/cons_chip_idle_9slice_12_s4.png",
+  "content/cons_chip_sel_60x28.png",
+  "content/cons_chip_sel_9slice_12_s4.png",
+  "content/inset_9slice_12_s4.png",
+  "content/inv_detail_inset_394x24.png",
+  "content/inv_grid_frame_216x96.png",
+  "content/inv_grid_frame_portrait_156x96.png",
+  "content/inv_stats_header_common_9slice_24x17_s6.png",
+  "content/inv_stats_header_magic_9slice_24x17_s6.png",
+  "content/inv_stats_header_rare_9slice_24x17_s6.png",
+  "content/inv_stats_header_unique_9slice_24x17_s6.png",
+  "content/inv_stats_panel_9slice_12_s4.png",
+  "content/inv_stats_panel_common_sample_172x108.png",
+  "content/inv_stats_panel_magic_sample_172x108.png",
+  "content/inv_stats_panel_rare_sample_172x108.png",
+  "content/inv_stats_panel_unique_portrait_sample_166x128.png",
+  "content/inv_stats_panel_unique_sample_172x108.png",
+  "content/inv_stats_rule_9slice_12x3_s4.png",
+  "content/map_viewport_9slice_18_s6.png",
+  "content/map_viewport_sample_394x102.png",
+  "content/mock_item_unique_bow_spine_16.png",
+  "content/notes_parchment_9slice_18_s6.png",
+  "content/notes_parchment_sample_394x102.png",
+  "content/slot_disabled_24.png",
+  "content/slot_disabled_9slice_12_s4.png",
+  "content/slot_hover_24.png",
+  "content/slot_hover_9slice_12_s4.png",
+  "content/slot_idle_24.png",
+  "content/slot_idle_9slice_12_s4.png",
+  "content/slot_new_24.png",
+  "content/slot_sel_24.png",
+  "content/slot_sel_9slice_12_s4.png",
+  "content/slot_unique_24.png",
+  "content/slot_unique_9slice_12_s4.png",
+  "content/tome_inset_9slice_18_s6.png",
+  "content/tome_inset_sample_394x102.png",
+  "content/tome_page_slot_idle_28.png",
+  "content/tome_page_slot_locked_28.png",
+  "content/tome_page_slot_sel_28.png",
+  "frame/satchel_panel_9slice_24_s8.png",
+  "frame/satchel_panel_b_8.png",
+  "frame/satchel_panel_bl_8.png",
+  "frame/satchel_panel_br_8.png",
+  "frame/satchel_panel_c_8.png",
+  "frame/satchel_panel_l_8.png",
+  "frame/satchel_panel_portrait_sample_192x328.png",
+  "frame/satchel_panel_r_8.png",
+  "frame/satchel_panel_sample_200x160.png",
+  "frame/satchel_panel_sample_420x160.png",
+  "frame/satchel_panel_t_8.png",
+  "frame/satchel_panel_tl_8.png",
+  "frame/satchel_panel_tr_8.png",
+  "mock/satchel_mock_character_420x178.png",
+  "mock/satchel_mock_consumables_420x178.png",
+  "mock/satchel_mock_inventory_420x178.png",
+  "mock/satchel_mock_lich_tome_420x178.png",
+  "mock/satchel_mock_lich_tome_empty_420x178.png",
+  "mock/satchel_mock_lich_tome_enchantments_420x178.png",
+  "mock/satchel_mock_lich_tome_recipes_420x178.png",
+  "mock/satchel_mock_map_420x178.png",
+  "mock/satchel_mock_notes_420x178.png",
+  "tabs/tab_blank_disabled_9slice_12x16_s4.png",
+  "tabs/tab_blank_hover_9slice_12x16_s4.png",
+  "tabs/tab_blank_idle_9slice_12x16_s4.png",
+  "tabs/tab_blank_selected_9slice_12x23_s4.png",
+  "tabs/tab_character_disabled_73x16.png",
+  "tabs/tab_character_hover_73x16.png",
+  "tabs/tab_character_idle_73x16.png",
+  "tabs/tab_character_selected_73x23.png",
+  "tabs/tab_consumables_disabled_81x16.png",
+  "tabs/tab_consumables_hover_81x16.png",
+  "tabs/tab_consumables_idle_81x16.png",
+  "tabs/tab_consumables_selected_81x23.png",
+  "tabs/tab_icon_character_disabled_26x20.png",
+  "tabs/tab_icon_character_hover_26x20.png",
+  "tabs/tab_icon_character_idle_26x20.png",
+  "tabs/tab_icon_character_selected_26x27.png",
+  "tabs/tab_icon_consumables_disabled_26x20.png",
+  "tabs/tab_icon_consumables_hover_26x20.png",
+  "tabs/tab_icon_consumables_idle_26x20.png",
+  "tabs/tab_icon_consumables_selected_26x27.png",
+  "tabs/tab_icon_inventory_disabled_26x20.png",
+  "tabs/tab_icon_inventory_hover_26x20.png",
+  "tabs/tab_icon_inventory_idle_26x20.png",
+  "tabs/tab_icon_inventory_selected_26x27.png",
+  "tabs/tab_icon_lich_tome_disabled_26x20.png",
+  "tabs/tab_icon_lich_tome_hover_26x20.png",
+  "tabs/tab_icon_lich_tome_idle_26x20.png",
+  "tabs/tab_icon_lich_tome_selected_26x27.png",
+  "tabs/tab_icon_map_disabled_26x20.png",
+  "tabs/tab_icon_map_hover_26x20.png",
+  "tabs/tab_icon_map_idle_26x20.png",
+  "tabs/tab_icon_map_selected_26x27.png",
+  "tabs/tab_icon_notes_disabled_26x20.png",
+  "tabs/tab_icon_notes_hover_26x20.png",
+  "tabs/tab_icon_notes_idle_26x20.png",
+  "tabs/tab_icon_notes_selected_26x27.png",
+  "tabs/tab_inventory_disabled_73x16.png",
+  "tabs/tab_inventory_hover_73x16.png",
+  "tabs/tab_inventory_idle_73x16.png",
+  "tabs/tab_inventory_selected_73x23.png",
+  "tabs/tab_lich_tome_disabled_72x16.png",
+  "tabs/tab_lich_tome_hover_72x16.png",
+  "tabs/tab_lich_tome_idle_72x16.png",
+  "tabs/tab_lich_tome_selected_72x23.png",
+  "tabs/tab_map_disabled_48x16.png",
+  "tabs/tab_map_hover_48x16.png",
+  "tabs/tab_map_idle_48x16.png",
+  "tabs/tab_map_selected_48x23.png",
+  "tabs/tab_notes_disabled_56x16.png",
+  "tabs/tab_notes_hover_56x16.png",
+  "tabs/tab_notes_idle_56x16.png",
+  "tabs/tab_notes_selected_56x23.png",
+  "tome_tabs/tome_empty_parchment_9slice_18_s6.png",
+  "tome_tabs/tome_empty_parchment_sample_378x84.png",
+  "tome_tabs/tome_empty_state_394x108.png",
+  "tome_tabs/tome_list_row_hover_378x20.png",
+  "tome_tabs/tome_list_row_hover_9slice_12_s4.png",
+  "tome_tabs/tome_list_row_idle_378x20.png",
+  "tome_tabs/tome_list_row_idle_9slice_12_s4.png",
+  "tome_tabs/tome_list_row_locked_378x20.png",
+  "tome_tabs/tome_list_row_locked_9slice_12_s4.png",
+  "tome_tabs/tome_list_row_sel_378x20.png",
+  "tome_tabs/tome_list_row_sel_9slice_12_s4.png",
+  "tome_tabs/tome_sub_inset_enchantments_9slice_18_s6.png",
+  "tome_tabs/tome_sub_inset_enchantments_sample_394x96.png",
+  "tome_tabs/tome_sub_inset_recipes_9slice_18_s6.png",
+  "tome_tabs/tome_sub_inset_recipes_sample_394x96.png",
+  "tome_tabs/tome_sub_inset_spells_9slice_18_s6.png",
+  "tome_tabs/tome_sub_inset_spells_sample_394x96.png",
+  "tome_tabs/tome_tab_blank_disabled_9slice_12x11_s4.png",
+  "tome_tabs/tome_tab_blank_hover_9slice_12x11_s4.png",
+  "tome_tabs/tome_tab_blank_idle_9slice_12x11_s4.png",
+  "tome_tabs/tome_tab_blank_selected_9slice_12x16_s4.png",
+  "tome_tabs/tome_tab_enchantments_disabled_59x11.png",
+  "tome_tabs/tome_tab_enchantments_hover_59x11.png",
+  "tome_tabs/tome_tab_enchantments_idle_59x11.png",
+  "tome_tabs/tome_tab_enchantments_selected_59x16.png",
+  "tome_tabs/tome_tab_recipes_disabled_39x11.png",
+  "tome_tabs/tome_tab_recipes_hover_39x11.png",
+  "tome_tabs/tome_tab_recipes_idle_39x11.png",
+  "tome_tabs/tome_tab_recipes_selected_39x16.png",
+  "tome_tabs/tome_tab_spells_disabled_35x11.png",
+  "tome_tabs/tome_tab_spells_hover_35x11.png",
+  "tome_tabs/tome_tab_spells_idle_35x11.png",
+  "tome_tabs/tome_tab_spells_selected_35x16.png"
+ ],
+ "inventory": {
+  "body_h": 108,
+  "grid": [
+   7,
+   3
+  ],
+  "grid_frame": [
+   216,
+   96
+  ],
+  "rarities": [
+   "common",
+   "magic",
+   "rare",
+   "unique"
+  ],
+  "stat_panel": [
+   172,
+   108
+  ],
+  "stat_panel_x": 222
+ },
+ "pack": "v07101_satchel_tabs",
+ "panel": {
+  "content": [
+   13,
+   13,
+   394,
+   134
+  ],
+  "frame_px": 5,
+  "nine_slice": "satchel_panel_9slice_24_s8",
+  "padding_px": 8,
+  "size": [
+   420,
+   160
+  ]
+ },
+ "status": "PARKED - READY for wire on Jake GO",
+ "tab_order": [
+  "character",
+  "inventory",
+  "consumables",
+  "notes",
+  "lich_tome",
+  "map"
+ ],
+ "tab_strip": {
+  "gap": 1,
+  "icon_tab": [
+   26,
+   20
+  ],
+  "idle_h": 16,
+  "idle_y": 2,
+  "selected_h": 23,
+  "selected_y": 0,
+  "strip_h": 18,
+  "strip_w": 414,
+  "widths": {
+   "character": 73,
+   "consumables": 81,
+   "inventory": 73,
+   "lich_tome": 72,
+   "map": 48,
+   "notes": 56
+  },
+  "x0": 6
+ },
+ "tome_tabs": {
+  "body": [
+   394,
+   96
+  ],
+  "gap": 1,
+  "idle_h": 11,
+  "idle_y": 1,
+  "list_row": [
+   378,
+   20
+  ],
+  "order": [
+   "spells",
+   "recipes",
+   "enchantments"
+  ],
+  "selected_h": 16,
+  "selected_y": 0,
+  "strip_h": 12,
+  "strip_w": 139,
+  "widths": {
+   "enchantments": 59,
+   "recipes": 39,
+   "spells": 35
+  },
+  "x0": 4
+ }
+}
