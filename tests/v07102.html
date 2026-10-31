@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>v07102</title></head>
+<body>
+<iframe id="g" src="../index.html" style="width:960px;height:540px;border:0"></iframe>
+<pre id="out">running</pre>
+<script>
+const lines = [];
+function check(name, cond, extra) {
+  lines.push((cond ? 'PASS' : 'FAIL') + ' ' + name + (extra ? ' :: ' + String(extra).slice(0, 400) : ''));
+}
+function finish() {
+  const fails = lines.filter(l => l.startsWith('FAIL')).length;
+  document.getElementById('out').textContent = lines.join('\n');
+  document.title = (fails ? 'FAIL ' + fails : 'PASS') + ' / ' + lines.length;
+}
+function fetchText(url) {
+  try { const x = new XMLHttpRequest(); x.open('GET', url, false); x.send(null); return x.status === 200 ? x.responseText : ''; }
+  catch (e) { return ''; }
+}
+document.getElementById('g').addEventListener('load', () => {
+  try { run(document.getElementById('g').contentWindow); }
+  catch (e) { lines.push('FAIL harness :: ' + (e && e.stack || e)); }
+  finish();
+});
+function rect(el) { const b = el.getBoundingClientRect(); return b; }
+function inside(b, w, h, slack) {
+  return b.left >= -slack && b.top >= -slack && b.right <= w + slack && b.bottom <= h + slack && b.width > 8 && b.height > 8;
+}
+function run(w) {
+  const g = w.game;
+  const src = fetchText('../index.html');
+  const ver = fetchText('../version.json');
+  check('boot', !!(g && g.version));
+  check('version matches json', !!(g && ver.indexOf('"' + g.version + '"') >= 0), (g && g.version) + ' ' + ver);
+  check('dev hud stays off github.io', g.lichDevOn('gamedevjake.github.io', '?lichDev=1') === false);
+  check('no css zoom scale', src.indexOf('zoom:var(--ui)') < 0 && src.indexOf('zoom:var(--hud)') < 0);
+  check('satchel still tabbed', !!w.document.getElementById('satchel') && !!w.document.getElementById('satTabs') && typeof w.satchelOpenTab === 'function');
+  const menu = w.document.getElementById('menu');
+  const cs = w.getComputedStyle(menu);
+  check('menu scale is transform', (cs.zoom === '1' || cs.zoom === 'normal') && cs.transform && cs.transform !== 'none', 'zoom ' + cs.zoom + ' transform ' + cs.transform);
+
+  const frame = document.getElementById('g');
+  const sizes = [[891, 411], [780, 360], [844, 390], [1280, 720], [1560, 720], [960, 540]];
+  sizes.forEach(([W, H]) => {
+    frame.style.width = W + 'px';
+    frame.style.height = H + 'px';
+    w.resize();
+    const vw = w.innerWidth, vh = w.innerHeight, slack = 2;
+    const de = w.document.documentElement;
+    const tag = W + 'x' + H;
+    check(tag + ' no page overflow', de.scrollWidth <= vw + slack && de.scrollHeight <= vh + slack, de.scrollWidth + 'x' + de.scrollHeight + ' vs ' + vw + 'x' + vh);
+    const mb = rect(menu);
+    check(tag + ' menu inside', inside(mb, vw, vh, slack) && mb.width >= vw * 0.9 && mb.height >= vh * 0.9, [Math.round(mb.left), Math.round(mb.top), Math.round(mb.right), Math.round(mb.bottom), vw, vh].join(','));
+    const title = rect(w.document.querySelector('#menu .title'));
+    const cx = (title.left + title.right) / 2;
+    check(tag + ' title centered', Math.abs(cx - vw / 2) <= vw * 0.12, 'cx ' + cx.toFixed(0) + ' mid ' + (vw / 2).toFixed(0));
+    const canvas = rect(w.document.getElementById('game'));
+    check(tag + ' canvas inside', inside(canvas, vw, vh, slack) && canvas.width >= vw * 0.9 && canvas.height >= vh * 0.9, [Math.round(canvas.left), Math.round(canvas.top), Math.round(canvas.width), Math.round(canvas.height)].join(','));
+    const touch = w.document.getElementById('touch');
+    const hidden = touch.classList.contains('hidden');
+    touch.classList.remove('hidden');
+    w.fitUi101();
+    const tb = rect(touch);
+    const atk = rect(w.document.getElementById('bAtk'));
+    check(tag + ' touch inside', inside(tb, vw, vh, slack) && tb.width >= vw * 0.9, [Math.round(tb.right), Math.round(tb.bottom), vw, vh].join(','));
+    check(tag + ' attack on screen', inside(atk, vw, vh, slack), [Math.round(atk.left), Math.round(atk.top), Math.round(atk.right), Math.round(atk.bottom)].join(','));
+    if (hidden) touch.classList.add('hidden');
+    check(tag + ' still no overflow', de.scrollWidth <= vw + slack && de.scrollHeight <= vh + slack, de.scrollWidth + 'x' + de.scrollHeight);
+  });
+
+  frame.style.width = '891px';
+  frame.style.height = '411px';
+  w.resize();
+  g.newGame();
+  w.resize();
+  const vw = w.innerWidth, vh = w.innerHeight, slack = 2;
+  const de = w.document.documentElement;
+  check('play no overflow', de.scrollWidth <= vw + slack && de.scrollHeight <= vh + slack && g.state === 'play', de.scrollWidth + 'x' + de.scrollHeight + ' ' + g.state);
+  const playCanvas = rect(w.document.getElementById('game'));
+  check('play canvas inside', inside(playCanvas, vw, vh, slack), [Math.round(playCanvas.left), Math.round(playCanvas.top), Math.round(playCanvas.right), Math.round(playCanvas.bottom)].join(','));
+  w.openInv();
+  w.satchelOpenTab('inventory');
+  const sat = rect(w.document.getElementById('satchel'));
+  check('satchel opens inside', w.document.getElementById('inv').classList.contains('hidden') === false && inside(sat, vw, vh, 8), [Math.round(sat.left), Math.round(sat.top), Math.round(sat.right), Math.round(sat.bottom), vw, vh].join(','));
+  check('satchel open no overflow', de.scrollWidth <= vw + slack && de.scrollHeight <= vh + slack, de.scrollWidth + 'x' + de.scrollHeight);
+  check('satchel tabs live', (w.document.getElementById('satTabs').textContent || '').indexOf('Inventory') >= 0);
+  w.closeInv();
+  check('satchel closes', w.document.getElementById('inv').classList.contains('hidden') && g.state === 'play');
+}
+</script>
+</body>
+</html>
